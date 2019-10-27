@@ -1,5 +1,7 @@
 {
   "name": "Cascade",
-  "integrations": {},
+  "integrations": {
+    "cordova": {}
+  },
   "type": "angular"
 }

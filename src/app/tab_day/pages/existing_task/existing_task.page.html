@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-toolbar>
+      <ion-buttons slot="start">
+          <ion-back-button></ion-back-button>
+        </ion-buttons>
+    <ion-title>
+      Add Existing Task
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list *ngFor="let task of available_tasks_; let i = index">
+    <ion-item>
+        <ion-label>
+          <h3>{{task.task.name}}</h3>
+          <p>{{task.goal?.name}}</p>
+          </ion-label>
+          <ion-checkbox slot="start" [(ngModel)]="checkboxes_array_[i]"></ion-checkbox>
+      </ion-item>
+  </ion-list>
+
+  <ion-item lines="none">
+    <ion-button slot="end" (click)="save()">
+        Save
+    </ion-button>
+  </ion-item>
+</ion-content>

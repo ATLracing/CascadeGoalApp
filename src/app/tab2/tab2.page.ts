@@ -6,6 +6,10 @@ import { Component } from '@angular/core';
   styleUrls: ['tab2.page.scss']
 })
 export class Tab2Page {
+  private slideOpts = {
+    initialSlide: 1,
+    speed: 400
+  };
 
   constructor() {}
 

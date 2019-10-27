@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar>
+      <ion-buttons slot="start">
+          <ion-back-button></ion-back-button>
+        </ion-buttons>
+    <ion-title>
+      New Goal
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-item>
+      <ion-label>Name</ion-label>
+      <ion-input placeholder="Write that app.." [(ngModel)]="new_goal_.name"></ion-input>
+    </ion-item>
+  <ion-item>
+      <ion-textarea placeholder="Notes (recommended)" clearOnEdit="true" [(ngModel)]="new_goal_.details"></ion-textarea>
+  </ion-item>
+  <ion-item>
+    <ion-label>Associated Vision</ion-label>
+    <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="vision_parent_id_string_" >
+        <ion-select-option value="">None</ion-select-option>
+        <ion-select-option *ngFor="let vision of all_visions_" value="{{vision.unique_id}}">{{vision.name}}</ion-select-option>
+      </ion-select>
+  </ion-item>
+  <ion-item lines="none">
+    <ion-button slot="end" (click)="save()">
+        Save
+    </ion-button>
+  </ion-item>
+  
+</ion-content>

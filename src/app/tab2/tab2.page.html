@@ -6,4 +6,27 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content></ion-content>
+<ion-content>
+
+    <ion-slides pager="true" [options]="slideOpts">
+        <ion-slide>
+          <ion-item>
+            <ion-list>
+              <ion-item>
+                <ion-label>Item One</ion-label>
+              </ion-item>
+              <ion-item>
+                  <ion-label>Item Two</ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-item>
+        </ion-slide>
+        <ion-slide>
+          <h1>Slide 2</h1>
+        </ion-slide>
+        <ion-slide>
+          <h1>Slide 3</h1>
+        </ion-slide>
+      </ion-slides>
+
+</ion-content>

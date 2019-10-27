@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar>
+      <ion-buttons slot="start">
+          <ion-back-button></ion-back-button>
+        </ion-buttons>
+    <ion-title>
+      New Task
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-item>
+      <ion-label>Name</ion-label>
+      <ion-input placeholder="Do the dishes.." [(ngModel)]="new_task_.name"></ion-input>
+    </ion-item>
+  <ion-item>
+      <ion-textarea placeholder="Notes (optional)" clearOnEdit="true" [(ngModel)]="new_task_.details"></ion-textarea>
+  </ion-item>
+  <ion-item *ngIf="!input_settings_.preset_goal">
+    <ion-label>Associated Goal</ion-label>
+    <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="goal_parent_id_string_" >
+        <ion-select-option value="">None</ion-select-option>
+        <ion-select-option *ngFor="let goal of all_goals_" value="{{goal.unique_id}}">{{goal.name}}</ion-select-option>
+      </ion-select>
+  </ion-item>
+  <ion-item lines="none">
+    <ion-button slot="end" (click)="save()">
+        Save
+    </ion-button>
+  </ion-item>
+  
+</ion-content>
