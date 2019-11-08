@@ -1,32 +1,38 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>
-      Financial Independence
+      {{expanded_visions_[vision_index_].name}}
     </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="add_new_vision()">
+        <ion-icon slot="icon-only" name="add-circle"></ion-icon>
+      </ion-button>
+  </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
 
-  <ion-slides pager="true" [options]="slide_options_">
-      <ion-slide>
+  <ion-slides pager="true" [options]="slide_options_" (ionSlideDidChange)="slide_changed()">
+      <ion-slide *ngFor="let expanded_vision of expanded_visions_; let vision_index = index">
         <ion-item lines="none">
           <ion-list>
-            <ion-item *ngFor="let goal of expanded_goals_; let i = index">
+            <ion-item *ngFor="let goal of expanded_vision.child_goals; let goal_index = index">
               <ion-grid>
                 <ion-row align-items-stretch>
                   <ion-col>
-                      <ion-label (click)="goal_show_hide_tasks(i)">
+                      <ion-label (click)="goal_show_hide_tasks(vision_index, goal_index)">
                         <h2>{{goal.name}}</h2>
                       </ion-label>
                   </ion-col>
-                  <ion-col *ngIf="expanded_options_array_[i]">
-                    <ion-button (click)="add_task_to_goal(i)">
+                  <ion-col *ngIf="expanded_goals_arrays_[vision_index][goal_index]">
+                    <ion-button (click)="add_task_to_goal(vision_index, goal_index)">
                         <ion-icon slot="icon-only" name="add"></ion-icon>
                     </ion-button>
                   </ion-col>
                 </ion-row>
-                <ion-row *ngIf="expanded_options_array_[i]">
+                <ion-row *ngIf="expanded_goals_arrays_[vision_index][goal_index]">
                   <ion-col>
                     <ion-list lines="none">
                       <ion-item *ngFor="let task of goal.child_tasks">
@@ -40,13 +46,10 @@
               </ion-grid>
             </ion-item>
             <ion-item lines="none">
-              <ion-button (click)="new_goal()">New Goal</ion-button>
+              <ion-button (click)="add_goal_to_vision(vision_index)">New Goal</ion-button>
             </ion-item>
           </ion-list>
         </ion-item>
-      </ion-slide>
-      <ion-slide>
-        <h1>Slide 2</h1>
       </ion-slide>
     </ion-slides>
 </ion-content>

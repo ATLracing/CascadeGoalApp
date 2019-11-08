@@ -3,6 +3,11 @@ import { DatabaseManager, Goal, Task, DatabaseHelper, Vision } from 'src/app/pro
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 
+export class NewGoalPageSettings
+{
+  preset_vision: boolean;
+}
+
 @Component({
   selector: 'new-goal-page',
   templateUrl: 'new_goal.page.html',
@@ -12,12 +17,17 @@ export class NewGoalPage implements OnDestroy {
   private all_visions_: Vision[];
   private new_goal_: Goal;
   private vision_parent_id_string_;
+  private input_settings_: NewGoalPageSettings;
 
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer)
   {
+    this.input_settings_ = this.addressed_transfer_.get(router_.url + "_settings");
+    if (this.input_settings_ == undefined)
+      this.input_settings_ = new NewGoalPageSettings();
+
     database_manager_.register_data_updated_callback("new_goal_page", () => {
       this.all_visions_ = database_manager_.get_visions_copy(); // TODO: Needed for updates?
     });

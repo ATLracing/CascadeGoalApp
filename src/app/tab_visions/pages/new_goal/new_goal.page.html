@@ -17,7 +17,7 @@
   <ion-item>
       <ion-textarea placeholder="Notes (recommended)" clearOnEdit="true" [(ngModel)]="new_goal_.details"></ion-textarea>
   </ion-item>
-  <ion-item>
+  <ion-item *ngIf="!input_settings_.preset_vision">
     <ion-label>Associated Vision</ion-label>
     <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="vision_parent_id_string_" >
         <ion-select-option value="">None</ion-select-option>

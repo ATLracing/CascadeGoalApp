@@ -519,6 +519,35 @@ export class ExpandedGoal extends Goal
     }
 }
 
+export class ExpandedVision extends Vision
+{
+    child_goals: ExpandedGoal[];
+
+    constructor(vision: Vision, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
+    {
+        super();
+
+        // Vision fields
+        this.name = vision.name;
+        this.date_created = vision.date_created;
+        this.date_completed = vision.date_completed;
+        this.date_cancelled = vision.date_cancelled;
+        this.details = vision.details;
+        this.unique_id = vision.unique_id;
+        this.child_ids = vision.child_ids.slice();
+
+        this.child_goals = [];
+        
+        // Build the tree
+        for (let goal_id of this.child_ids)
+        {
+            let goal = all_goals[goal_id];
+            let expanded_goal = new ExpandedGoal(goal, all_tasks, all_visions);
+            this.child_goals.push(expanded_goal);
+        }
+    }
+}
+
 export class DatabaseHelper
 {
     static create_blank_task() : Task
@@ -630,5 +659,22 @@ export class DatabaseHelper
       }
 
       return expanded_goals;
+    }
+
+    static get_expanded_visions(database_manager: DatabaseManager)
+    {
+        let all_tasks = database_manager.get_tasks_ref();
+        let all_goals = database_manager.get_goals_ref();
+        let all_visions = database_manager.get_visions_ref();
+
+        let expanded_visions = [];
+
+        for (let vision of all_visions)
+        {
+            let expanded_vision = new ExpandedVision(vision, all_tasks, all_goals, all_visions);
+            expanded_visions.push(expanded_vision);
+        }
+
+        return expanded_visions;
     }
 }

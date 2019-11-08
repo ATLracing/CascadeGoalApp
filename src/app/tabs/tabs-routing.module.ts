@@ -33,7 +33,7 @@ const routes: Routes = [
           {
             path: '',
             loadChildren: () =>
-              import('../tab_manage/tab_manage.module').then(m => m.Tab3PageModule)
+              import('../tab_visions/tab_visions.module').then(m => m.Tab3PageModule)
           }
         ]
       },
