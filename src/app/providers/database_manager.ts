@@ -528,6 +528,7 @@ export class ExpandedTask extends Task
 {
   goal: Goal;
   vision: Vision;
+  extra: any;       // Components can tack on bindable UI data here
 
   constructor(task: Task, all_goals: Goal[], all_visions: Vision[])
   {
@@ -548,10 +549,11 @@ export class ExpandedTask extends Task
 export class ExpandedGoal extends Goal
 {
     parent_vision: Vision;
-    child_tasks: Task[];
+    child_tasks: ExpandedTask[];
+    extra: any;       // Components can tack on bindable UI data here
 
     // Full
-    constructor(goal: Goal, task_filter: (task: Task) => boolean, all_tasks: Task[], all_visions: Vision[])
+    constructor(goal: Goal, task_filter: (task: Task) => boolean, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
     {
         // Copy construct
         super(goal);
@@ -567,7 +569,7 @@ export class ExpandedGoal extends Goal
 
             if (task_filter(task))
             {
-                this.child_tasks.push(all_tasks[child_id]);
+                this.child_tasks.push(new ExpandedTask(all_tasks[child_id], all_goals, all_visions));
             }
         }
     }
@@ -591,7 +593,7 @@ export class ExpandedVision extends Vision
 
             if (goal_filter(goal))
             {
-                let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_visions);
+                let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_goals, all_visions);
                 this.child_goals.push(expanded_goal);
             }
         }
@@ -745,7 +747,7 @@ export class DatabaseHelper
         {
             if (goal_filter(goal))
             {
-                let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_visions);
+                let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_goals, all_visions);
                 expanded_goals.push(expanded_goal);
             }
         }

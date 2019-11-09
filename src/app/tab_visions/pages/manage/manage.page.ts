@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { DatabaseManager, DatabaseHelper, ExpandedGoal, ExpandedTask, Task, Goal, ExpandedVision } from 'src/app/providers/database_manager';
+import { DatabaseManager, DatabaseHelper, Task, Goal, ExpandedVision } from 'src/app/providers/database_manager';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { IonSlides, IonLabel } from '@ionic/angular';
@@ -11,7 +11,6 @@ import { IonSlides, IonLabel } from '@ionic/angular';
 })
 export class ManagePage {
   private expanded_visions_: ExpandedVision[];
-  private expanded_goals_arrays_: boolean[][];
   private vision_index_;
   private slide_options_ = {
     initialSlide: 0,
@@ -26,34 +25,28 @@ export class ManagePage {
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer) {
     
-      this.expanded_goals_arrays_ = [];
       this.vision_index_ = 0;
 
       database_manager_.register_data_updated_callback("manage_page", () => {
       this.expanded_visions_ = DatabaseHelper.query_visions(this.database_manager_);
 
-      let new_expanded_goals_arrays_ = [];
-
+      // Tack on UI info
       for (let expanded_vision of this.expanded_visions_)
       {
-        let new_expanded_goal_array = [];
-
-        for (let i = 0; i < expanded_vision.child_goals.length; i++)
+        for (let expanded_goal of expanded_vision.child_goals)
         {
-          new_expanded_goal_array.push(false);
+          expanded_goal.extra = { expanded: false };
         }
-
-        new_expanded_goals_arrays_.push(new_expanded_goal_array);
       }
 
-      this.expanded_goals_arrays_ = new_expanded_goals_arrays_;
     });
   }
 
   goal_show_hide_tasks(vision_index: number, goal_index: number)
   {
     console.log("Show/hide tasks");
-    this.expanded_goals_arrays_[vision_index][goal_index] = !this.expanded_goals_arrays_[vision_index][goal_index];
+    this.expanded_visions_[vision_index].child_goals[goal_index].extra.expanded = 
+      !this.expanded_visions_[vision_index].child_goals[goal_index].extra.expanded;
   }
 
   add_task_to_goal(vision_index: number, goal_index: number)

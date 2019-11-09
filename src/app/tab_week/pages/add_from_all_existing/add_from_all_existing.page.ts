@@ -20,29 +20,40 @@ export class AddFromAllExistingPage {
   constructor(private database_manager_: DatabaseManager,
               private addressed_transfer_: AddressedTransfer,
               private router_: Router,
-              private route_: ActivatedRoute) {
-    this.expanded_goals_array_ = [];
-    
+              private route_: ActivatedRoute) {    
     let inputs = this.addressed_transfer_.get_for_route(router_, "inputs");
     let excluded_ids = inputs.excluded_ids;
 
     database_manager_.register_data_updated_callback("add_from_all_existing_page", () => {
       this.goals_ = DatabaseHelper.query_goals(this.database_manager_, TaskFilter.excluding(excluded_ids));
 
-      let new_expanded_goals_array = [];
-
+      // Append extra info
       for (let goal of this.goals_)
       {
-        new_expanded_goals_array.push(false);
-      }
+        goal.extra = { expanded: false };
 
-      this.expanded_goals_array_ = new_expanded_goals_array;
+        for (let task of goal.child_tasks)
+        {
+          task.extra = { selected: false };
+        }
+      }
     });
   }
 
   goal_show_hide_tasks(goal_index: number)
   {
     console.log("Show/hide tasks");
-    this.expanded_goals_array_[goal_index] = !this.expanded_goals_array_[goal_index];
+    this.goals_[goal_index].extra.expanded = !this.goals_[goal_index].extra.expanded;
+  }
+
+  save()
+  {
+    for (let goal of this.goals_)
+    {
+      for (let task of goal.child_tasks)
+      {
+        console.log(task.extra.selected);
+      }
+    }
   }
 }
