@@ -1,0 +1,67 @@
+import { Component } from '@angular/core';
+import { DatabaseManager, Week, Day, DatabaseHelper, PartialExpandedGoal } from 'src/app/providers/database_manager';
+import { Router, ActivatedRoute } from '@angular/router';
+import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
+
+@Component({
+  selector: 'app-week-tasks',
+  templateUrl: 'week_tasks.page.html',
+  styleUrls: ['week_tasks.page.scss']
+})
+export class WeekTasksPage {
+  private goals_: PartialExpandedGoal[];
+  private week_: Week;
+  private day_: Day;
+
+  private expanded_goals_array_: boolean[];
+
+  constructor(private database_manager_: DatabaseManager,
+              private router_: Router,
+              private route_: ActivatedRoute,
+              private addressed_transfer_: AddressedTransfer) {
+    this.expanded_goals_array_ = [];
+    
+    database_manager_.register_data_updated_callback("this_week_tasks_page", () => {
+      // TODO: Figure out the most recent day
+      let days = database_manager_.get_days_copy();
+      let weeks = database_manager_.get_weeks_copy();
+      
+      this.day_ = days[days.length - 1];
+      this.week_ = weeks[weeks.length - 1];
+      
+      this.goals_ = DatabaseHelper.get_partial_expanded_goals(this.week_.task_ids, this.database_manager_);
+
+      let new_expanded_goals_array = [];
+
+      for (let index in this.goals_)
+      {
+        new_expanded_goals_array.push(false);
+      }
+
+      this.expanded_goals_array_ = new_expanded_goals_array;
+    });
+  }
+
+  goal_show_hide_tasks(goal_index: number)
+  {
+    console.log("Show/hide tasks");
+    this.expanded_goals_array_[goal_index] = !this.expanded_goals_array_[goal_index];
+  }
+
+  add_new_task()
+  {
+  }
+
+  add_existing_task()
+  {
+    console.log("Existing task");
+    this.addressed_transfer_.put(this.router_.url + "/add_from_all_existing_inputs", { excluded_ids: this.week_.task_ids });
+    
+    this.addressed_transfer_.put(this.router_.url + "_callback", (new_task_ids: number[]) => {
+      this.week_.task_ids = this.week_.task_ids.concat(new_task_ids);
+      this.database_manager_.set_week(this.week_);
+    });
+
+    this.router_.navigate(['add_from_all_existing'], { relativeTo: this.route_} );
+  }
+}

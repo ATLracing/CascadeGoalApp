@@ -20,6 +20,19 @@ export class Task
     // Implementation
     unique_id: number;
     parent_id: number;
+
+    constructor(other: Task)
+    {
+        // Goal fields
+        this.name = other.name;
+        this.date_created = other.date_created;
+        this.date_completed = other.date_completed;
+        this.date_cancelled = other.date_cancelled;
+        
+        this.details = other.details;
+        this.unique_id = other.unique_id;
+        this.parent_id = other.parent_id;
+    }
 }
 
 // Middle node (whatever that's called)
@@ -39,6 +52,20 @@ export class Goal
     unique_id: number;
     parent_id: number;
     child_ids: number[];
+
+    constructor(other: Goal)
+    {
+        // Goal fields
+        this.name = other.name;
+        this.date_created = other.date_created;
+        this.date_completed = other.date_completed;
+        this.date_cancelled = other.date_cancelled;
+        
+        this.details = other.details;
+        this.unique_id = other.unique_id;
+        this.parent_id = other.parent_id;
+        this.child_ids = other.child_ids.slice();
+    }
 }
 
 // Root node
@@ -57,6 +84,18 @@ export class Vision
     // Implementation
     unique_id: number;
     child_ids: number[];
+
+    constructor(other: Vision)
+    {
+        // Vision fields
+        this.name = other.name;
+        this.date_created = other.date_created;
+        this.date_completed = other.date_completed;
+        this.date_cancelled = other.date_cancelled;
+        this.details = other.details;
+        this.unique_id = other.unique_id;
+        this.child_ids = other.child_ids.slice();
+    }
 }
 
 export class Day
@@ -70,7 +109,6 @@ export class Week
 {
     date: Date;         // Monday
     task_ids: number[];
-    goal_ids: number[];
     unique_id: number;
 }
 
@@ -92,7 +130,6 @@ class DataBaseImage
 
     days: Day[];
     weeks: Week[];
-    months: Month[];
 }
 
 // ==================================================================================== EXAMPLE DATA 
@@ -247,6 +284,12 @@ let example_day_one = {
     unique_id: 0
 };
 
+let example_week_one = {
+    date: new Date(),
+    task_ids: [0, 1, 4],
+    unique_id: 0
+};
+
 let example_db_image = {
     version: 1,
     
@@ -255,8 +298,7 @@ let example_db_image = {
     visions: [example_vision_one, example_vision_two],
 
     days: [example_day_one],
-    weeks: [],
-    months: []
+    weeks: [example_week_one],
 }
 
 let empty_db = {
@@ -268,7 +310,6 @@ let empty_db = {
 
     days: [],
     weeks: [],
-    months: []
 }
 
 // Full read/write strategy
@@ -463,19 +504,35 @@ export class DatabaseManager
     {
         return DatabaseManager.database_data.days.slice();
     }
+
+    set_week(week: Week, no_callbacks?: boolean)
+    {
+        let copy = JSON.parse(JSON.stringify(week));
+        DatabaseManager.database_data.weeks[week.unique_id] = copy;
+        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+    }
+
+    get_weeks_ref()
+    {
+        return DatabaseManager.database_data.weeks;
+    }
+    
+    get_weeks_copy()
+    {
+        return DatabaseManager.database_data.weeks.slice();
+    }
 }
 
-export class ExpandedTask
+export class ExpandedTask extends Task
 {
-  task: Task;
   goal: Goal;
   vision: Vision;
 
   constructor(task: Task, all_goals: Goal[], all_visions: Vision[])
   {
-    this.task = JSON.parse(JSON.stringify(task));
+    super(task);
     
-    if (this.task.parent_id != undefined)
+    if (this.parent_id != undefined)
       this.goal = JSON.parse(JSON.stringify(all_goals[task.parent_id]));
     else
       this.goal = undefined;
@@ -492,20 +549,11 @@ export class ExpandedGoal extends Goal
     parent_vision: Vision;
     child_tasks: Task[];
 
+    // Full
     constructor(goal: Goal, all_tasks: Task[], all_visions: Vision[])
     {
-        super();
-
-        // Goal fields
-        this.name = goal.name;
-        this.date_created = goal.date_created;
-        this.date_completed = goal.date_completed;
-        this.date_cancelled = goal.date_cancelled;
-        
-        this.details = goal.details;
-        this.unique_id = goal.unique_id;
-        this.parent_id = goal.parent_id;
-        this.child_ids = goal.child_ids.slice();
+        // Copy construct
+        super(goal);
 
         // Expanded fields
         if (goal.parent_id != undefined)
@@ -519,22 +567,36 @@ export class ExpandedGoal extends Goal
     }
 }
 
+export class PartialExpandedGoal extends Goal
+{
+    parent_vision: Vision;
+    child_tasks: Task[];
+
+    constructor(goal: Goal, task_ids: number[], all_tasks: Task[], all_visions: Vision[])
+    {
+        // Copy construct
+        super(goal);
+
+        // Expanded fields
+        if (goal.parent_id != undefined)
+            this.parent_vision = JSON.parse(JSON.stringify(all_visions[this.parent_id]));
+        
+        this.child_tasks = [];
+        for (let child_id of task_ids)
+        {
+            this.child_tasks.push(all_tasks[child_id]);
+        }
+    }
+}
+
 export class ExpandedVision extends Vision
 {
     child_goals: ExpandedGoal[];
 
     constructor(vision: Vision, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
     {
-        super();
-
-        // Vision fields
-        this.name = vision.name;
-        this.date_created = vision.date_created;
-        this.date_completed = vision.date_completed;
-        this.date_cancelled = vision.date_cancelled;
-        this.details = vision.details;
-        this.unique_id = vision.unique_id;
-        this.child_ids = vision.child_ids.slice();
+        // Copy construct
+        super(vision);
 
         this.child_goals = [];
         
@@ -641,6 +703,82 @@ export class DatabaseHelper
       }
 
       return expanded_goals;
+    }
+
+    static get_partial_expanded_goals(task_ids: number[], database_manager: DatabaseManager)
+    {
+        let all_tasks = database_manager.get_tasks_ref();
+        let all_goals = database_manager.get_goals_ref();
+        let all_visions = database_manager.get_visions_ref();
+
+        let goal_id_map = new Map<number, number[]>(); // goal id -> task id[] 
+        
+        for (let task_id of task_ids)
+        {
+            let task = all_tasks[task_id];
+            
+            if (!goal_id_map.has(task.parent_id))
+            {
+                goal_id_map.set(task.parent_id, [])
+            }
+
+            goal_id_map.get(task.parent_id).push(task_id);
+        }
+
+        let goal_id_array = Array.from(goal_id_map.keys());
+        let expanded_goals = [];
+
+        for (let goal_id of goal_id_array)
+        {
+            let task_ids = goal_id_map.get(goal_id);
+            let goal = all_goals[goal_id];
+            let expanded_goal = new PartialExpandedGoal(goal, task_ids, all_tasks, all_visions);
+
+            expanded_goals.push(expanded_goal);
+        }
+
+        return expanded_goals;
+    }
+
+    static get_partial_expanded_goals_excluding(excluded_task_ids: number[], database_manager: DatabaseManager)
+    {
+        let all_tasks = database_manager.get_tasks_ref();
+        let all_goals = database_manager.get_goals_ref();
+        let all_visions = database_manager.get_visions_ref();
+
+        let excluded_task_ids_set = new Set<number>(excluded_task_ids);
+        
+        let goal_id_map = new Map<number, number[]>(); // goal id -> task id[]
+        
+        for (let goal of all_goals)
+        {
+            for (let task_id of goal.child_ids)
+            {
+                if (!excluded_task_ids_set.has(task_id))
+                {
+                    if (!goal_id_map.has(goal.unique_id))
+                    {
+                        goal_id_map.set(goal.unique_id, []);
+                    }
+
+                    goal_id_map.get(goal.unique_id).push(task_id)
+                }
+            }
+        }
+
+        let goal_id_array = Array.from(goal_id_map.keys());
+        let expanded_goals = [];
+
+        for (let goal_id of goal_id_array)
+        {
+            let task_ids = goal_id_map.get(goal_id);
+            let goal = all_goals[goal_id];
+            let expanded_goal = new PartialExpandedGoal(goal, task_ids, all_tasks, all_visions);
+
+            expanded_goals.push(expanded_goal);
+        }
+
+        return expanded_goals;
     }
 
     static get_all_expanded_goals(database_manager: DatabaseManager)

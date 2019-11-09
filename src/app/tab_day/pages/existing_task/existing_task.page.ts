@@ -63,8 +63,7 @@ export class ExistingTaskPage implements OnDestroy {
     {
       if (this.checkboxes_array_[i])
       {
-        let task = this.available_tasks_[i].task;
-        available_task_ids.push(task.unique_id)
+        available_task_ids.push(this.available_tasks_[i].unique_id)
       }
     }
 

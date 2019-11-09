@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      This Week
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="add_new_task()">
+        <ion-icon slot="icon-only" name="add-circle"></ion-icon>
+      </ion-button>
+    <ion-button (click)="add_existing_task()">
+        <ion-icon slot="icon-only" name="list"></ion-icon>
+      </ion-button>
+  </ion-buttons>
+  
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-item *ngFor="let goal of goals_; let goal_index = index">
+      <ion-grid>
+        <ion-row align-items-stretch>
+          <ion-col>
+              <ion-label (click)="goal_show_hide_tasks(goal_index)">
+                <h2>{{goal.name}}</h2>
+              </ion-label>
+          </ion-col>
+        </ion-row>
+        <ion-row *ngIf="expanded_goals_array_[goal_index]">
+          <ion-col>
+            <ion-list lines="none">
+              <ion-item *ngFor="let task of goal.child_tasks">
+                <ion-label>
+                  <h3>{{task.name}}</h3>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+  </ion-list>
+</ion-content>

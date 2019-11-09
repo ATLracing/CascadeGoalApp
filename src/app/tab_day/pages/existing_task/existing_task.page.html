@@ -13,7 +13,7 @@
   <ion-list *ngFor="let task of available_tasks_; let i = index">
     <ion-item>
         <ion-label>
-          <h3>{{task.task.name}}</h3>
+          <h3>{{task.name}}</h3>
           <p>{{task.goal?.name}}</p>
           </ion-label>
           <ion-checkbox slot="start" [(ngModel)]="checkboxes_array_[i]"></ion-checkbox>
