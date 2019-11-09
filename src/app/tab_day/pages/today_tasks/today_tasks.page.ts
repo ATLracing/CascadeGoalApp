@@ -46,8 +46,7 @@ export class TaskListPage implements OnDestroy {
   add_new_task()
   {
     console.log("New task");
-    let callback_address = this.router_.url + "/new_task_callback";
-    this.addressed_transfer_.put(callback_address, (new_task: Task) => {
+    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', (new_task: Task) => {
       let new_task_id = this.database_manager_.add_task(new_task, true);
       this.day_.task_ids.push(new_task_id);
       this.database_manager_.set_day(this.day_);

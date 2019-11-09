@@ -55,9 +55,9 @@ export class WeekTasksPage {
   add_existing_task()
   {
     console.log("Existing task");
-    this.addressed_transfer_.put(this.router_.url + "/add_from_all_existing_inputs", { excluded_ids: this.week_.task_ids });
+    this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "inputs", { excluded_ids: this.week_.task_ids });
     
-    this.addressed_transfer_.put(this.router_.url + "_callback", (new_task_ids: number[]) => {
+    this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "callback", (new_task_ids: number[]) => {
       this.week_.task_ids = this.week_.task_ids.concat(new_task_ids);
       this.database_manager_.set_week(this.week_);
     });

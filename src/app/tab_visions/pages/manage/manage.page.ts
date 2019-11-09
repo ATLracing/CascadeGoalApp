@@ -59,36 +59,31 @@ export class ManagePage {
   add_task_to_goal(vision_index: number, goal_index: number)
   {
     // TODO If something changes in another pane.. not good
-    let callback_address = this.router_.url + "/new_task_callback";
-    this.addressed_transfer_.put(callback_address, (new_task: Task) => {
+    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', (new_task: Task) => {
       new_task.parent_id = this.expanded_visions_[vision_index].child_goals[goal_index].unique_id;
       let new_task_id = this.database_manager_.add_task(new_task);
     });
 
-    let input_settings_address = this.router_.url + "/new_task_settings";
-    this.addressed_transfer_.put(input_settings_address, { preset_goal: true});
+    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'settings', { preset_goal: true});
     this.router_.navigate(['new_task'], { relativeTo: this.route_ });
   }
 
   add_goal_to_vision(vision_index: number)
   {
     // TODO If something changes in another pane.. not good
-    let callback_address = this.router_.url + "/new_goal_callback";
-    this.addressed_transfer_.put(callback_address, (new_goal: Goal) => {
+    this.addressed_transfer_.put_for_route(this.router_, 'new_goal', 'callback', (new_goal: Goal) => {
       new_goal.parent_id = this.expanded_visions_[vision_index].unique_id;
       this.database_manager_.add_goal(new_goal);
     });
 
-    let input_settings_address = this.router_.url + "/new_goal_settings";
-    this.addressed_transfer_.put(input_settings_address, { preset_vision: true});
+    this.addressed_transfer_.put_for_route(this.router_, 'new_goal', 'settings', { preset_vision: true});
 
     this.router_.navigate(['new_goal'], { relativeTo: this.route_ });
   }
 
   add_new_vision()
   {
-    let callback_address = this.router_.url + "/new_vision_callback";
-    this.addressed_transfer_.put(callback_address, (new_vision) => {
+    this.addressed_transfer_.put_for_route(this.router_, 'new_vision', 'callback', (new_vision) => {
       this.database_manager_.add_vision(new_vision);
     });
 

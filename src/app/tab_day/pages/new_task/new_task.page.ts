@@ -24,7 +24,7 @@ export class NewTaskPage implements OnDestroy {
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer)
   {
-    this.input_settings_ = this.addressed_transfer_.get(router_.url + "_settings");
+    this.input_settings_ = this.addressed_transfer_.get_for_route(router_, "settings");
     if (this.input_settings_ == undefined)
       this.input_settings_ = new NewTaskPageSettings();
 
@@ -40,7 +40,7 @@ export class NewTaskPage implements OnDestroy {
   {
     // TODO(ABurroughs): This sucks
     this.new_task_.parent_id = parseInt(this.goal_parent_id_string_);
-    this.addressed_transfer_.get(this.router_.url + "_callback")(this.new_task_);
+    this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_task_);
     this.router_.navigate(['../'], { relativeTo: this.route_} );
   }
 

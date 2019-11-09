@@ -23,7 +23,7 @@ export class AddFromAllExistingPage {
               private route_: ActivatedRoute) {
     this.expanded_goals_array_ = [];
     
-    let inputs = this.addressed_transfer_.get(router_.url + "_inputs");
+    let inputs = this.addressed_transfer_.get_for_route(router_, "inputs");
     let excluded_ids = inputs.excluded_ids;
 
     database_manager_.register_data_updated_callback("add_from_all_existing_page", () => {

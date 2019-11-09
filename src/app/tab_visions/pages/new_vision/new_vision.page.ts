@@ -21,7 +21,7 @@ export class NewVisionPage {
 
   save()
   {
-    this.addressed_transfer_.get(this.router_.url + "_callback")(this.new_vision_);
+    this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_vision_);
     this.router_.navigate(['../'], { relativeTo: this.route_} );
   }
 }
