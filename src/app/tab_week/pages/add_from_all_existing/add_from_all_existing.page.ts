@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DatabaseManager, ExpandedGoal, DatabaseHelper } from '../../../providers/database_manager';
+import { DatabaseManager, ExpandedGoal, DatabaseHelper, TaskFilter } from '../../../providers/database_manager';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -27,7 +27,7 @@ export class AddFromAllExistingPage {
     let excluded_ids = inputs.excluded_ids;
 
     database_manager_.register_data_updated_callback("add_from_all_existing_page", () => {
-      this.goals_ = DatabaseHelper.get_partial_expanded_goals_excluding(excluded_ids, this.database_manager_);
+      this.goals_ = DatabaseHelper.query_goals(this.database_manager_, TaskFilter.excluding(excluded_ids));
 
       let new_expanded_goals_array = [];
 

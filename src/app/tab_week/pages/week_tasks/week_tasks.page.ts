@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DatabaseManager, Week, Day, DatabaseHelper, PartialExpandedGoal } from 'src/app/providers/database_manager';
+import { DatabaseManager, Week, Day, DatabaseHelper, TaskFilter, ExpandedGoal } from 'src/app/providers/database_manager';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 
@@ -9,7 +9,7 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
   styleUrls: ['week_tasks.page.scss']
 })
 export class WeekTasksPage {
-  private goals_: PartialExpandedGoal[];
+  private goals_: ExpandedGoal[];
   private week_: Week;
   private day_: Day;
 
@@ -29,7 +29,7 @@ export class WeekTasksPage {
       this.day_ = days[days.length - 1];
       this.week_ = weeks[weeks.length - 1];
       
-      this.goals_ = DatabaseHelper.get_partial_expanded_goals(this.week_.task_ids, this.database_manager_);
+      this.goals_ = DatabaseHelper.query_goals(this.database_manager_, TaskFilter.including(this.week_.task_ids));
 
       let new_expanded_goals_array = [];
 

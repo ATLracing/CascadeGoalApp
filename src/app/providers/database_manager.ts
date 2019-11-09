@@ -523,6 +523,7 @@ export class DatabaseManager
     }
 }
 
+// ================================================================================== Expanded Nodes
 export class ExpandedTask extends Task
 {
   goal: Goal;
@@ -550,7 +551,7 @@ export class ExpandedGoal extends Goal
     child_tasks: Task[];
 
     // Full
-    constructor(goal: Goal, all_tasks: Task[], all_visions: Vision[])
+    constructor(goal: Goal, task_filter: (task: Task) => boolean, all_tasks: Task[], all_visions: Vision[])
     {
         // Copy construct
         super(goal);
@@ -562,29 +563,12 @@ export class ExpandedGoal extends Goal
         this.child_tasks = [];
         for (let child_id of goal.child_ids)
         {
-            this.child_tasks.push(all_tasks[child_id]);
-        }
-    }
-}
+            let task = all_tasks[child_id];
 
-export class PartialExpandedGoal extends Goal
-{
-    parent_vision: Vision;
-    child_tasks: Task[];
-
-    constructor(goal: Goal, task_ids: number[], all_tasks: Task[], all_visions: Vision[])
-    {
-        // Copy construct
-        super(goal);
-
-        // Expanded fields
-        if (goal.parent_id != undefined)
-            this.parent_vision = JSON.parse(JSON.stringify(all_visions[this.parent_id]));
-        
-        this.child_tasks = [];
-        for (let child_id of task_ids)
-        {
-            this.child_tasks.push(all_tasks[child_id]);
+            if (task_filter(task))
+            {
+                this.child_tasks.push(all_tasks[child_id]);
+            }
         }
     }
 }
@@ -593,7 +577,7 @@ export class ExpandedVision extends Vision
 {
     child_goals: ExpandedGoal[];
 
-    constructor(vision: Vision, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
+    constructor(vision: Vision, goal_filter: (goal: Goal) => boolean, task_filter: (task: Task) => boolean, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
     {
         // Copy construct
         super(vision);
@@ -604,9 +588,62 @@ export class ExpandedVision extends Vision
         for (let goal_id of this.child_ids)
         {
             let goal = all_goals[goal_id];
-            let expanded_goal = new ExpandedGoal(goal, all_tasks, all_visions);
-            this.child_goals.push(expanded_goal);
+
+            if (goal_filter(goal))
+            {
+                let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_visions);
+                this.child_goals.push(expanded_goal);
+            }
         }
+    }
+}
+
+export class TaskFilter
+{
+    static all()
+    {
+        return (task: Task) => { return true };
+    }
+
+    static none()
+    {
+        return (task: Task) => { return false };
+    }
+
+    static including(task_ids: number[])
+    {
+        let task_id_set = new Set<number>(task_ids);
+        return (task: Task) => {
+            return task_id_set.has(task.unique_id);
+        };
+    }
+
+    static excluding(task_ids: number[])
+    {
+        let task_id_set = new Set<number>(task_ids);
+        return (task: Task) => {
+            return !task_id_set.has(task.unique_id);
+        }; 
+    }
+
+    static active()
+    {
+        return (task: Task) => { 
+            return task.date_completed == undefined && task.date_cancelled == undefined;
+        };
+    }
+}
+
+export class GoalFilter
+{
+    static all()
+    {
+        return (goal: Goal) => { return true };
+    }
+
+    static none()
+    {
+        return (goal: Goal) => { return false };
     }
 }
 
@@ -667,140 +704,64 @@ export class DatabaseHelper
         } 
     }
 
-    static get_expanded_tasks(task_ids: number[], database_manager: DatabaseManager)
+    static query_tasks(database_manager: DatabaseManager, task_filter?: (task: Task) => boolean)
     {
-      let all_tasks = database_manager.get_tasks_ref();
-      let all_goals = database_manager.get_goals_ref();
-      let all_visions = database_manager.get_visions_ref();
+        if (task_filter == undefined)
+            task_filter = TaskFilter.all();
 
-      let expanded_tasks = [];
-      
-      for (let task_id of task_ids)
-      {
-        let task = all_tasks[task_id];
-        let expanded_task = new ExpandedTask(task, all_goals, all_visions);
-        expanded_tasks.push(expanded_task);
-      }
-
-      return expanded_tasks;
-    }
-
-    static get_expanded_goals(goal_ids: number[], database_manager: DatabaseManager)
-    {
-      let all_tasks = database_manager.get_tasks_ref();
-      let all_goals = database_manager.get_goals_ref();
-      let all_visions = database_manager.get_visions_ref();
-
-      let expanded_goals = [];
-      
-      for (let goal_id of goal_ids)
-      {
-        let goal = all_goals[goal_id];
-        
-        let expanded_goal = new ExpandedGoal(goal, all_tasks, all_visions);
-
-        expanded_goals.push(expanded_goal);
-      }
-
-      return expanded_goals;
-    }
-
-    static get_partial_expanded_goals(task_ids: number[], database_manager: DatabaseManager)
-    {
         let all_tasks = database_manager.get_tasks_ref();
         let all_goals = database_manager.get_goals_ref();
         let all_visions = database_manager.get_visions_ref();
 
-        let goal_id_map = new Map<number, number[]>(); // goal id -> task id[] 
-        
-        for (let task_id of task_ids)
-        {
-            let task = all_tasks[task_id];
-            
-            if (!goal_id_map.has(task.parent_id))
-            {
-                goal_id_map.set(task.parent_id, [])
-            }
+        let expanded_tasks = [];
 
-            goal_id_map.get(task.parent_id).push(task_id);
+        for (let task of all_tasks)
+        {
+            if (task_filter(task))
+            {
+                let expanded_task = new ExpandedTask(task, all_goals, all_visions);
+                expanded_tasks.push(expanded_task);
+            }
         }
 
-        let goal_id_array = Array.from(goal_id_map.keys());
+        return expanded_tasks;
+    }
+
+    static query_goals(database_manager: DatabaseManager, goal_filter?: (goal: Goal) => boolean, task_filter?: (task: Task) => boolean)
+    {
+        if (task_filter == undefined)
+            task_filter = TaskFilter.all();
+
+        if (goal_filter == undefined)
+            goal_filter = GoalFilter.all();
+        
+        let all_tasks = database_manager.get_tasks_ref();
+        let all_goals = database_manager.get_goals_ref();
+        let all_visions = database_manager.get_visions_ref();
+
         let expanded_goals = [];
 
-        for (let goal_id of goal_id_array)
-        {
-            let task_ids = goal_id_map.get(goal_id);
-            let goal = all_goals[goal_id];
-            let expanded_goal = new PartialExpandedGoal(goal, task_ids, all_tasks, all_visions);
-
-            expanded_goals.push(expanded_goal);
-        }
-
-        return expanded_goals;
-    }
-
-    static get_partial_expanded_goals_excluding(excluded_task_ids: number[], database_manager: DatabaseManager)
-    {
-        let all_tasks = database_manager.get_tasks_ref();
-        let all_goals = database_manager.get_goals_ref();
-        let all_visions = database_manager.get_visions_ref();
-
-        let excluded_task_ids_set = new Set<number>(excluded_task_ids);
-        
-        let goal_id_map = new Map<number, number[]>(); // goal id -> task id[]
-        
         for (let goal of all_goals)
         {
-            for (let task_id of goal.child_ids)
+            if (goal_filter(goal))
             {
-                if (!excluded_task_ids_set.has(task_id))
-                {
-                    if (!goal_id_map.has(goal.unique_id))
-                    {
-                        goal_id_map.set(goal.unique_id, []);
-                    }
-
-                    goal_id_map.get(goal.unique_id).push(task_id)
-                }
+                let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_visions);
+                expanded_goals.push(expanded_goal);
             }
-        }
-
-        let goal_id_array = Array.from(goal_id_map.keys());
-        let expanded_goals = [];
-
-        for (let goal_id of goal_id_array)
-        {
-            let task_ids = goal_id_map.get(goal_id);
-            let goal = all_goals[goal_id];
-            let expanded_goal = new PartialExpandedGoal(goal, task_ids, all_tasks, all_visions);
-
-            expanded_goals.push(expanded_goal);
         }
 
         return expanded_goals;
     }
 
-    static get_all_expanded_goals(database_manager: DatabaseManager)
+    // TODO: No need for vision filter I imagine..
+    static query_visions(database_manager: DatabaseManager, goal_filter?: (goal: Goal) => boolean, task_filter?: (task: Task) => boolean)
     {
-      let all_tasks = database_manager.get_tasks_ref();
-      let all_goals = database_manager.get_goals_ref();
-      let all_visions = database_manager.get_visions_ref();
+        if (task_filter == undefined)
+            task_filter = TaskFilter.all();
 
-      let expanded_goals = [];
-      
-      for (let goal of all_goals)
-      {        
-        let expanded_goal = new ExpandedGoal(goal, all_tasks, all_visions);
+        if (goal_filter == undefined)
+            goal_filter = GoalFilter.all();
 
-        expanded_goals.push(expanded_goal);
-      }
-
-      return expanded_goals;
-    }
-
-    static get_expanded_visions(database_manager: DatabaseManager)
-    {
         let all_tasks = database_manager.get_tasks_ref();
         let all_goals = database_manager.get_goals_ref();
         let all_visions = database_manager.get_visions_ref();
@@ -809,7 +770,7 @@ export class DatabaseHelper
 
         for (let vision of all_visions)
         {
-            let expanded_vision = new ExpandedVision(vision, all_tasks, all_goals, all_visions);
+            let expanded_vision = new ExpandedVision(vision, goal_filter, task_filter, all_tasks, all_goals, all_visions);
             expanded_visions.push(expanded_vision);
         }
 

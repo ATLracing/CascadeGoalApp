@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, ExpandedTask, DatabaseHelper } from 'src/app/providers/database_manager';
+import { DatabaseManager, ExpandedTask, DatabaseHelper, TaskFilter, Task } from 'src/app/providers/database_manager';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
 
@@ -19,31 +19,18 @@ export class ExistingTaskPage implements OnDestroy {
   {
     let existing_task_ids = addressed_transfer_.get("existing_task_page_current_task_ids");
 
+    let active_filter = TaskFilter.active();
+    let exclude_filter = TaskFilter.excluding(existing_task_ids);
+
+    let custom_available_filter = (task: Task) => {
+      return active_filter(task) && exclude_filter(task);
+    };
+
     database_manager_.register_data_updated_callback("existing_task_page", () => {
       let all_tasks = database_manager_.get_tasks_ref();
       let available_task_ids = [];
 
-      for (let task of all_tasks)
-      {
-        if (task.date_completed != undefined || task.date_cancelled != undefined)
-          continue
-        
-        // TODO This is bullshit.. but it is robust
-        let is_available = true;
-        for (let existing_task_id of existing_task_ids)
-        {
-          if (task.unique_id == existing_task_id)
-          {
-            is_available = false;
-            break;
-          }
-        }
-
-        if (is_available)
-          available_task_ids.push(task.unique_id);
-      }
-
-      this.available_tasks_ = DatabaseHelper.get_expanded_tasks(available_task_ids, this.database_manager_);
+      this.available_tasks_ = DatabaseHelper.query_tasks(this.database_manager_, custom_available_filter);
       
       let new_checkboxes_array = [];
       for (let i = 0; i < this.available_tasks_.length; ++i)

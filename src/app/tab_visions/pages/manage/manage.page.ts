@@ -30,7 +30,7 @@ export class ManagePage {
       this.vision_index_ = 0;
 
       database_manager_.register_data_updated_callback("manage_page", () => {
-      this.expanded_visions_ = DatabaseHelper.get_expanded_visions(this.database_manager_);
+      this.expanded_visions_ = DatabaseHelper.query_visions(this.database_manager_);
 
       let new_expanded_goals_arrays_ = [];
 
