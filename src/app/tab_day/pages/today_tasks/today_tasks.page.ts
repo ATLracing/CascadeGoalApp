@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { Task, DatabaseManager, Day, ExpandedTask, DatabaseHelper, TaskFilter } from 'src/app/providers/database_manager';
+import { Task, DatabaseManager, Day, ExpandedTask, DatabaseHelper, TaskFilter, Week } from 'src/app/providers/database_manager';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 
@@ -19,9 +19,9 @@ export class TaskListPage implements OnDestroy {
               private addressed_transfer_: AddressedTransfer) {
     database_manager_.register_data_updated_callback("today_tasks_page", () => {
       // TODO: Figure out the most recent day
-      let days = database_manager_.get_days_copy();
+      let days = database_manager_.get_days_copy();      
       this.day_ = days[days.length - 1];
-      
+
       this.tasks_ = DatabaseHelper.query_tasks(this.database_manager_, TaskFilter.including(this.day_.task_ids));
 
       let new_checkboxes_array = [];

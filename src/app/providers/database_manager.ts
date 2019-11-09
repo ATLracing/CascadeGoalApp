@@ -579,7 +579,7 @@ export class ExpandedVision extends Vision
 {
     child_goals: ExpandedGoal[];
 
-    constructor(vision: Vision, goal_filter: (goal: Goal) => boolean, task_filter: (task: Task) => boolean, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
+    constructor(vision: Vision, goal_filter: (goal: ExpandedGoal) => boolean, task_filter: (task: Task) => boolean, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
     {
         // Copy construct
         super(vision);
@@ -590,10 +590,10 @@ export class ExpandedVision extends Vision
         for (let goal_id of this.child_ids)
         {
             let goal = all_goals[goal_id];
+            let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_goals, all_visions);
 
-            if (goal_filter(goal))
+            if (goal_filter(expanded_goal))
             {
-                let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_goals, all_visions);
                 this.child_goals.push(expanded_goal);
             }
         }
@@ -640,12 +640,17 @@ export class GoalFilter
 {
     static all()
     {
-        return (goal: Goal) => { return true };
+        return (goal: ExpandedGoal) => { return true };
     }
 
     static none()
     {
-        return (goal: Goal) => { return false };
+        return (goal: ExpandedGoal) => { return false };
+    }
+
+    static populated()
+    {
+        return (goal: ExpandedGoal) => { return goal.child_tasks.length > 0 };
     }
 }
 
@@ -729,7 +734,7 @@ export class DatabaseHelper
         return expanded_tasks;
     }
 
-    static query_goals(database_manager: DatabaseManager, goal_filter?: (goal: Goal) => boolean, task_filter?: (task: Task) => boolean)
+    static query_goals(database_manager: DatabaseManager, goal_filter?: (goal: ExpandedGoal) => boolean, task_filter?: (task: Task) => boolean)
     {
         if (task_filter == undefined)
             task_filter = TaskFilter.all();
@@ -745,9 +750,10 @@ export class DatabaseHelper
 
         for (let goal of all_goals)
         {
-            if (goal_filter(goal))
+            let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_goals, all_visions);
+            
+            if (goal_filter(expanded_goal))
             {
-                let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_goals, all_visions);
                 expanded_goals.push(expanded_goal);
             }
         }
