@@ -13,13 +13,10 @@ export class WeekTasksPage implements OnDestroy {
   private week_: Week;
   private day_: Day;
 
-  private expanded_goals_array_: boolean[];
-
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer) {
-    this.expanded_goals_array_ = [];
     
     database_manager_.register_data_updated_callback("this_week_tasks_page", () => {      
       // TODO: Figure out the most recent day
@@ -31,23 +28,43 @@ export class WeekTasksPage implements OnDestroy {
       
       this.goals_ = DatabaseHelper.query_goals(this.database_manager_, GoalFilter.populated(), TaskFilter.including(this.week_.task_ids));
 
-      console.log(this.goals_);
-
-      let new_expanded_goals_array = [];
-
-      for (let index in this.goals_)
+      // Append UI info
+      for (let goal of this.goals_)
       {
-        new_expanded_goals_array.push(false);
-      }
+        goal.extra = { expanded: false };
 
-      this.expanded_goals_array_ = new_expanded_goals_array;
+        for (let task of goal.child_tasks)
+        {
+          const STYLE_COMPLETE = 'line-through'
+          const STYLE_DAY = 'bold'
+          
+
+          let style_complete = task.date_completed != undefined ? STYLE_COMPLETE : undefined
+          let style_today = undefined;
+
+          for (let day_id of this.day_.task_ids)
+          {
+            if (task.unique_id == day_id)
+            {
+              style_today = STYLE_DAY;
+              break;
+            }
+          }
+
+          task.extra = { 
+                         style_complete: style_complete,
+                         style_today: style_today
+                        };
+        }
+      }
+      console.log(this.goals_);
     });
   }
 
   goal_show_hide_tasks(goal_index: number)
   {
     console.log("Show/hide tasks");
-    this.expanded_goals_array_[goal_index] = !this.expanded_goals_array_[goal_index];
+    this.goals_[goal_index].extra.expanded = !this.goals_[goal_index].extra.expanded;
   }
 
   add_new_task()

@@ -11,7 +11,6 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 export class TaskListPage implements OnDestroy {
   private tasks_: ExpandedTask[];
   private day_: Day;
-  private checkboxes_array_: boolean[];
 
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
@@ -22,15 +21,16 @@ export class TaskListPage implements OnDestroy {
       let days = database_manager_.get_days_copy();      
       this.day_ = days[days.length - 1];
 
-      this.tasks_ = DatabaseHelper.query_tasks(this.database_manager_, TaskFilter.including(this.day_.task_ids));
+      let new_tasks = DatabaseHelper.query_tasks(this.database_manager_, TaskFilter.including(this.day_.task_ids));
 
-      let new_checkboxes_array = [];
-      for (let i = 0; i < this.tasks_.length; ++i)
+      // Append extra info
+      for (let task of new_tasks)
       {
-        new_checkboxes_array.push(false);
+        let completed = task.date_completed != undefined;
+        task.extra = { completed: completed }
       }
 
-      this.checkboxes_array_ = new_checkboxes_array;
+      this.tasks_ = new_tasks;
     });
   }
 
@@ -65,5 +65,24 @@ export class TaskListPage implements OnDestroy {
     });
 
     this.router_.navigate(['existing_task'], { relativeTo: this.route_} );
+  }
+
+  checkbox_change(index: number)
+  {
+    let task = this.tasks_[index];
+    this.database_manager_.toggle_task_completion(task.unique_id);
+  }
+
+  remove(index: number)
+  {
+    let remove_id = this.tasks_[index].unique_id;
+    for (let i = 0; i < this.day_.task_ids.length; i++)
+    {
+      let day_id = this.day_.task_ids[i];
+      if (remove_id == day_id)
+        this.day_.task_ids.splice(i, 1);
+    }
+
+    this.database_manager_.set_day(this.day_);
   }
 }

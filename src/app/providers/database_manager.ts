@@ -521,6 +521,21 @@ export class DatabaseManager
     {
         return DatabaseManager.database_data.weeks.slice();
     }
+
+    toggle_task_completion(unique_id: number, no_callbacks?: boolean)
+    {
+        let task = DatabaseManager.database_data.tasks[unique_id];
+
+        if (task.date_completed == undefined)
+            task.date_completed = new Date();
+        else
+            task.date_completed = undefined;
+
+        console.log("After");
+        console.log(DatabaseManager.database_data.tasks[unique_id]);
+            
+        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+    }
 }
 
 // ================================================================================== Expanded Nodes
@@ -548,7 +563,7 @@ export class ExpandedTask extends Task
 
 export class ExpandedGoal extends Goal
 {
-    parent_vision: Vision;
+    vision: Vision;
     child_tasks: ExpandedTask[];
     extra: any;       // Components can tack on bindable UI data here
 
@@ -560,7 +575,7 @@ export class ExpandedGoal extends Goal
 
         // Expanded fields
         if (goal.parent_id != undefined)
-            this.parent_vision = JSON.parse(JSON.stringify(all_visions[this.parent_id]));
+            this.vision = JSON.parse(JSON.stringify(all_visions[this.parent_id]));
         
         this.child_tasks = [];
         for (let child_id of goal.child_ids)
