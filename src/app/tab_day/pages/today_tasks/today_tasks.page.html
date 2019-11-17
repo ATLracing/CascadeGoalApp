@@ -16,12 +16,12 @@
 
 <ion-content>
   <ion-list>
-    <ion-item-sliding *ngFor="let task of tasks_; let i = index">
+    <ion-item-sliding *ngFor="let task of day_?.tasks; let i = index">
       <ion-item-options side="end">
         <ion-item-option color="danger" (click)="remove(i)">Remove</ion-item-option>
       </ion-item-options>
 
-      <ion-item>
+      <ion-item [ngStyle]="task.extra.style">
         <ion-label>
           <h3>{{task.name}}</h3>
           <p>{{task.goal?.name}}</p>

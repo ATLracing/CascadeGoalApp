@@ -1,7 +1,9 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, ExpandedTask, DatabaseHelper, TaskFilter, Task, Week } from 'src/app/providers/database_manager';
+import { DatabaseManager, Task, Week } from 'src/app/providers/database_manager';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
+import { DatabaseInflator, ExpandedTask, TaskFilter } from 'src/app/providers/database_inflator';
+import { CalendarManager } from 'src/app/providers/calendar_manager'
 
 @Component({
   selector: 'existing-task-page',
@@ -24,14 +26,14 @@ export class ExistingTaskPage implements OnDestroy {
     let exclude_filter = TaskFilter.excluding(existing_task_ids);
 
     database_manager_.register_data_updated_callback("existing_task_page", () => {
-      this.week_ = database_manager_.get_weeks_copy().pop();
+      this.week_ = database_manager_.get_image_delegate().get_most_recent_week();
       let include_filter = TaskFilter.including(this.week_.task_ids)
 
       let custom_available_filter = (task: Task) => {
         return active_filter(task) && exclude_filter(task) && include_filter(task);
       };
       
-      this.available_tasks_ = DatabaseHelper.query_tasks(this.database_manager_, custom_available_filter);
+      this.available_tasks_ = DatabaseInflator.query_tasks(this.database_manager_, custom_available_filter);
       
       let new_checkboxes_array = [];
       for (let i = 0; i < this.available_tasks_.length; ++i)

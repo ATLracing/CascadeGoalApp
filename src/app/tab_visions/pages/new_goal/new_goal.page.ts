@@ -14,8 +14,8 @@ export class NewGoalPageSettings
   styleUrls: ['new_goal.page.scss']
 })
 export class NewGoalPage implements OnDestroy {
-  private all_visions_: Vision[];
   private new_goal_: Goal;
+  private all_visions_: Vision[];
   private vision_parent_id_string_;
   private input_settings_: NewGoalPageSettings;
 
@@ -29,7 +29,7 @@ export class NewGoalPage implements OnDestroy {
       this.input_settings_ = new NewGoalPageSettings();
 
     database_manager_.register_data_updated_callback("new_goal_page", () => {
-      this.all_visions_ = database_manager_.get_visions_copy(); // TODO: Needed for updates?
+      this.all_visions_ = database_manager_.get_image_delegate().get_visions(); // TODO: Needed for updates?
     });
 
     this.new_goal_ = DatabaseHelper.create_blank_goal();

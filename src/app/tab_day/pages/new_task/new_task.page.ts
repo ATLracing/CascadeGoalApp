@@ -29,7 +29,7 @@ export class NewTaskPage implements OnDestroy {
       this.input_settings_ = new NewTaskPageSettings();
 
     database_manager_.register_data_updated_callback("new_task_page", () => {
-      this.all_goals_ = database_manager_.get_goals_copy(); // TODO: Needed for updates?
+      this.all_goals_ = database_manager_.get_image_delegate().get_goals(); // TODO: Needed for updates?
     });
 
     this.new_task_ = DatabaseHelper.create_blank_task();

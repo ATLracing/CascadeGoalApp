@@ -1,8 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
-import { DatabaseManager, DatabaseHelper, Task, Goal, ExpandedVision } from 'src/app/providers/database_manager';
+import { DatabaseManager, DatabaseHelper, Task, Goal } from 'src/app/providers/database_manager';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
-import { IonSlides, IonLabel } from '@ionic/angular';
+import { IonSlides } from '@ionic/angular';
+import { DatabaseInflator, ExpandedVision } from 'src/app/providers/database_inflator';
 
 @Component({
   selector: 'manage-page',
@@ -28,7 +29,7 @@ export class ManagePage {
       this.vision_index_ = 0;
 
       database_manager_.register_data_updated_callback("manage_page", () => {
-      this.expanded_visions_ = DatabaseHelper.query_visions(this.database_manager_);
+      this.expanded_visions_ = DatabaseInflator.query_visions(this.database_manager_);
 
       // Tack on UI info
       for (let expanded_vision of this.expanded_visions_)

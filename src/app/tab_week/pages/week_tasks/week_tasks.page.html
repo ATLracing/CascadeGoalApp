@@ -5,10 +5,7 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button (click)="add_new_task()">
-        <ion-icon slot="icon-only" name="add-circle"></ion-icon>
-      </ion-button>
-    <ion-button (click)="add_existing_task()">
+      <ion-button (click)="add_existing_task()">
         <ion-icon slot="icon-only" name="list"></ion-icon>
       </ion-button>
   </ion-buttons>
@@ -31,11 +28,16 @@
         <ion-row *ngIf="goal.extra.expanded">
           <ion-col>
             <ion-list lines="none">
-              <ion-item *ngFor="let task of goal.child_tasks">
-                <ion-label>
-                  <h3 [ngStyle]="{'text-decoration': task.extra.style_complete, 'font-weight': task.extra.style_today }">{{task.name}}</h3>
-                </ion-label>
-              </ion-item>
+              <ion-item-sliding *ngFor="let task of goal.child_tasks; let task_index = index">
+                <ion-item-options side="end">
+                  <ion-item-option color="danger" (click)="remove(goal_index, task_index)">Remove</ion-item-option>
+                </ion-item-options>
+                <ion-item>
+                  <ion-label>
+                    <h3 [ngStyle]="{'text-decoration': task.extra.style_complete, 'font-weight': task.extra.style_today }">{{task.name}}</h3>
+                  </ion-label>
+                </ion-item>
+              </ion-item-sliding>
             </ion-list>
           </ion-col>
         </ion-row>

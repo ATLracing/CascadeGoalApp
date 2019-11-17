@@ -1,7 +1,9 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, Week, Day, DatabaseHelper, TaskFilter, ExpandedGoal, GoalFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, Week, Day } from 'src/app/providers/database_manager';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
+import { DatabaseInflator, ExpandedGoal, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 @Component({
   selector: 'app-week-tasks',
@@ -19,25 +21,22 @@ export class WeekTasksPage implements OnDestroy {
               private addressed_transfer_: AddressedTransfer) {
     
     database_manager_.register_data_updated_callback("this_week_tasks_page", () => {      
-      // TODO: Figure out the most recent day
-      let days = database_manager_.get_days_copy();
-      let weeks = database_manager_.get_weeks_copy();
+      let database_image = database_manager_.get_image_delegate();
       
-      this.day_ = days[days.length - 1];
-      this.week_ = weeks[weeks.length - 1];
+      this.day_ = database_image.get_most_recent_day();
+      this.week_ = database_image.get_week(this.day_.parent_id);
       
-      this.goals_ = DatabaseHelper.query_goals(this.database_manager_, GoalFilter.populated(), TaskFilter.including(this.week_.task_ids));
+      this.goals_ = DatabaseInflator.query_goals(this.database_manager_, GoalFilter.populated(), TaskFilter.including(this.week_.task_ids));
 
       // Append UI info
       for (let goal of this.goals_)
       {
-        goal.extra = { expanded: false };
+        goal.extra = { expanded: true };
 
         for (let task of goal.child_tasks)
         {
           const STYLE_COMPLETE = 'line-through'
           const STYLE_DAY = 'bold'
-          
 
           let style_complete = task.date_completed != undefined ? STYLE_COMPLETE : undefined
           let style_today = undefined;
@@ -84,6 +83,12 @@ export class WeekTasksPage implements OnDestroy {
     });
 
     this.router_.navigate(['add_from_all_existing'], { relativeTo: this.route_} );
+  }
+
+  remove(goal_index: number, task_index: number)
+  {
+    let remove_id = this.goals_[goal_index].child_tasks[task_index].unique_id;
+    this.database_manager_.remove_task_from_week(this.week_.unique_id, this.day_.unique_id, remove_id);
   }
 
   ngOnDestroy()

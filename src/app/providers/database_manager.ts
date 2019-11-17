@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core'
 import { Storage } from '@ionic/storage';
+import { example_db_image } from './example_db'
+import { CalendarManager } from './calendar_manager';
 
 // These structures will be stringified and added to a database
 // Tasks, goals, and visions will never be deleted, so unique ids will correspond to indices in
@@ -103,24 +105,36 @@ export class Day
     date: Date;
     task_ids: number[];
     unique_id: number;
+    parent_id: number;
+    last_day_id: number;
+
+    constructor(other: Day)
+    {
+        this.date = other.date;
+        this.task_ids = other.task_ids.slice();
+        this.unique_id = other.unique_id;
+    }
 }
 
 export class Week
 {
     date: Date;         // Monday
     task_ids: number[];
+    day_ids: number[];
     unique_id: number;
-}
+    last_week_id: number;
 
-export class Month
-{
-    data: Date;         // Day of the first
-    goal_ids: number[];
-    unique_id: number;
+    constructor(other: Week)
+    {
+        this.date = other.date;
+        this.task_ids = other.task_ids.slice();
+        this.day_ids = other.day_ids.slice();
+        this.unique_id = other.unique_id;
+    }
 }
 
 const KEY_DATABASE_IMAGE = "key_database_image";
-class DataBaseImage
+export class DatabaseImage
 {
     version: number;
 
@@ -130,178 +144,151 @@ class DataBaseImage
 
     days: Day[];
     weeks: Week[];
+
+    most_recent_day_id: number;
+    next_available_id: number;  // IDs will be globally unique. Should help catch errors.
 }
 
-// ==================================================================================== EXAMPLE DATA 
-// Visions
-let example_vision_one = {
-    name: "Financial Independence",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
+class LoadedDatabaseImage
+{
+    version: number;
+    next_available_id: number;
 
-    // Optional data
-    details: "Quit the 9-5",
+    tasks: Map<number, Task>;
+    goals: Map<number, Goal>;
+    visions: Map<number, Vision>;
 
-    // Implementation
-    unique_id: 0,
-    child_ids: [0, 1]
-};
+    days: Map<number, Day>;
+    weeks: Map<number, Week>;
 
-let example_vision_two = {
-    name: "Find Soulmate",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
+    most_recent_day_id: number;
 
-    // Optional data
-    details: "Get a honey of a gal",
+    constructor(database_image: DatabaseImage)
+    {
+        this.version = database_image.version;
+        this.next_available_id = database_image.next_available_id;
+        this.most_recent_day_id = database_image.most_recent_day_id;
 
-    // Implementation
-    unique_id: 1,
-    child_ids: [2]
-};
+        this.tasks = new Map<number, Task>();
+        this.goals = new Map<number, Goal>();
+        this.visions = new Map<number, Vision>();
+        this.days = new Map<number, Day>();
+        this.weeks = new Map<number, Week>();
 
-// Goals
-let example_goal_one = {
-    name: "Get into crypto market",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
+        // Tasks
+        for (let task of database_image.tasks)
+        {
+            this.tasks.set(task.unique_id, task);
+        }
 
-    // Optional data
-    details: undefined,
+        // Goals
+        for (let goal of database_image.goals)
+        {
+            this.goals.set(goal.unique_id, goal);
+        }
 
-    // Implementation
-    unique_id: 0,
-    parent_id: 0,
-    child_ids: [0, 1]
-};
+        // Visions
+        for (let vision of database_image.visions)
+        {
+            this.visions.set(vision.unique_id, vision);
+        }
 
-let example_goal_two = {
-    name: "Learn Python market API",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
+        // Days
+        for (let day of database_image.days)
+        {
+            this.days.set(day.unique_id, day);
+        }
 
-    // Optional data
-    details: undefined,
+        // Weeks
+        for (let week of database_image.weeks)
+        {
+            this.weeks.set(week.unique_id, week);
+        }
+    }
 
-    // Implementation
-    unique_id: 1,
-    parent_id: 0,
-    child_ids: [2]
-};
+    getImage(): DatabaseImage
+    {
+        let image: DatabaseImage = {
+            version: this.version,
+            next_available_id: this.next_available_id,
+            tasks: Array.from(this.tasks.values()),
+            goals: Array.from(this.goals.values()),
+            visions: Array.from(this.visions.values()),
+            days: Array.from(this.days.values()),
+            weeks: Array.from(this.weeks.values()),
+            most_recent_day_id: this.most_recent_day_id
+        };
 
-let example_goal_three = {
-    name: "Hit the club",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
-
-    // Optional data
-    details: undefined,
-
-    // Implementation
-    unique_id: 2,
-    parent_id: 1,
-    child_ids: [3, 4]
-};
-
-let example_task_one = {
-    name: "Create Bitcoin wallet",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
-
-    // Optional data
-    details: undefined,
-
-    // Implementation
-    unique_id: 0,
-    parent_id: 0,
-};
-
-let example_task_two = {
-    name: "Create Ethereum wallet",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
-
-    // Optional data
-    details: undefined,
-
-    // Implementation
-    unique_id: 1,
-    parent_id: 0,
-};
-
-let example_task_three = {
-    name: "Write basic Python stock price graphing app",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
-
-    // Optional data
-    details: undefined,
-
-    // Implementation
-    unique_id: 2,
-    parent_id: 1,
-};
-
-let example_task_four = {
-    name: "Read Yelp club reviews and decide on venue",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
-
-    // Optional data
-    details: undefined,
-
-    // Implementation
-    unique_id: 3,
-    parent_id: 2,
-};
-
-let example_task_five = {
-    name: "Buy styling gel",
-    date_created: new Date(),
-    date_completed: undefined,
-    date_cancelled: undefined,
-
-    // Optional data
-    details: undefined,
-
-    // Implementation
-    unique_id: 4,
-    parent_id: 2,
-};
-
-let example_day_one = {
-    date: new Date(),
-    task_ids: [0, 1, 2],
-    unique_id: 0
-};
-
-let example_week_one = {
-    date: new Date(),
-    task_ids: [0, 1, 4],
-    unique_id: 0
-};
-
-let example_db_image = {
-    version: 1,
-    
-    tasks: [example_task_one, example_task_two, example_task_three, example_task_four, example_task_five],
-    goals: [example_goal_one, example_goal_two, example_goal_three],
-    visions: [example_vision_one, example_vision_two],
-
-    days: [example_day_one],
-    weeks: [example_week_one],
+        return image;
+    }
 }
 
-let empty_db = {
+// Read only
+export class DatabaseImageDelegate
+{
+    private database_image_: LoadedDatabaseImage;
+
+    constructor(database_image: LoadedDatabaseImage)
+    {
+        this.database_image_ = database_image;
+    }
+
+    get_task(unique_id: number): Task
+    {
+        return this.database_image_.tasks.get(unique_id);
+    }
+    get_goal(unique_id: number): Goal
+    {
+        return this.database_image_.goals.get(unique_id);
+    }
+    get_vision(unique_id: number): Vision
+    {
+        return this.database_image_.visions.get(unique_id);
+    }
+    get_day(unique_id: number): Day
+    {
+        return this.database_image_.days.get(unique_id);
+    }
+    get_week(unique_id: number): Week
+    {
+        return this.database_image_.weeks.get(unique_id);
+    }
+
+    get_tasks(): Task[]
+    {
+        return Array.from(this.database_image_.tasks.values());
+    }
+
+    get_goals(): Goal[]
+    {
+        return Array.from(this.database_image_.goals.values());
+    }
+
+    get_visions(): Vision[]
+    {
+        return Array.from(this.database_image_.visions.values());
+    }
+
+    get_days(): Day[]
+    {
+        return Array.from(this.database_image_.days.values());
+    }
+
+    get_weeks(): Week[]
+    {
+        return Array.from(this.database_image_.weeks.values());
+    }
+    get_most_recent_day(): Day
+    {
+        return this.database_image_.days.get(this.database_image_.most_recent_day_id);
+    }
+    get_most_recent_week(): Week
+    {
+        return this.database_image_.weeks.get(this.get_most_recent_day().parent_id);
+    }
+}
+
+let empty_db : DatabaseImage = {
     version: 1,
     
     tasks: [],
@@ -310,31 +297,45 @@ let empty_db = {
 
     days: [],
     weeks: [],
+
+    most_recent_day_id: 0,
+    next_available_id: 0
 }
 
 // Full read/write strategy
 @Injectable()
 export class DatabaseManager
 {
-    private static database_data: DataBaseImage;
+    private static database_data: LoadedDatabaseImage;
     private static data_updated_callbacks: Map<string, any>;
     private static initialized;
+    private static loaded;
 
     constructor(private storage_: Storage)
     {
         if (!DatabaseManager.initialized)
         {
-            DatabaseManager.database_data = empty_db;
-
-            DatabaseManager.initialized = true;
+            DatabaseManager.database_data = new LoadedDatabaseImage(empty_db);
             DatabaseManager.data_updated_callbacks = new Map<string, any>();
+
+            DatabaseManager.loaded = false;
+            DatabaseManager.initialized = true;
+
             this.read_db();
         }
     }
 
     private read_db()
     {
-        DatabaseManager.database_data = example_db_image;
+        let database_image = example_db_image;
+        DatabaseManager.database_data = new LoadedDatabaseImage(database_image);
+        DatabaseManager.loaded = true;
+        DatabaseManager.execute_data_updated_callbacks();
+        
+        // THEN
+        // start loop
+        CalendarManager.calendar_loop(this);
+        
         /*
         return new Promise((resolve, error) => {
             this.storage_.get(KEY_DATABASE_IMAGE).then((db_image) =>
@@ -361,9 +362,7 @@ export class DatabaseManager
 
     save_results()
     {
-        return this.storage_.set(KEY_DATABASE_IMAGE, JSON.stringify(DatabaseManager.database_data)).then(
-            DatabaseManager.execute_data_updated_callbacks);
-        
+        return this.storage_.set(KEY_DATABASE_IMAGE, JSON.stringify(DatabaseManager.database_data.getImage()));
     }
 
     private static execute_data_updated_callbacks(no_callbacks?: boolean)
@@ -382,7 +381,9 @@ export class DatabaseManager
     register_data_updated_callback(name: string, callback_function: any)
     {
         DatabaseManager.data_updated_callbacks.set(name, callback_function);
-        callback_function();
+        
+        if (DatabaseManager.loaded)
+            callback_function();
     }
 
     unregister_data_updated_callback(name: string)
@@ -390,32 +391,9 @@ export class DatabaseManager
         DatabaseManager.data_updated_callbacks.delete(name);
     }
 
-    get_database_image
-    // Database data specific methods (this is messy)
-    get_tasks_copy()
+    get_image_delegate()
     {
-        return DatabaseManager.database_data.tasks.slice();
-    }
-    get_goals_copy()
-    {
-        return DatabaseManager.database_data.goals.slice();
-    }
-    get_visions_copy()
-    {
-        return DatabaseManager.database_data.visions.slice();
-    }
-
-    get_tasks_ref()
-    {
-        return DatabaseManager.database_data.tasks;
-    }
-    get_goals_ref()
-    {
-        return DatabaseManager.database_data.goals;
-    }
-    get_visions_ref()
-    {
-        return DatabaseManager.database_data.visions;
+        return new DatabaseImageDelegate(DatabaseManager.database_data);
     }
 
     add_task(task: Task, no_callbacks?: boolean) : number
@@ -425,12 +403,12 @@ export class DatabaseManager
         
         // Assign date and unique ID
         copy.date_created = new Date();
-        copy.unique_id = DatabaseManager.database_data.tasks.length;
+        copy.unique_id = DatabaseManager.database_data.next_available_id++;
         
         // Add to parent element
         if (copy.parent_id != undefined)
         {
-            let parent = DatabaseManager.database_data.goals[copy.parent_id];
+            let parent = DatabaseManager.database_data.goals.get(copy.parent_id);
             
             if (parent.child_ids == undefined)
                 parent.child_ids = [];
@@ -438,11 +416,12 @@ export class DatabaseManager
             parent.child_ids.push(copy.unique_id);
         }
 
-        DatabaseManager.database_data.tasks.push(copy);
+        DatabaseManager.database_data.tasks.set(copy.unique_id, copy);
         DatabaseManager.execute_data_updated_callbacks(no_callbacks);
 
         return copy.unique_id;
     }
+
     add_goal(goal: Goal, no_callbacks?: boolean) : number
     {
         // Copy for safety
@@ -450,7 +429,7 @@ export class DatabaseManager
 
         // Assign date and unique ID
         copy.date_created = new Date();
-        copy.unique_id = DatabaseManager.database_data.goals.length;
+        copy.unique_id = DatabaseManager.database_data.next_available_id++;
 
         // Add to parent element
         if (copy.parent_id != undefined)
@@ -463,17 +442,18 @@ export class DatabaseManager
             parent.child_ids.push(copy.unique_id);
         }
 
-        DatabaseManager.database_data.goals.push(copy);
+        DatabaseManager.database_data.goals.set(copy.unique_id, copy);
         DatabaseManager.execute_data_updated_callbacks(no_callbacks);
 
         return copy.unique_id;
     }
+
     add_vision(vision: Goal, no_callbacks?: boolean) : number
     {
         let copy = JSON.parse(JSON.stringify(vision));
         copy.date_created = new Date();
-        copy.unique_id = DatabaseManager.database_data.visions.length;
-        DatabaseManager.database_data.visions.push(copy);
+        copy.unique_id = DatabaseManager.database_data.next_available_id++;
+        DatabaseManager.database_data.visions.set(copy.unique_id, copy);
         DatabaseManager.execute_data_updated_callbacks(no_callbacks);
 
         return copy.unique_id;
@@ -482,7 +462,30 @@ export class DatabaseManager
     add_day(day: Day, no_callbacks?: boolean) : number
     {
         let copy = JSON.parse(JSON.stringify(day));
-        DatabaseManager.database_data.days.push(copy);
+        copy.date = new Date();
+        copy.unique_id = DatabaseManager.database_data.next_available_id++;;
+        DatabaseManager.database_data.days.set(copy.unique_id, copy);
+        
+        // Add to parent element
+        if (copy.parent_id != undefined)
+        {
+            let parent_week = DatabaseManager.database_data.weeks.get(copy.parent_id);
+            
+            if (parent_week.day_ids == undefined)
+                parent_week.day_ids = [];
+            
+            parent_week.day_ids.push(copy.unique_id);
+        }
+
+        // Link to last day
+        if (DatabaseManager.database_data.most_recent_day_id != undefined)
+        {
+            copy.last_day_id = DatabaseManager.database_data.most_recent_day_id;
+        }
+
+        // Update most recent day
+        DatabaseManager.database_data.most_recent_day_id = copy.unique_id;
+        
         DatabaseManager.execute_data_updated_callbacks(no_callbacks);
 
         return copy.unique_id;
@@ -495,177 +498,81 @@ export class DatabaseManager
         DatabaseManager.execute_data_updated_callbacks(no_callbacks);
     }
 
-    get_days_ref()
+    add_week(week: Week, no_callbacks?: boolean) : number
     {
-        return DatabaseManager.database_data.days;
-    }
+        let copy = JSON.parse(JSON.stringify(week));
+        copy.date = new Date();
+        copy.unique_id = DatabaseManager.database_data.next_available_id++;;
+        DatabaseManager.database_data.weeks.set(copy.unique_id, copy);
+        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
 
-    get_days_copy()
-    {
-        return DatabaseManager.database_data.days.slice();
+        return copy.unique_id;
     }
 
     set_week(week: Week, no_callbacks?: boolean)
     {
         let copy = JSON.parse(JSON.stringify(week));
-        DatabaseManager.database_data.weeks[week.unique_id] = copy;
+        DatabaseManager.database_data.weeks.set(week.unique_id, copy);
         DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    get_weeks_ref()
-    {
-        return DatabaseManager.database_data.weeks;
-    }
-    
-    get_weeks_copy()
-    {
-        return DatabaseManager.database_data.weeks.slice();
     }
 
     toggle_task_completion(unique_id: number, no_callbacks?: boolean)
     {
-        let task = DatabaseManager.database_data.tasks[unique_id];
+        let task = DatabaseManager.database_data.tasks.get(unique_id);
 
         if (task.date_completed == undefined)
             task.date_completed = new Date();
         else
             task.date_completed = undefined;
-
-        console.log("After");
-        console.log(DatabaseManager.database_data.tasks[unique_id]);
             
         DatabaseManager.execute_data_updated_callbacks(no_callbacks);
     }
-}
 
-// ================================================================================== Expanded Nodes
-export class ExpandedTask extends Task
-{
-  goal: Goal;
-  vision: Vision;
-  extra: any;       // Components can tack on bindable UI data here
-
-  constructor(task: Task, all_goals: Goal[], all_visions: Vision[])
-  {
-    super(task);
-    
-    if (this.parent_id != undefined)
-      this.goal = JSON.parse(JSON.stringify(all_goals[task.parent_id]));
-    else
-      this.goal = undefined;
-    
-    if (this.goal != undefined && this.goal.parent_id != undefined)
-      this.vision = JSON.parse(JSON.stringify(all_visions[this.goal.parent_id]));
-    else
-      this.vision = undefined;
-  }
-}
-
-export class ExpandedGoal extends Goal
-{
-    vision: Vision;
-    child_tasks: ExpandedTask[];
-    extra: any;       // Components can tack on bindable UI data here
-
-    // Full
-    constructor(goal: Goal, task_filter: (task: Task) => boolean, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
+    add_task_to_day(day_id: number, task_id: number, no_callbacks?: boolean)
     {
-        // Copy construct
-        super(goal);
+        DatabaseManager.database_data.days.get(day_id).task_ids.push(task_id);
+        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+    }
 
-        // Expanded fields
-        if (goal.parent_id != undefined)
-            this.vision = JSON.parse(JSON.stringify(all_visions[this.parent_id]));
+    add_tasks_to_day(day_id: number, task_ids: number[], no_callbacks?: boolean)
+    {
+        DatabaseManager.database_data.days.get(day_id).task_ids =
+            DatabaseManager.database_data.days.get(day_id).task_ids.concat(task_ids);
+        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+    }
+
+    remove_task_from_day(day_id: number, remove_task_id: number, no_callbacks?: boolean)
+    {
+        let day_task_ids = DatabaseManager.database_data.days.get(day_id).task_ids;
+
+        let remove_index = day_task_ids.findIndex((task_id) => { return task_id == remove_task_id });
+        day_task_ids.splice(remove_index, 1);
+        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+    }
+
+    add_task_to_week(week_id: number, task_id: number, no_callbacks?: boolean)
+    {
+        DatabaseManager.database_data.weeks.get(week_id).task_ids.push(task_id);
+        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+    }
+
+    add_tasks_to_week(week_id: number, task_ids: number[], no_callbacks?: boolean)
+    {
+        DatabaseManager.database_data.weeks.get(week_id).task_ids = 
+            DatabaseManager.database_data.weeks.get(week_id).task_ids.concat(task_ids);
+        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+    }
+
+    remove_task_from_week(week_id: number, day_id: number, remove_task_id: number, no_callbacks?: boolean)
+    {
+        // Remove from week
+        let week_task_ids = DatabaseManager.database_data.weeks.get(week_id).task_ids;
+
+        let remove_index = week_task_ids.findIndex((task_id) => { return task_id == remove_task_id });
+        week_task_ids.splice(remove_index, 1);
         
-        this.child_tasks = [];
-        for (let child_id of goal.child_ids)
-        {
-            let task = all_tasks[child_id];
-
-            if (task_filter(task))
-            {
-                this.child_tasks.push(new ExpandedTask(all_tasks[child_id], all_goals, all_visions));
-            }
-        }
-    }
-}
-
-export class ExpandedVision extends Vision
-{
-    child_goals: ExpandedGoal[];
-
-    constructor(vision: Vision, goal_filter: (goal: ExpandedGoal) => boolean, task_filter: (task: Task) => boolean, all_tasks: Task[], all_goals: Goal[], all_visions: Vision[])
-    {
-        // Copy construct
-        super(vision);
-
-        this.child_goals = [];
-        
-        // Build the tree
-        for (let goal_id of this.child_ids)
-        {
-            let goal = all_goals[goal_id];
-            let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_goals, all_visions);
-
-            if (goal_filter(expanded_goal))
-            {
-                this.child_goals.push(expanded_goal);
-            }
-        }
-    }
-}
-
-export class TaskFilter
-{
-    static all()
-    {
-        return (task: Task) => { return true };
-    }
-
-    static none()
-    {
-        return (task: Task) => { return false };
-    }
-
-    static including(task_ids: number[])
-    {
-        let task_id_set = new Set<number>(task_ids);
-        return (task: Task) => {
-            return task_id_set.has(task.unique_id);
-        };
-    }
-
-    static excluding(task_ids: number[])
-    {
-        let task_id_set = new Set<number>(task_ids);
-        return (task: Task) => {
-            return !task_id_set.has(task.unique_id);
-        }; 
-    }
-
-    static active()
-    {
-        return (task: Task) => { 
-            return task.date_completed == undefined && task.date_cancelled == undefined;
-        };
-    }
-}
-
-export class GoalFilter
-{
-    static all()
-    {
-        return (goal: ExpandedGoal) => { return true };
-    }
-
-    static none()
-    {
-        return (goal: ExpandedGoal) => { return false };
-    }
-
-    static populated()
-    {
-        return (goal: ExpandedGoal) => { return goal.child_tasks.length > 0 };
+        // Remove from day
+        this.remove_task_from_day(day_id, remove_task_id);
     }
 }
 
@@ -726,77 +633,29 @@ export class DatabaseHelper
         } 
     }
 
-    static query_tasks(database_manager: DatabaseManager, task_filter?: (task: Task) => boolean)
+    static create_blank_day(): Day
     {
-        if (task_filter == undefined)
-            task_filter = TaskFilter.all();
+        let new_day : Day = {
+            date: undefined,
+            task_ids: [],
+            unique_id: undefined,
+            parent_id: undefined,
+            last_day_id: undefined
+        };
 
-        let all_tasks = database_manager.get_tasks_ref();
-        let all_goals = database_manager.get_goals_ref();
-        let all_visions = database_manager.get_visions_ref();
-
-        let expanded_tasks = [];
-
-        for (let task of all_tasks)
-        {
-            if (task_filter(task))
-            {
-                let expanded_task = new ExpandedTask(task, all_goals, all_visions);
-                expanded_tasks.push(expanded_task);
-            }
-        }
-
-        return expanded_tasks;
+        return new_day;
     }
 
-    static query_goals(database_manager: DatabaseManager, goal_filter?: (goal: ExpandedGoal) => boolean, task_filter?: (task: Task) => boolean)
+    static create_blank_week(): Week
     {
-        if (task_filter == undefined)
-            task_filter = TaskFilter.all();
+        let new_week: Week = {
+            date: undefined,
+            task_ids: [],
+            day_ids: [],
+            unique_id: undefined,
+            last_week_id: undefined
+        };
 
-        if (goal_filter == undefined)
-            goal_filter = GoalFilter.all();
-        
-        let all_tasks = database_manager.get_tasks_ref();
-        let all_goals = database_manager.get_goals_ref();
-        let all_visions = database_manager.get_visions_ref();
-
-        let expanded_goals = [];
-
-        for (let goal of all_goals)
-        {
-            let expanded_goal = new ExpandedGoal(goal, task_filter, all_tasks, all_goals, all_visions);
-            
-            if (goal_filter(expanded_goal))
-            {
-                expanded_goals.push(expanded_goal);
-            }
-        }
-
-        return expanded_goals;
-    }
-
-    // TODO: No need for vision filter I imagine..
-    static query_visions(database_manager: DatabaseManager, goal_filter?: (goal: Goal) => boolean, task_filter?: (task: Task) => boolean)
-    {
-        if (task_filter == undefined)
-            task_filter = TaskFilter.all();
-
-        if (goal_filter == undefined)
-            goal_filter = GoalFilter.all();
-
-        let all_tasks = database_manager.get_tasks_ref();
-        let all_goals = database_manager.get_goals_ref();
-        let all_visions = database_manager.get_visions_ref();
-
-        let expanded_visions = [];
-
-        for (let vision of all_visions)
-        {
-            let expanded_vision = new ExpandedVision(vision, goal_filter, task_filter, all_tasks, all_goals, all_visions);
-            expanded_visions.push(expanded_vision);
-        }
-
-        return expanded_visions;
+        return new_week;
     }
 }

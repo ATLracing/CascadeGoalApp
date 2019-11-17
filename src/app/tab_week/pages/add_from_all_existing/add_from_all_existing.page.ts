@@ -1,7 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, ExpandedGoal, DatabaseHelper, TaskFilter, GoalFilter } from '../../../providers/database_manager';
+import { DatabaseManager } from '../../../providers/database_manager';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
+import { ExpandedGoal, DatabaseInflator, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
 
 export class AddFromAllExistingInputs
 {
@@ -27,7 +28,7 @@ export class AddFromAllExistingPage implements OnDestroy {
     let excluded_ids = inputs.excluded_ids;
 
     database_manager_.register_data_updated_callback("add_from_all_existing_page", () => {
-      this.goals_ = DatabaseHelper.query_goals(this.database_manager_, GoalFilter.populated(), TaskFilter.excluding(excluded_ids));
+      this.goals_ = DatabaseInflator.query_goals(this.database_manager_, GoalFilter.populated(), TaskFilter.excluding(excluded_ids));
 
       // Append extra info
       for (let goal of this.goals_)
