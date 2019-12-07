@@ -19,7 +19,7 @@
   </ion-item>
   <ion-item *ngIf="!input_settings_.preset_vision">
     <ion-label>Associated Vision</ion-label>
-    <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="vision_parent_id_string_" >
+    <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="vision_parent_id_" >
         <ion-select-option value="">None</ion-select-option>
         <ion-select-option *ngFor="let vision of all_visions_" value="{{vision.unique_id}}">{{vision.name}}</ion-select-option>
       </ion-select>

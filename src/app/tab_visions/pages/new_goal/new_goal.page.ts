@@ -1,5 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, Goal, Task, DatabaseHelper, Vision } from 'src/app/providers/database_manager';
+import { DatabaseManager } from 'src/app/providers/database_manager';
+import * as PackedRecord from 'src/app/providers/packed_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 
@@ -14,9 +15,9 @@ export class NewGoalPageSettings
   styleUrls: ['new_goal.page.scss']
 })
 export class NewGoalPage implements OnDestroy {
-  private new_goal_: Goal;
-  private all_visions_: Vision[];
-  private vision_parent_id_string_;
+  private new_goal_: PackedRecord.Goal;
+  private all_visions_: PackedRecord.Vision[];
+  private vision_parent_id_: PackedRecord.VisionID;
   private input_settings_: NewGoalPageSettings;
 
   constructor(private database_manager_: DatabaseManager,
@@ -29,17 +30,17 @@ export class NewGoalPage implements OnDestroy {
       this.input_settings_ = new NewGoalPageSettings();
 
     database_manager_.register_data_updated_callback("new_goal_page", () => {
-      this.all_visions_ = database_manager_.get_image_delegate().get_visions(); // TODO: Needed for updates?
+      this.all_visions_ = database_manager_.get_visions(); // TODO: Needed for updates?
     });
 
-    this.new_goal_ = DatabaseHelper.create_blank_goal();
+    this.new_goal_ = new PackedRecord.Goal();
     console.log("New Task constructed");
   }
 
   save()
   {
     // TODO(ABurroughs): This sucks
-    this.new_goal_.parent_id = parseInt(this.vision_parent_id_string_);
+    this.new_goal_.parent_id = this.vision_parent_id_;//parseInt(this.vision_parent_id_string_);
     this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_goal_);
     this.router_.navigate(['../'], { relativeTo: this.route_} );
   }

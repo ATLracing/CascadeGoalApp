@@ -1,165 +1,157 @@
-import { Week, DatabaseImage, Day } from './database_manager';
+import { DatabaseImage } from './database_manager';
+import { getLocaleId } from '@angular/common';
+import * as PackedRecord from './packed_record';
 
 // ==================================================================================== EXAMPLE DATA 
 // Visions
-let example_vision_one = {
+let example_vision_one : PackedRecord.Vision = {
     name: "Financial Independence",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: "Quit the 9-5",
 
     // Implementation
-    unique_id: 0,
-    child_ids: [0, 1]
+    unique_id: new PackedRecord.VisionID(0, ['local']),
+    child_ids: [new PackedRecord.GoalID(0, ['local']), new PackedRecord.GoalID(1, ['local'])]
 };
 
-let example_vision_two = {
+let example_vision_two : PackedRecord.Vision = {
     name: "Find Soulmate",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: "Get a honey of a gal",
 
     // Implementation
-    unique_id: 1,
-    child_ids: [2]
+    unique_id: new PackedRecord.VisionID(1, ['local']),
+    child_ids: [new PackedRecord.GoalID(2, ['local'])]
 };
 
 // Goals
-let example_goal_one = {
+let example_goal_one : PackedRecord.Goal = {
     name: "Get invested",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: undefined,
 
     // Implementation
-    unique_id: 0,
-    parent_id: 0,
-    child_ids: [0, 1]
+    unique_id: new PackedRecord.GoalID(0, ['local']),
+    parent_id: new PackedRecord.VisionID(0, ['local']),
+    child_ids: [new PackedRecord.TaskID(0, ['local']), new PackedRecord.TaskID(1, ['local'])]
 };
 
-let example_goal_two = {
+let example_goal_two : PackedRecord.Goal = {
     name: "Learn Python market API",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: undefined,
 
     // Implementation
-    unique_id: 1,
-    parent_id: 0,
-    child_ids: [2]
+    unique_id: new PackedRecord.GoalID(1, ['local']),
+    parent_id: new PackedRecord.VisionID(0, ['local']),
+    child_ids: [new PackedRecord.TaskID(2, ['local'])]
 };
 
-let example_goal_three = {
+let example_goal_three : PackedRecord.Goal = {
     name: "Hit the club",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: undefined,
 
     // Implementation
-    unique_id: 2,
-    parent_id: 1,
-    child_ids: [3, 4]
+    unique_id: new PackedRecord.GoalID(2, ['local']),
+    parent_id: new PackedRecord.VisionID(1, ['local']),
+    child_ids: [new PackedRecord.TaskID(3, ['local']), new PackedRecord.TaskID(4, ['local'])]
 };
 
-let example_task_one = {
+let example_task_one : PackedRecord.Task = {
     name: "Create Bitcoin wallet",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: undefined,
 
     // Implementation
-    unique_id: 0,
-    parent_id: 0,
+    unique_id: new PackedRecord.TaskID(0, ['local']),
+    parent_id: new PackedRecord.GoalID(0, ['local']),
 };
 
-let example_task_two = {
+let example_task_two : PackedRecord.Task = {
     name: "Create Ethereum wallet",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: undefined,
 
     // Implementation
-    unique_id: 1,
-    parent_id: 0,
+    unique_id: new PackedRecord.TaskID(1, ['local']),
+    parent_id: new PackedRecord.GoalID(0, ['local']),
 };
 
-let example_task_three = {
+let example_task_three : PackedRecord.Task = {
     name: "Write basic Python stock price graphing app",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: undefined,
 
     // Implementation
-    unique_id: 2,
-    parent_id: 1,
+    unique_id: new PackedRecord.TaskID(2, ['local']),
+    parent_id: new PackedRecord.GoalID(1, ['local']),
 };
 
-let example_task_four = {
+let example_task_four : PackedRecord.Task = {
     name: "Read Yelp club reviews and decide on venue",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: undefined,
 
     // Implementation
-    unique_id: 3,
-    parent_id: 2,
+    unique_id: new PackedRecord.TaskID(3, ['local']),
+    parent_id: new PackedRecord.GoalID(2, ['local']),
 };
 
-let example_task_five = {
+let example_task_five : PackedRecord.Task = {
     name: "Buy styling gel",
     date_created: new Date(),
     date_completed: undefined,
-    date_cancelled: undefined,
 
     // Optional data
     details: undefined,
 
     // Implementation
-    unique_id: 4,
-    parent_id: 2,
+    unique_id: new PackedRecord.TaskID(4, ['local']),
+    parent_id: new PackedRecord.GoalID(2, ['local']),
 };
 
-let example_day_one : Day = {
+let example_day_one : PackedRecord.Day = {
     date: new Date(1994, 0),
-    task_ids: [0, 1, 2],
-    unique_id: 0,
-    parent_id: 0,
-    last_day_id: undefined
+    task_ids: [new PackedRecord.TaskID(0, ['local']), new PackedRecord.TaskID(1, ['local']), new PackedRecord.TaskID(2, ['local'])],
+    unique_id: new PackedRecord.DayID(0, ['local']),
+    week_id: new PackedRecord.WeekID(0, ['local']),
+    previous_id: undefined
 };
 
-let example_week_one : Week = {
+let example_week_one : PackedRecord.Week = {
     date: new Date(1994, 0),
-    task_ids: [0, 1, 4],
-    day_ids: [0],
-    unique_id: 0,
-    last_week_id: undefined
+    task_ids: [new PackedRecord.TaskID(0, ['local']), new PackedRecord.TaskID(1, ['local']), new PackedRecord.TaskID(4, ['local'])],
+    day_ids: [new PackedRecord.DayID(0, ['local']),],
+    unique_id: new PackedRecord.WeekID(0, ['local']),
+    previous_id: undefined
 };
 
 export let example_db_image : DatabaseImage = {
@@ -172,6 +164,7 @@ export let example_db_image : DatabaseImage = {
     days: [example_day_one],
     weeks: [example_week_one],
 
-    most_recent_day_id: 0,
-    next_available_id: 20
+    most_recent_day_id: new PackedRecord.DayID(0, ['local']),
+    most_recent_week_id: new PackedRecord.WeekID(0, ['local']),
+    next_available_index: 20
 };

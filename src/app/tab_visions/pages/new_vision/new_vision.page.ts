@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DatabaseHelper, Vision } from 'src/app/providers/database_manager';
+import * as PackedRecord from 'src/app/providers/packed_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 
@@ -9,13 +9,13 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
   styleUrls: ['new_vision.page.scss']
 })
 export class NewVisionPage {
-  private new_vision_: Vision;
+  private new_vision_: PackedRecord.Vision;
 
   constructor(private router_: Router,
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer)
   {
-    this.new_vision_ = DatabaseHelper.create_blank_goal();
+    this.new_vision_ = new PackedRecord.Vision();
     console.log("New Vision constructed");
   }
 

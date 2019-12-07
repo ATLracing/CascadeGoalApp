@@ -2,7 +2,8 @@ import { Component, OnDestroy } from '@angular/core';
 import { DatabaseManager } from '../../../providers/database_manager';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ExpandedGoal, DatabaseInflator, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
+import { DatabaseInflator, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
+import * as InflatedRecord from 'src/app/providers/inflated_record';
 
 export class AddFromAllExistingInputs
 {
@@ -15,7 +16,7 @@ export class AddFromAllExistingInputs
   styleUrls: ['add_from_all_existing.page.scss']
 })
 export class AddFromAllExistingPage implements OnDestroy {
-  private goals_: ExpandedGoal[];
+  private goals_: InflatedRecord.Goal[];
   private save_callback_: any;
 
   constructor(private database_manager_: DatabaseManager,

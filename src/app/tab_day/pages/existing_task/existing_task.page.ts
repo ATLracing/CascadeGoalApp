@@ -1,8 +1,10 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, Task, Week } from 'src/app/providers/database_manager';
+import { DatabaseManager } from 'src/app/providers/database_manager';
+import * as PackedRecord from 'src/app/providers/packed_record';
+import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatabaseInflator, ExpandedTask, TaskFilter } from 'src/app/providers/database_inflator';
+import { TaskFilter, DatabaseInflator } from 'src/app/providers/database_inflator';
 import { CalendarManager } from 'src/app/providers/calendar_manager'
 
 @Component({
@@ -11,9 +13,9 @@ import { CalendarManager } from 'src/app/providers/calendar_manager'
   styleUrls: ['existing_task.page.scss']
 })
 export class ExistingTaskPage implements OnDestroy {
-  private available_tasks_: ExpandedTask[];
+  private available_tasks_: InflatedRecord.Task[];
   private checkboxes_array_: boolean[];
-  private week_: Week;
+  private week_: PackedRecord.Week;
 
   constructor(private database_manager_: DatabaseManager,
               private addressed_transfer_: AddressedTransfer,
@@ -26,10 +28,10 @@ export class ExistingTaskPage implements OnDestroy {
     let exclude_filter = TaskFilter.excluding(existing_task_ids);
 
     database_manager_.register_data_updated_callback("existing_task_page", () => {
-      this.week_ = database_manager_.get_image_delegate().get_most_recent_week();
+      this.week_ = database_manager_.get_most_recent_week();
       let include_filter = TaskFilter.including(this.week_.task_ids)
 
-      let custom_available_filter = (task: Task) => {
+      let custom_available_filter = (task: PackedRecord.Task) => {
         return active_filter(task) && exclude_filter(task) && include_filter(task);
       };
       
