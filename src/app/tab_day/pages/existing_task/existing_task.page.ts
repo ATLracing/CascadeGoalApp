@@ -5,7 +5,6 @@ import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
 import { TaskFilter, DatabaseInflator } from 'src/app/providers/database_inflator';
-import { CalendarManager } from 'src/app/providers/calendar_manager'
 
 @Component({
   selector: 'existing-task-page',

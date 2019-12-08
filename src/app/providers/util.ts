@@ -1,14 +1,14 @@
-export function remove_element_from_array(remove_element: any, array: any[])
+import * as PackedRecord from 'src/app/providers/packed_record'
+
+export function remove_id_from_array(remove_element: PackedRecord.ID, array: PackedRecord.ID[])
 {
-    for (let i = 0; i < array.length; ++i)
+    for (let i = array.length - 1; i >= 0; --i)
     {
         let current_element = array[i];
 
-        if (current_element == remove_element)
-            return array.splice(i, 1);
+        if (JSON.stringify(current_element) == JSON.stringify(remove_element))
+            array.splice(i, 1);
     }
-
-    return array;
 }
 
 export function record_array_to_id_array(record_array: any[]) : any[]

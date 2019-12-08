@@ -13,8 +13,8 @@ let example_vision_one : PackedRecord.Vision = {
     details: "Quit the 9-5",
 
     // Implementation
-    unique_id: new PackedRecord.VisionID(0, ['local']),
-    child_ids: [new PackedRecord.GoalID(0, ['local']), new PackedRecord.GoalID(1, ['local'])]
+    unique_id: new PackedRecord.VisionID(0, PackedRecord.GROUP_LOCAL),
+    child_ids: [new PackedRecord.GoalID(0, PackedRecord.GROUP_LOCAL), new PackedRecord.GoalID(1, PackedRecord.GROUP_LOCAL)]
 };
 
 let example_vision_two : PackedRecord.Vision = {
@@ -26,8 +26,8 @@ let example_vision_two : PackedRecord.Vision = {
     details: "Get a honey of a gal",
 
     // Implementation
-    unique_id: new PackedRecord.VisionID(1, ['local']),
-    child_ids: [new PackedRecord.GoalID(2, ['local'])]
+    unique_id: new PackedRecord.VisionID(1, PackedRecord.GROUP_LOCAL),
+    child_ids: [new PackedRecord.GoalID(2, PackedRecord.GROUP_LOCAL)]
 };
 
 // Goals
@@ -40,9 +40,9 @@ let example_goal_one : PackedRecord.Goal = {
     details: undefined,
 
     // Implementation
-    unique_id: new PackedRecord.GoalID(0, ['local']),
-    parent_id: new PackedRecord.VisionID(0, ['local']),
-    child_ids: [new PackedRecord.TaskID(0, ['local']), new PackedRecord.TaskID(1, ['local'])]
+    unique_id: new PackedRecord.GoalID(0, PackedRecord.GROUP_LOCAL),
+    parent_id: new PackedRecord.VisionID(0, PackedRecord.GROUP_LOCAL),
+    child_ids: [new PackedRecord.TaskID(0, PackedRecord.GROUP_LOCAL), new PackedRecord.TaskID(1, PackedRecord.GROUP_LOCAL)]
 };
 
 let example_goal_two : PackedRecord.Goal = {
@@ -54,9 +54,9 @@ let example_goal_two : PackedRecord.Goal = {
     details: undefined,
 
     // Implementation
-    unique_id: new PackedRecord.GoalID(1, ['local']),
-    parent_id: new PackedRecord.VisionID(0, ['local']),
-    child_ids: [new PackedRecord.TaskID(2, ['local'])]
+    unique_id: new PackedRecord.GoalID(1, PackedRecord.GROUP_LOCAL),
+    parent_id: new PackedRecord.VisionID(0, PackedRecord.GROUP_LOCAL),
+    child_ids: [new PackedRecord.TaskID(2, PackedRecord.GROUP_LOCAL)]
 };
 
 let example_goal_three : PackedRecord.Goal = {
@@ -68,9 +68,9 @@ let example_goal_three : PackedRecord.Goal = {
     details: undefined,
 
     // Implementation
-    unique_id: new PackedRecord.GoalID(2, ['local']),
-    parent_id: new PackedRecord.VisionID(1, ['local']),
-    child_ids: [new PackedRecord.TaskID(3, ['local']), new PackedRecord.TaskID(4, ['local'])]
+    unique_id: new PackedRecord.GoalID(2, PackedRecord.GROUP_LOCAL),
+    parent_id: new PackedRecord.VisionID(1, PackedRecord.GROUP_LOCAL),
+    child_ids: [new PackedRecord.TaskID(3, PackedRecord.GROUP_LOCAL), new PackedRecord.TaskID(4, PackedRecord.GROUP_LOCAL)]
 };
 
 let example_task_one : PackedRecord.Task = {
@@ -82,8 +82,8 @@ let example_task_one : PackedRecord.Task = {
     details: undefined,
 
     // Implementation
-    unique_id: new PackedRecord.TaskID(0, ['local']),
-    parent_id: new PackedRecord.GoalID(0, ['local']),
+    unique_id: new PackedRecord.TaskID(0, PackedRecord.GROUP_LOCAL),
+    parent_id: new PackedRecord.GoalID(0, PackedRecord.GROUP_LOCAL),
 };
 
 let example_task_two : PackedRecord.Task = {
@@ -95,8 +95,8 @@ let example_task_two : PackedRecord.Task = {
     details: undefined,
 
     // Implementation
-    unique_id: new PackedRecord.TaskID(1, ['local']),
-    parent_id: new PackedRecord.GoalID(0, ['local']),
+    unique_id: new PackedRecord.TaskID(1, PackedRecord.GROUP_LOCAL),
+    parent_id: new PackedRecord.GoalID(0, PackedRecord.GROUP_LOCAL),
 };
 
 let example_task_three : PackedRecord.Task = {
@@ -108,8 +108,8 @@ let example_task_three : PackedRecord.Task = {
     details: undefined,
 
     // Implementation
-    unique_id: new PackedRecord.TaskID(2, ['local']),
-    parent_id: new PackedRecord.GoalID(1, ['local']),
+    unique_id: new PackedRecord.TaskID(2, PackedRecord.GROUP_LOCAL),
+    parent_id: new PackedRecord.GoalID(1, PackedRecord.GROUP_LOCAL),
 };
 
 let example_task_four : PackedRecord.Task = {
@@ -121,8 +121,8 @@ let example_task_four : PackedRecord.Task = {
     details: undefined,
 
     // Implementation
-    unique_id: new PackedRecord.TaskID(3, ['local']),
-    parent_id: new PackedRecord.GoalID(2, ['local']),
+    unique_id: new PackedRecord.TaskID(3, PackedRecord.GROUP_LOCAL),
+    parent_id: new PackedRecord.GoalID(2, PackedRecord.GROUP_LOCAL),
 };
 
 let example_task_five : PackedRecord.Task = {
@@ -134,23 +134,23 @@ let example_task_five : PackedRecord.Task = {
     details: undefined,
 
     // Implementation
-    unique_id: new PackedRecord.TaskID(4, ['local']),
-    parent_id: new PackedRecord.GoalID(2, ['local']),
+    unique_id: new PackedRecord.TaskID(4, PackedRecord.GROUP_LOCAL),
+    parent_id: new PackedRecord.GoalID(2, PackedRecord.GROUP_LOCAL),
 };
 
 let example_day_one : PackedRecord.Day = {
     date: new Date(1994, 0),
-    task_ids: [new PackedRecord.TaskID(0, ['local']), new PackedRecord.TaskID(1, ['local']), new PackedRecord.TaskID(2, ['local'])],
-    unique_id: new PackedRecord.DayID(0, ['local']),
-    week_id: new PackedRecord.WeekID(0, ['local']),
+    task_ids: [new PackedRecord.TaskID(0, PackedRecord.GROUP_LOCAL), new PackedRecord.TaskID(1, PackedRecord.GROUP_LOCAL), new PackedRecord.TaskID(2, PackedRecord.GROUP_LOCAL)],
+    unique_id: new PackedRecord.DayID(0, PackedRecord.GROUP_LOCAL),
+    week_id: new PackedRecord.WeekID(0, PackedRecord.GROUP_LOCAL),
     previous_id: undefined
 };
 
 let example_week_one : PackedRecord.Week = {
     date: new Date(1994, 0),
-    task_ids: [new PackedRecord.TaskID(0, ['local']), new PackedRecord.TaskID(1, ['local']), new PackedRecord.TaskID(4, ['local'])],
-    day_ids: [new PackedRecord.DayID(0, ['local']),],
-    unique_id: new PackedRecord.WeekID(0, ['local']),
+    task_ids: [new PackedRecord.TaskID(0, PackedRecord.GROUP_LOCAL), new PackedRecord.TaskID(1, PackedRecord.GROUP_LOCAL), new PackedRecord.TaskID(4, PackedRecord.GROUP_LOCAL)],
+    day_ids: [new PackedRecord.DayID(0, PackedRecord.GROUP_LOCAL),],
+    unique_id: new PackedRecord.WeekID(0, PackedRecord.GROUP_LOCAL),
     previous_id: undefined
 };
 
@@ -164,7 +164,7 @@ export let example_db_image : DatabaseImage = {
     days: [example_day_one],
     weeks: [example_week_one],
 
-    most_recent_day_id: new PackedRecord.DayID(0, ['local']),
-    most_recent_week_id: new PackedRecord.WeekID(0, ['local']),
+    most_recent_day_id: new PackedRecord.DayID(0, PackedRecord.GROUP_LOCAL),
+    most_recent_week_id: new PackedRecord.WeekID(0, PackedRecord.GROUP_LOCAL),
     next_available_index: 20
 };

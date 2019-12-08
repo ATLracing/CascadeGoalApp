@@ -1,8 +1,10 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DatabaseManager } from 'src/app/providers/database_manager';
 import * as PackedRecord from 'src/app/providers/packed_record';
+import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
+import { DatabaseInflator, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
 
 export class NewTaskPageSettings
 {
@@ -15,9 +17,9 @@ export class NewTaskPageSettings
   styleUrls: ['new_task.page.scss']
 })
 export class NewTaskPage implements OnDestroy {
-  private all_goals_: PackedRecord.Goal[];
+  private all_goals_: InflatedRecord.Goal[];
   private new_task_: PackedRecord.Task;
-  private goal_parent_id_;
+  private goal_parent_id_string_: string;
   private input_settings_: NewTaskPageSettings;
 
   constructor(private database_manager_: DatabaseManager,
@@ -30,7 +32,13 @@ export class NewTaskPage implements OnDestroy {
       this.input_settings_ = new NewTaskPageSettings();
 
     database_manager_.register_data_updated_callback("new_task_page", () => {
-      this.all_goals_ = database_manager_.get_goals(); // TODO: Needed for updates?
+      this.all_goals_ = DatabaseInflator.query_goals(database_manager_, GoalFilter.all(), TaskFilter.none());
+
+      // Add stringified key
+      for (let goal of this.all_goals_)
+      {
+        goal.extra = { string_key: JSON.stringify(goal.unique_id) };
+      }
     });
 
     this.new_task_ = new PackedRecord.Task();
@@ -40,7 +48,9 @@ export class NewTaskPage implements OnDestroy {
   save()
   {
     // TODO(ABurroughs): This sucks
-    this.new_task_.parent_id = this.goal_parent_id_; //parseInt(this.goal_parent_id_string_);
+    if (this.goal_parent_id_string_)
+      this.new_task_.parent_id = JSON.parse(this.goal_parent_id_string_);
+      
     this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_task_);
     this.router_.navigate(['../'], { relativeTo: this.route_} );
   }

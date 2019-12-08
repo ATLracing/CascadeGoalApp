@@ -31,9 +31,9 @@ export class CalendarManager
         if (all_days.length == 0)
         {
             // New week, new day, no carry
-            let new_week_id = database_manager.week_add(current_date, ["local"], true);
+            let new_week_id = database_manager.week_add(current_date, PackedRecord.GROUP_LOCAL, true);
 
-            let new_day_id = database_manager.day_add(current_date, ["local"], true);
+            let new_day_id = database_manager.day_add(current_date, PackedRecord.GROUP_LOCAL, true);
             database_manager.day_add_to_week(new_day_id, new_week_id);  // Callback
         }
         else
@@ -86,7 +86,7 @@ export class CalendarManager
             }
         }
 
-        let new_day_id = database_manager.day_add(current_date, ["local"], true);
+        let new_day_id = database_manager.day_add(current_date, PackedRecord.GROUP_LOCAL, true);
         database_manager.day_set_task_ids(new_day_id, recent_incomplete_task_ids);
         
         return new_day_id;
@@ -109,7 +109,7 @@ export class CalendarManager
             }
         }
 
-        let new_week_id = database_manager.week_add(current_date, ["local"], true);
+        let new_week_id = database_manager.week_add(current_date, PackedRecord.GROUP_LOCAL, true);
         database_manager.week_set_task_ids(new_week_id, recent_incomplete_task_ids, true);
 
         return new_week_id;

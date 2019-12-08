@@ -54,7 +54,7 @@ export class TaskListPage implements OnDestroy {
     console.log("New task");
     this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', (new_task: PackedRecord.Task) => {
       // Add new task
-      let new_task_id = this.database_manager_.task_add(new_task.name, new_task.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, ['local'], true);
+      let new_task_id = this.database_manager_.task_add(new_task.name, new_task.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, PackedRecord.GROUP_LOCAL, true);
       
       // Set task parent
       if (new_task.parent_id != PackedRecord.NullID)
@@ -90,8 +90,9 @@ export class TaskListPage implements OnDestroy {
 
   remove(index: number)
   {
-    let new_day_tasks = this.day_.tasks.splice(index, 1);
-    let new_day_task_ids = Util.record_array_to_id_array(new_day_tasks);
+    console.log("Remove: " + index);
+    this.day_.tasks.splice(index, 1);
+    let new_day_task_ids = Util.record_array_to_id_array(this.day_.tasks);
 
     this.database_manager_.day_set_task_ids(this.day_.unique_id, new_day_task_ids);
   }

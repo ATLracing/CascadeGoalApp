@@ -57,7 +57,7 @@ export class ManagePage {
   {
     // TODO If something changes in another pane.. not good
     this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', (new_task: PackedRecord.Task) => {      
-      let new_task_id = this.database_manager_.task_add(new_task.name, new_task.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, ["local"], true);
+      let new_task_id = this.database_manager_.task_add(new_task.name, new_task.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, PackedRecord.GROUP_LOCAL, true);
       
       let parent_goal_id = this.expanded_visions_[vision_index].child_goals[goal_index].unique_id;
 
@@ -72,7 +72,7 @@ export class ManagePage {
   {
     // TODO If something changes in another pane.. not good
     this.addressed_transfer_.put_for_route(this.router_, 'new_goal', 'callback', (new_goal: PackedRecord.Goal) => {
-      let new_goal_id = this.database_manager_.goal_add(new_goal.name, new_goal.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, ["local"], true);
+      let new_goal_id = this.database_manager_.goal_add(new_goal.name, new_goal.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, PackedRecord.GROUP_LOCAL, true);
 
       let parent_vision_id = this.expanded_visions_[vision_index].unique_id;
       this.database_manager_.goal_set_parent(parent_vision_id, new_goal_id);
@@ -86,7 +86,7 @@ export class ManagePage {
   add_new_vision()
   {
     this.addressed_transfer_.put_for_route(this.router_, 'new_vision', 'callback', (new_vision: PackedRecord.Vision) => {
-      this.database_manager_.vision_add(new_vision.name, new_vision.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, ["local"]);
+      this.database_manager_.vision_add(new_vision.name, new_vision.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, PackedRecord.GROUP_LOCAL);
     });
 
     this.router_.navigate(['new_vision'], { relativeTo: this.route_ });

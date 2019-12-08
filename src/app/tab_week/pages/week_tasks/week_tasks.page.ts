@@ -6,7 +6,6 @@ import * as Util from 'src/app/providers/util';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { DatabaseInflator, TaskFilter, GoalFilter } from 'src/app/providers/database_inflator';
-import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 @Component({
   selector: 'app-week-tasks',
@@ -30,7 +29,7 @@ export class WeekTasksPage implements OnDestroy {
       this.goals_ = DatabaseInflator.query_goals(this.database_manager_, 
                                                  GoalFilter.populated(), 
                                                  TaskFilter.including(this.week_.task_ids));
-
+      
       // Append UI info
       for (let goal of this.goals_)
       {
@@ -59,7 +58,6 @@ export class WeekTasksPage implements OnDestroy {
                         };
         }
       }
-      console.log(this.goals_);
     });
   }
 
@@ -79,9 +77,7 @@ export class WeekTasksPage implements OnDestroy {
     this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "inputs", { excluded_ids: this.week_.task_ids });
 
     this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "callback", (new_task_ids: PackedRecord.TaskID[]) => {
-      console.log(this.week_.task_ids);
       this.week_.task_ids = this.week_.task_ids.concat(new_task_ids);
-      console.log(this.week_.task_ids);
       this.database_manager_.week_set_task_ids(this.week_.unique_id, this.week_.task_ids);
     });
 
@@ -90,9 +86,11 @@ export class WeekTasksPage implements OnDestroy {
 
   remove(goal_index: number, task_index: number)
   {
-    let new_tasks = this.goals_[goal_index].child_tasks.splice(task_index, 1);
-    let new_task_ids = Util.record_array_to_id_array(new_tasks);
-    this.database_manager_.week_set_task_ids(this.week_.unique_id, new_task_ids);
+    let remove_task = this.goals_[goal_index].child_tasks[task_index];
+    
+    Util.remove_id_from_array(remove_task.unique_id, this.week_.task_ids);
+
+    this.database_manager_.week_set_task_ids(this.week_.unique_id, this.week_.task_ids);
   }
 
   ngOnDestroy()

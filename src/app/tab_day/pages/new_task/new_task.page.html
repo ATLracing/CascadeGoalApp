@@ -20,8 +20,8 @@
   <ion-item *ngIf="!input_settings_.preset_goal">
     <ion-label>Associated Goal</ion-label>
     <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="goal_parent_id_string_" >
-        <ion-select-option value="">None</ion-select-option>
-        <ion-select-option *ngFor="let goal of all_goals_" value="{{goal.unique_id}}">{{goal.name}}</ion-select-option>
+        <ion-select-option value={{undefined}}>None</ion-select-option>
+        <ion-select-option *ngFor="let goal of all_goals_" value="{{goal.extra.string_key}}">{{goal.name}}</ion-select-option>
       </ion-select>
   </ion-item>
   <ion-item lines="none">

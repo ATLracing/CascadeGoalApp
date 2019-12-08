@@ -1,6 +1,7 @@
 import { DatabaseManager } from './database_manager'
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
+import { CSet } from './custom_id_set';
 
 export class TaskFilter
 {
@@ -16,7 +17,7 @@ export class TaskFilter
 
     static including(task_ids: PackedRecord.TaskID[])
     {
-        let task_id_set = new Set<PackedRecord.TaskID>(task_ids);
+        let task_id_set = new CSet<PackedRecord.TaskID>(task_ids);
         return (task: PackedRecord.Task) => {
             return task_id_set.has(task.unique_id);
         };
@@ -24,7 +25,7 @@ export class TaskFilter
 
     static excluding(task_ids: PackedRecord.TaskID[])
     {
-        let task_id_set = new Set<PackedRecord.TaskID>(task_ids);
+        let task_id_set = new CSet<PackedRecord.TaskID>(task_ids);
         return (task: PackedRecord.Task) => {
             return !task_id_set.has(task.unique_id);
         }; 
@@ -60,12 +61,13 @@ export class GoalFilter
 // DatabaseManager level.
 export class DatabaseInflator
 {
-    static query_tasks(database_manager: DatabaseManager, task_filter?: (task: PackedRecord.Task) => boolean)
+    static query_tasks(database_manager: DatabaseManager, 
+                       task_filter?: (task: PackedRecord.Task) => boolean): InflatedRecord.Task[]
     {
         if (task_filter == undefined)
             task_filter = TaskFilter.all();
 
-        let expanded_tasks = [];
+        let expanded_tasks: InflatedRecord.Task[] = [];
 
         for (let task of database_manager.get_tasks())
         {
@@ -79,7 +81,9 @@ export class DatabaseInflator
         return expanded_tasks;
     }
 
-    static query_goals(database_manager: DatabaseManager, goal_filter?: (goal: InflatedRecord.Goal) => boolean, task_filter?: (task: PackedRecord.Task) => boolean)
+    static query_goals(database_manager: DatabaseManager, 
+                       goal_filter?: (goal: InflatedRecord.Goal) => boolean, 
+                       task_filter?: (task: PackedRecord.Task) => boolean): InflatedRecord.Goal[]
     {
         if (task_filter == undefined)
             task_filter = TaskFilter.all();
@@ -87,7 +91,7 @@ export class DatabaseInflator
         if (goal_filter == undefined)
             goal_filter = GoalFilter.all();
 
-        let expanded_goals = [];
+        let expanded_goals: InflatedRecord.Goal[] = [];
 
         for (let goal of database_manager.get_goals())
         {
@@ -103,7 +107,9 @@ export class DatabaseInflator
     }
 
     // TODO: No need for vision filter I imagine..
-    static query_visions(database_manager: DatabaseManager, goal_filter?: (goal: InflatedRecord.Goal) => boolean, task_filter?: (task: PackedRecord.Task) => boolean)
+    static query_visions(database_manager: DatabaseManager, 
+                         goal_filter?: (goal: InflatedRecord.Goal) => boolean, 
+                         task_filter?: (task: PackedRecord.Task) => boolean): InflatedRecord.Vision[]
     {
         if (task_filter == undefined)
             task_filter = TaskFilter.all();
@@ -111,7 +117,7 @@ export class DatabaseInflator
         if (goal_filter == undefined)
             goal_filter = GoalFilter.all();
 
-        let expanded_visions = [];
+        let expanded_visions: InflatedRecord.Vision[] = [];
 
         for (let vision of database_manager.get_visions())
         {

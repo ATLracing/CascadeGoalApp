@@ -1,8 +1,10 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DatabaseManager } from 'src/app/providers/database_manager';
 import * as PackedRecord from 'src/app/providers/packed_record';
+import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
+import { DatabaseInflator, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
 
 export class NewGoalPageSettings
 {
@@ -16,8 +18,8 @@ export class NewGoalPageSettings
 })
 export class NewGoalPage implements OnDestroy {
   private new_goal_: PackedRecord.Goal;
-  private all_visions_: PackedRecord.Vision[];
-  private vision_parent_id_: PackedRecord.VisionID;
+  private all_visions_: InflatedRecord.Vision[];
+  private vision_parent_id_string_: string;
   private input_settings_: NewGoalPageSettings;
 
   constructor(private database_manager_: DatabaseManager,
@@ -30,7 +32,13 @@ export class NewGoalPage implements OnDestroy {
       this.input_settings_ = new NewGoalPageSettings();
 
     database_manager_.register_data_updated_callback("new_goal_page", () => {
-      this.all_visions_ = database_manager_.get_visions(); // TODO: Needed for updates?
+      this.all_visions_ = DatabaseInflator.query_visions(database_manager_, GoalFilter.none(), TaskFilter.none());
+
+      // Add stringified key
+      for (let vision of this.all_visions_)
+      {
+        vision.extra = { string_key: JSON.stringify(vision.unique_id) };
+      }
     });
 
     this.new_goal_ = new PackedRecord.Goal();
@@ -40,8 +48,10 @@ export class NewGoalPage implements OnDestroy {
   save()
   {
     // TODO(ABurroughs): This sucks
-    this.new_goal_.parent_id = this.vision_parent_id_;//parseInt(this.vision_parent_id_string_);
-    this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_goal_);
+    if (this.vision_parent_id_string_)
+      this.new_goal_.parent_id = JSON.parse(this.vision_parent_id_string_);//parseInt(this.vision_parent_id_string_);
+    
+      this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_goal_);
     this.router_.navigate(['../'], { relativeTo: this.route_} );
   }
 

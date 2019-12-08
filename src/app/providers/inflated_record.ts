@@ -64,6 +64,7 @@ export class Goal extends PackedRecord.Goal
 export class Vision extends PackedRecord.Vision
 {
     child_goals: InflatedRecord.Goal[];
+    extra: any;       // Components can tack on bindable UI data here
 
     constructor(vision: PackedRecord.Vision, goal_filter: (goal: InflatedRecord.Goal) => boolean, task_filter: (task: PackedRecord.Task) => boolean, database_manager: DatabaseManager)
     {

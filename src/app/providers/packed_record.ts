@@ -9,6 +9,8 @@ export enum Type
 
 export const DateIncomplete = undefined;
 export const NullID = undefined;
+export const GROUP_LOCAL: string[] = ["local"];
+//export const NullID : ID = {type: -1, index: -1, group: []};
 
 // Flexible ID type
 export class ID

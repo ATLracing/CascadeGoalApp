@@ -5,6 +5,7 @@ import { CalendarManager } from 'src/app/providers/calendar_manager';
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as Util from 'src/app/providers/util';
 import { CMap } from 'src/app/providers/custom_id_map';
+import { CSet } from './custom_id_set';
 
 /* --------------------------------------- Brief design note ---------------------------------------
  * The database manager is designed to maintain coherent representations of the task/goal/vision
@@ -13,6 +14,8 @@ import { CMap } from 'src/app/providers/custom_id_map';
  * structures at this layer are designed to be efficient and information complete; they are not 
  * designed to be user-friendly or UI-bindable. Legal graph modifications are restricted to and 
  * abstracted by the methods at this layer's interface. Redundancy abounds.. for now.
+ * 
+ * TODO: Use Set
  */
 
 // Used for development. Will be replaced by SQL driver.
@@ -120,8 +123,8 @@ let empty_db : DatabaseImage = {
     days: [],
     weeks: [],
 
-    most_recent_day_id: { type: PackedRecord.Type.DAY, index: 0, group: ["local"] },
-    most_recent_week_id: { type: PackedRecord.Type.DAY, index: 0, group: ["local"] },
+    most_recent_day_id: { type: PackedRecord.Type.DAY, index: 0, group: PackedRecord.GROUP_LOCAL },
+    most_recent_week_id: { type: PackedRecord.Type.DAY, index: 0, group: PackedRecord.GROUP_LOCAL },
     next_available_index: 0
 }
 
@@ -303,7 +306,7 @@ export class DatabaseManager
         if (task.parent_id)
         {
             let parent_goal = DatabaseManager.database_data.goals.get(task.parent_id);
-            parent_goal.child_ids = Util.remove_element_from_array(unique_id, parent_goal.child_ids);
+            Util.remove_id_from_array(unique_id, parent_goal.child_ids);
         }
 
         // Remove task
@@ -346,7 +349,8 @@ export class DatabaseManager
             task.date_completed = new Date();
         else
             task.date_completed = PackedRecord.DateIncomplete;
-            
+        
+        // Callbacks
         DatabaseManager.execute_data_updated_callbacks(no_callbacks);
     }
 
@@ -373,7 +377,7 @@ export class DatabaseManager
             }
 
             // Remove the current task_id
-            parent.child_ids = Util.remove_element_from_array(unique_id, parent.child_ids);
+            Util.remove_id_from_array(unique_id, parent.child_ids);
 
             // Write back to database (redundant atm)
         }
@@ -429,7 +433,7 @@ export class DatabaseManager
         if (goal.parent_id)
         {
             let parent_vision = DatabaseManager.database_data.visions.get(goal.parent_id);
-            parent_vision.child_ids = Util.remove_element_from_array(unique_id, parent_vision.child_ids);
+            Util.remove_id_from_array(unique_id, parent_vision.child_ids);
         }
 
         // Remove as parent from children
@@ -481,7 +485,7 @@ export class DatabaseManager
             let parent_vision = DatabaseManager.database_data.visions.get(goal.parent_id);
 
             // Remove the current task_id
-            parent_vision.child_ids = Util.remove_element_from_array(unique_id, parent_vision.child_ids);
+            Util.remove_id_from_array(unique_id, parent_vision.child_ids);
 
             // Write back to database (redundant atm)
         }
@@ -508,7 +512,7 @@ export class DatabaseManager
         let goal = DatabaseManager.database_data.goals.get(unique_id);
 
         // Remove as parent from orphaned child tasks
-        let new_child_ids_set = new Set<PackedRecord.TaskID>(child_ids);
+        let new_child_ids_set = new CSet<PackedRecord.TaskID>(child_ids);
 
         for (let existing_child_id of goal.child_ids)
         {
@@ -520,7 +524,7 @@ export class DatabaseManager
         }
 
         // Add as parent for newly adopted child tasks
-        let existing_child_ids_set = new Set<PackedRecord.TaskID>(goal.child_ids);
+        let existing_child_ids_set = new CSet<PackedRecord.TaskID>(goal.child_ids);
         
         for (let new_child_id of child_ids)
         {
@@ -550,7 +554,7 @@ export class DatabaseManager
         let new_unique_id = new PackedRecord.VisionID(DatabaseManager.database_data.next_available_index++, group);
         
         // Add to the database
-        let new_vision = new PackedRecord.Vision(name, details, date_created, date_completed, PackedRecord.NullID, new_unique_id);
+        let new_vision = new PackedRecord.Vision(name, details, date_created, date_completed, undefined, new_unique_id);
         DatabaseManager.database_data.visions.set(new_unique_id, new_vision);
 
         // Callbacks
@@ -610,7 +614,7 @@ export class DatabaseManager
         let vision = DatabaseManager.database_data.visions.get(unique_id);
 
         // Remove as parent from orphaned child goals
-        let new_child_ids_set = new Set<PackedRecord.VisionID>(child_ids);
+        let new_child_ids_set = new CSet<PackedRecord.VisionID>(child_ids);
 
         for (let existing_child_id of vision.child_ids)
         {
@@ -622,7 +626,7 @@ export class DatabaseManager
         }
 
         // Add as parent for newly adopted child goals
-        let existing_child_ids_set = new Set<PackedRecord.GoalID>(vision.child_ids);
+        let existing_child_ids_set = new CSet<PackedRecord.GoalID>(vision.child_ids);
 
         for (let new_child_id of child_ids)
         {
@@ -736,6 +740,7 @@ export class DatabaseManager
         // Query for week
         let week = DatabaseManager.database_data.weeks.get(unique_id);
 
+        // Remove task from day
         week.task_ids = task_ids.slice();
 
         // Write back to database (currently redundant)
