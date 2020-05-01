@@ -1,0 +1,34 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      Associate
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-segment (ionChange)="segment_changed($event)">
+    <ion-segment-button value="goals">
+      <ion-label>Goals</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="visions">
+      <ion-label>Visions</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <ion-list *ngIf="tab_ === 'goals'">
+    <ion-item *ngFor="let goal of goals_; let i = index" (click)="select(i)">
+      <ion-label>
+        <h3>{{goal.name}}</h3>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-list *ngIf="tab_ === 'visions'">
+    <ion-item *ngFor="let vision of visions_; let i = index" (click)="select(i)">
+      <ion-label>
+        <h3>{{vision.name}}</h3>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

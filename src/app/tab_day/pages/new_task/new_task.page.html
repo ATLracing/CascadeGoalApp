@@ -24,6 +24,9 @@
         <ion-select-option *ngFor="let goal of all_goals_" value="{{goal.extra.string_key}}">{{goal.name}}</ion-select-option>
       </ion-select>
   </ion-item>
+  <ion-item>
+    <ion-button (click)="associate()">Associate</ion-button>
+  </ion-item>
   <ion-item lines="none">
     <ion-button slot="end" (click)="save()">
         Save

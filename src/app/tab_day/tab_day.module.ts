@@ -7,6 +7,7 @@ import { TaskListComponent } from './components/task/task';
 import { TabDayRoutingModule } from './tab_day-routing.module';
 import { NewTaskPage } from './pages/new_task/new_task.page';
 import { ExistingTaskPage } from './pages/existing_task/existing_task.page';
+import { ComponentAssociate } from './components/associate/associate';
 
 @NgModule({
   imports: [
@@ -15,6 +16,7 @@ import { ExistingTaskPage } from './pages/existing_task/existing_task.page';
     FormsModule,
     TabDayRoutingModule
   ],
-  declarations: [TaskListPage, NewTaskPage, ExistingTaskPage, TaskListComponent]
+  entryComponents: [ComponentAssociate],
+  declarations: [TaskListPage, NewTaskPage, ExistingTaskPage, TaskListComponent, ComponentAssociate]
 })
 export class TabTasksModule {}

@@ -5,6 +5,8 @@ import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { DatabaseInflator, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
+import { ModalController } from '@ionic/angular';
+import { ComponentAssociate } from '../../components/associate/associate';
 
 export class NewTaskPageSettings
 {
@@ -25,7 +27,8 @@ export class NewTaskPage implements OnDestroy {
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
               private route_: ActivatedRoute,
-              private addressed_transfer_: AddressedTransfer)
+              private addressed_transfer_: AddressedTransfer,
+              private modal_controller_: ModalController)
   {
     this.input_settings_ = this.addressed_transfer_.get_for_route(router_, "settings");
     if (this.input_settings_ == undefined)
@@ -43,6 +46,17 @@ export class NewTaskPage implements OnDestroy {
 
     this.new_task_ = new PackedRecord.Task();
     console.log("New Task constructed");
+  }
+
+  async associate()
+  {
+    const modal = await this.modal_controller_.create({component: ComponentAssociate});
+    
+    modal.onDidDismiss().then(data => {
+      // TODO
+      console.log(data);
+    });
+    return await modal.present();
   }
 
   save()
