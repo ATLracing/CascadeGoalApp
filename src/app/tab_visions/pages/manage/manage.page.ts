@@ -1,6 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
 import { DatabaseManager } from 'src/app/providers/database_manager';
-import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
@@ -31,13 +30,19 @@ export class ManagePage {
     
       this.vision_index_ = 0;
 
-      database_manager_.register_data_updated_callback("manage_page", () => {
-      this.expanded_visions_ = DatabaseInflator.query_visions(this.database_manager_);
+      database_manager_.register_data_updated_callback("manage_page", async () => {
+      
+      this.expanded_visions_ = await database_manager_.query_visions();
+      
+      for (let vision of this.expanded_visions_)
+      {
+        DatabaseInflator.inflate_vision(vision, database_manager_, false);
+      }
 
       // Tack on UI info
       for (let expanded_vision of this.expanded_visions_)
       {
-        for (let expanded_goal of expanded_vision.child_goals)
+        for (let expanded_goal of expanded_vision.children)
         {
           expanded_goal.extra = { expanded: false };
         }
@@ -49,17 +54,17 @@ export class ManagePage {
   goal_show_hide_tasks(vision_index: number, goal_index: number)
   {
     console.log("Show/hide tasks");
-    this.expanded_visions_[vision_index].child_goals[goal_index].extra.expanded = 
-      !this.expanded_visions_[vision_index].child_goals[goal_index].extra.expanded;
+    this.expanded_visions_[vision_index].children[goal_index].extra.expanded = 
+      !this.expanded_visions_[vision_index].children[goal_index].extra.expanded;
   }
 
   add_task_to_goal(vision_index: number, goal_index: number)
   {
     // TODO If something changes in another pane.. not good
-    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', (new_task: PackedRecord.Task) => {      
-      let new_task_id = this.database_manager_.task_add(new_task.name, new_task.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, PackedRecord.GROUP_LOCAL, true);
+    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', async (new_task: InflatedRecord.Task) => {      
+      let new_task_id = await this.database_manager_.task_add(new_task, true);
       
-      let parent_goal_id = this.expanded_visions_[vision_index].child_goals[goal_index].unique_id;
+      let parent_goal_id = this.expanded_visions_[vision_index].children[goal_index].id;
 
       this.database_manager_.task_set_parent(new_task_id, parent_goal_id);
     });
@@ -71,10 +76,10 @@ export class ManagePage {
   add_goal_to_vision(vision_index: number)
   {
     // TODO If something changes in another pane.. not good
-    this.addressed_transfer_.put_for_route(this.router_, 'new_goal', 'callback', (new_goal: PackedRecord.Goal) => {
-      let new_goal_id = this.database_manager_.goal_add(new_goal.name, new_goal.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, PackedRecord.GROUP_LOCAL, true);
+    this.addressed_transfer_.put_for_route(this.router_, 'new_goal', 'callback', async (new_goal: InflatedRecord.Goal) => {
+      let new_goal_id = await this.database_manager_.goal_add(new_goal, true);
 
-      let parent_vision_id = this.expanded_visions_[vision_index].unique_id;
+      let parent_vision_id = this.expanded_visions_[vision_index].id;
       this.database_manager_.goal_set_parent(parent_vision_id, new_goal_id);
     });
 
@@ -83,10 +88,10 @@ export class ManagePage {
     this.router_.navigate(['new_goal'], { relativeTo: this.route_ });
   }
 
-  add_new_vision()
+  async add_new_vision()
   {
-    this.addressed_transfer_.put_for_route(this.router_, 'new_vision', 'callback', (new_vision: PackedRecord.Vision) => {
-      this.database_manager_.vision_add(new_vision.name, new_vision.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, PackedRecord.GROUP_LOCAL);
+    this.addressed_transfer_.put_for_route(this.router_, 'new_vision', 'callback', (new_vision: InflatedRecord.Vision) => {
+      this.database_manager_.vision_add(new_vision);
     });
 
     this.router_.navigate(['new_vision'], { relativeTo: this.route_ });

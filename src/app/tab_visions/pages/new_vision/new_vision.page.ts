@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import * as PackedRecord from 'src/app/providers/packed_record';
+import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 
@@ -9,13 +9,13 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
   styleUrls: ['new_vision.page.scss']
 })
 export class NewVisionPage {
-  private new_vision_: PackedRecord.Vision;
+  private new_vision_: InflatedRecord.Vision;
 
   constructor(private router_: Router,
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer)
   {
-    this.new_vision_ = new PackedRecord.Vision();
+    this.new_vision_ = InflatedRecord.construct_empty_node(InflatedRecord.Type.VISION)
     console.log("New Vision constructed");
   }
 

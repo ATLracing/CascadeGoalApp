@@ -1,8 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager } from '../../../providers/database_manager';
+import { DatabaseManager, IdSetFilter } from '../../../providers/database_manager';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatabaseInflator, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
+import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 
 export class AddFromAllExistingInputs
@@ -28,15 +28,17 @@ export class AddFromAllExistingPage implements OnDestroy {
     let inputs = this.addressed_transfer_.get_for_route(router_, "inputs");
     let excluded_ids = inputs.excluded_ids;
 
-    database_manager_.register_data_updated_callback("add_from_all_existing_page", () => {
-      this.goals_ = DatabaseInflator.query_goals(this.database_manager_, GoalFilter.populated(), TaskFilter.excluding(excluded_ids));
+    database_manager_.register_data_updated_callback("add_from_all_existing_page", async () => {
+      
+      let all_tasks = await database_manager_.query_tasks([new IdSetFilter(excluded_ids, false)]);
+      this.goals_ = await DatabaseInflator.construct_tree_from_tasks(all_tasks, InflatedRecord.Type.GOAL, database_manager_);
 
       // Append extra info
       for (let goal of this.goals_)
       {
         goal.extra = { expanded: false };
 
-        for (let task of goal.child_tasks)
+        for (let task of goal.children)
         {
           task.extra = { selected: false };
         }
@@ -56,11 +58,11 @@ export class AddFromAllExistingPage implements OnDestroy {
     
     for (let goal of this.goals_)
     {
-      for (let task of goal.child_tasks)
+      for (let task of goal.children)
       {
         if (task.extra.selected)
         {
-          new_task_ids.push(task.unique_id);
+          new_task_ids.push(task.id);
         }
       }
     }

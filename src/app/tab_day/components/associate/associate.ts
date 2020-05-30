@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component } from '@angular/core';
 import { DatabaseManager } from 'src/app/providers/database_manager';
-import * as PackedRecord from 'src/app/providers/packed_record';
+import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { ModalController } from '@ionic/angular';
 
 @Component({
@@ -9,8 +9,8 @@ import { ModalController } from '@ionic/angular';
   styleUrls: ['associate.scss']
 })
 export class ComponentAssociate {
-  private visions_: PackedRecord.Vision[];
-  private goals_: PackedRecord.Goal[];
+  private visions_: InflatedRecord.Vision[];
+  private goals_: InflatedRecord.Goal[];
 
   private tab_: string;
 
@@ -19,9 +19,9 @@ export class ComponentAssociate {
   {
     this.tab_ = "goals";
 
-    database_manager_.register_data_updated_callback("new_task_associate_page", () => {
-      this.visions_ = database_manager_.get_visions();
-      this.goals_ = database_manager_.get_goals();
+    database_manager_.register_data_updated_callback("new_task_associate_page", async () => {
+      this.visions_ = await database_manager_.query_visions();
+      this.goals_ = await database_manager_.query_goals();
     });
   }
 
@@ -34,11 +34,11 @@ export class ComponentAssociate {
   {
     if (this.tab_ === "goals")
     {
-      this.modal_controller_.dismiss(this.goals_[i].unique_id);
+      this.modal_controller_.dismiss(this.goals_[i].id);
     }
     else
     {
-      this.modal_controller_.dismiss(this.visions_[i].unique_id);
+      this.modal_controller_.dismiss(this.visions_[i].id);
     }
 
   }

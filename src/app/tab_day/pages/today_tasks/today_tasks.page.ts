@@ -1,9 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager } from 'src/app/providers/database_manager';
+import { DatabaseManager, DayFilter } from 'src/app/providers/database_manager';
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import * as Util from 'src/app/providers/util';
-import { TaskFilter } from 'src/app/providers/database_inflator'
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
@@ -14,23 +13,24 @@ import { CalendarManager } from 'src/app/providers/calendar_manager';
   styleUrls: ['today_tasks.page.scss']
 })
 export class TaskListPage implements OnDestroy {
-  private day_: InflatedRecord.Day;
+  private day_tasks_: InflatedRecord.Task[];
 
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer) {
-    database_manager_.register_data_updated_callback("today_tasks_page", () => {      
-      let day = database_manager_.get_most_recent_day();
-      this.day_ = new InflatedRecord.Day(day, 
-                                         TaskFilter.all(), 
-                                         database_manager_);
+    database_manager_.register_data_updated_callback("today_tasks_page", async () => {      
+    
+    let day_number = CalendarManager.get_day_of_week();
+    let week_number = CalendarManager.get_iso_week();
+
+    let day_filter = new DayFilter(day_number, week_number);
+    this.day_tasks_ = await database_manager_.query_tasks([day_filter]);
 
       // Append extra info
-      for (let task of this.day_.tasks)
+      for (let task of this.day_tasks_)
       {
-        let completed = task.date_completed != undefined;
-        task.extra.completed = completed;
+        task.extra.completed = task.date_closed != InflatedRecord.NULL_DATE;
 
         if (task.extra.carried)
         {
@@ -52,19 +52,9 @@ export class TaskListPage implements OnDestroy {
   add_new_task()
   {
     console.log("New task");
-    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', (new_task: PackedRecord.Task) => {
+    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', (new_task: InflatedRecord.Task) => {
       // Add new task
-      let new_task_id = this.database_manager_.task_add(new_task.name, new_task.details, CalendarManager.get_date(), PackedRecord.DateIncomplete, PackedRecord.GROUP_LOCAL, true);
-      
-      // Set task parent
-      if (new_task.parent_id != PackedRecord.NullID)
-      {
-        this.database_manager_.task_set_parent(new_task_id, new_task.parent_id, true);
-      }
-
-      // Add the task to the day
-      this.day_.task_ids.push(new_task_id);
-      this.database_manager_.day_set_task_ids(this.day_.unique_id, this.day_.task_ids);
+      this.database_manager_.task_add(new_task);      
     });
 
     this.router_.navigate(['new_task'], { relativeTo: this.route_} );
@@ -73,10 +63,16 @@ export class TaskListPage implements OnDestroy {
   add_existing_task()
   {
     console.log("Existing task");
-    this.addressed_transfer_.put("existing_task_page_current_task_ids", this.day_.task_ids);
-    this.addressed_transfer_.put("existing_task_page_callback", (new_task_ids: PackedRecord.TaskID[]) => {
-      let concat_task_id_array = this.day_.task_ids.concat(new_task_ids);
-      this.database_manager_.day_set_task_ids(this.day_.unique_id, concat_task_id_array);
+    
+    let day_task_ids = [];
+    for (let task of this.day_tasks_)
+    {
+      day_task_ids.push(task.id);
+    }
+    
+    this.addressed_transfer_.put("existing_task_page_current_task_ids", day_task_ids);
+    this.addressed_transfer_.put("existing_task_page_callback", (new_task_ids: InflatedRecord.ID[]) => {
+      // TODO
     });
 
     this.router_.navigate(['existing_task'], { relativeTo: this.route_} );
@@ -84,16 +80,17 @@ export class TaskListPage implements OnDestroy {
 
   checkbox_change(index: number)
   {
-    let task = this.day_.tasks[index];
-    this.database_manager_.task_toggle_completion(task.unique_id);
+    let task = this.day_tasks_[index];
+    this.database_manager_.task_toggle_completion(task.id);
   }
 
   remove(index: number)
   {
     console.log("Remove: " + index);
-    this.day_.tasks.splice(index, 1);
-    let new_day_task_ids = Util.record_array_to_id_array(this.day_.tasks);
+    let remove_task = this.day_tasks_[index];
 
-    this.database_manager_.day_set_task_ids(this.day_.unique_id, new_day_task_ids);
+    remove_task.day = InflatedRecord.NULL_DAY;
+
+    this.database_manager_.task_set_basic_attributes(remove_task);
   }
 }

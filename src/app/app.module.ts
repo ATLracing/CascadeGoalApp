@@ -11,18 +11,25 @@ import { AppComponent } from './app.component';
 import { DatabaseManager } from './providers/database_manager';
 import { IonicStorageModule } from '@ionic/storage';
 import { AddressedTransfer } from './providers/addressed_transfer';
-import { TabTasksModule } from './tab_day/tab_day.module';
+
+import { SQLitePorter } from '@ionic-native/sqlite-porter/ngx';
+import { SQLite } from '@ionic-native/sqlite/ngx';
+ 
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
   imports: [BrowserModule, 
+            HttpClientModule,
             IonicModule.forRoot(), 
             IonicStorageModule.forRoot(),
             AppRoutingModule],
   providers: [
     StatusBar,
     SplashScreen,
+    SQLitePorter,
+    SQLite,
     DatabaseManager,
     AddressedTransfer,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }

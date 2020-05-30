@@ -4,7 +4,7 @@ import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
-import { DatabaseInflator, GoalFilter, TaskFilter } from 'src/app/providers/database_inflator';
+import { DatabaseInflator } from 'src/app/providers/database_inflator';
 
 export class NewGoalPageSettings
 {
@@ -17,7 +17,7 @@ export class NewGoalPageSettings
   styleUrls: ['new_goal.page.scss']
 })
 export class NewGoalPage implements OnDestroy {
-  private new_goal_: PackedRecord.Goal;
+  private new_goal_: InflatedRecord.Goal;
   private all_visions_: InflatedRecord.Vision[];
   private vision_parent_id_string_: string;
   private input_settings_: NewGoalPageSettings;
@@ -31,17 +31,17 @@ export class NewGoalPage implements OnDestroy {
     if (this.input_settings_ == undefined)
       this.input_settings_ = new NewGoalPageSettings();
 
-    database_manager_.register_data_updated_callback("new_goal_page", () => {
-      this.all_visions_ = DatabaseInflator.query_visions(database_manager_, GoalFilter.none(), TaskFilter.none());
+    database_manager_.register_data_updated_callback("new_goal_page", async () => {
+      this.all_visions_ = await database_manager_.query_visions();
 
       // Add stringified key
       for (let vision of this.all_visions_)
       {
-        vision.extra = { string_key: JSON.stringify(vision.unique_id) };
+        vision.extra = { string_key: JSON.stringify(vision.id) };
       }
     });
 
-    this.new_goal_ = new PackedRecord.Goal();
+    this.new_goal_ = InflatedRecord.construct_empty_node(InflatedRecord.Type.GOAL);
     console.log("New Task constructed");
   }
 

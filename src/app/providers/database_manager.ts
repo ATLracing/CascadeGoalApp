@@ -1,195 +1,181 @@
-import { Injectable } from '@angular/core';
-import { Storage } from '@ionic/storage';
-import { example_db_image } from 'src/app/providers/example_db';
+import { Injectable, Query } from '@angular/core';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
 import * as PackedRecord from 'src/app/providers/packed_record';
-import * as Util from 'src/app/providers/util';
-import { CMap } from 'src/app/providers/custom_id_map';
-import { CSet } from './custom_id_set';
+import * as InflatedRecord from 'src/app/providers/inflated_record';
+import { Platform } from '@ionic/angular';
+import { SQLitePorter } from '@ionic-native/sqlite-porter/ngx';
+import { SQLite, SQLiteObject } from '@ionic-native/sqlite/ngx';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject } from 'rxjs';
+import { inflate } from 'zlib';
 
-/* --------------------------------------- Brief design note ---------------------------------------
- * The database manager is designed to maintain coherent representations of the task/goal/vision
- * and day/week graphs (although these graphs have little in common..). It will construct these 
- * representations from and return modifications to the underlying/remote databases. The tree 
- * structures at this layer are designed to be efficient and information complete; they are not 
- * designed to be user-friendly or UI-bindable. Legal graph modifications are restricted to and 
- * abstracted by the methods at this layer's interface. Redundancy abounds.. for now.
- * 
- * TODO: Use Set
- */
-
-// Used for development. Will be replaced by SQL driver.
-export class DatabaseImage
+// ============================================================================== Filter Abstraction
+// TODO(ABurroughs): Trying to avoid raw SQL queries in the UI. But perhaps that's stupid.. 
+export interface QueryFilter
 {
-    version: number;
+    get_where_clause() : string;
+};
 
-    tasks: PackedRecord.Task[];
-    goals: PackedRecord.Goal[];
-    visions: PackedRecord.Vision[];
-
-    days: PackedRecord.Day[];
-    weeks: PackedRecord.Week[];
-
-    most_recent_day_id: PackedRecord.DayID;
-    most_recent_week_id: PackedRecord.WeekID;
-    next_available_index: number;  // IDs will be globally unique. Should help catch errors.
-}
-
-// Used for development. May be used in release.
-class LoadedDatabaseImage
+export class IdSetFilter implements QueryFilter
 {
-    version: number;
-    next_available_index: number;
-
-    tasks: CMap<PackedRecord.TaskID, PackedRecord.Task>;
-    goals: CMap<PackedRecord.GoalID, PackedRecord.Goal>;
-    visions: CMap<PackedRecord.VisionID, PackedRecord.Vision>;
-
-    days: CMap<PackedRecord.DayID, PackedRecord.Day>;
-    weeks: CMap<PackedRecord.WeekID, PackedRecord.Week>;
-
-    most_recent_day_id: PackedRecord.DayID;
-    most_recent_week_id: PackedRecord.WeekID;
-
-    constructor(database_image: DatabaseImage)
+    constructor(private ids_       : number[], 
+                private including_ : boolean)
     {
-        this.version = database_image.version;
-        this.next_available_index = database_image.next_available_index;
-        this.most_recent_day_id = database_image.most_recent_day_id;
-        this.most_recent_week_id = database_image.most_recent_week_id;
+    }
 
-        this.tasks = new CMap<PackedRecord.TaskID, PackedRecord.Task>();
-        this.goals = new CMap<PackedRecord.GoalID, PackedRecord.Goal>();
-        this.visions = new CMap<PackedRecord.VisionID, PackedRecord.Vision>();
-        this.days = new CMap<PackedRecord.DayID, PackedRecord.Day>();
-        this.weeks = new CMap<PackedRecord.WeekID, PackedRecord.Week>();
-
-        // Tasks
-        for (let task of database_image.tasks)
+    get_where_clause()
+    {
+        let where_clause = ""
+        
+        for (let i = 0; i < this.ids_.length; i++)
         {
-            this.tasks.set(task.unique_id, task);
+            if (this.including_)
+                where_clause += `id=${this.ids_[i]}`;
+            else
+                where_clause += `id!=${this.ids_[i]}`
+
+            if (i + 1 < this.ids_.length)
+            {
+                where_clause += this.including_ ? " OR " : " AND ";
+            }
         }
+        
+        return where_clause;
+    }
+};
 
-        // Goals
-        for (let goal of database_image.goals)
-        {
-            this.goals.set(goal.unique_id, goal);
-        }
+export class ActiveFilter implements QueryFilter
+{
+    constructor(private is_active_ : boolean)
+    {
+    }
 
-        // Visions
-        for (let vision of database_image.visions)
-        {
-            this.visions.set(vision.unique_id, vision);
-        }
+    get_where_clause()
+    {
+        if (this.is_active_)
+            return `date_closed!=${PackedRecord.NULL_DATE_STR}`;
+        else
+            return `date_closed=${PackedRecord.NULL_DATE_STR}`;
+    }
+};
 
-        // Days
-        for (let day of database_image.days)
-        {
-            this.days.set(day.unique_id, day);
-        }
+export class WeekFilter implements QueryFilter
+{
+    constructor(private week_number: number) 
+    {
+    }
 
-        // Weeks
-        for (let week of database_image.weeks)
+    get_where_clause()
+    {
+        return `week=${this.week_number}`;
+    }
+};
+
+export class DayFilter implements QueryFilter
+{
+    constructor(private day_number: number, private week_number: number)
+    {
+
+    }
+
+    get_where_clause()
+    {
+        return `day=${this.day_number} AND week=${this.week_number}`;
+    }
+};
+
+export class TypeFilter implements QueryFilter
+{
+    constructor(private type_ : string, private is_: boolean)
+    {
+    }
+
+    get_where_clause()
+    {
+        if (this.is_)
+            return `type=${this.type_}`;
+        else
+            return `type!=${this.type_}`;
+    }
+};
+
+export class ParentFilter implements QueryFilter
+{
+    constructor(private parent_id_ : number, private is_: boolean)
+    {
+    }
+
+    get_where_clause()
+    {
+        if (this.is_)
+            return `parent_id=${this.parent_id_}`;
+        else
+            return `parent_id!=${this.parent_id_}`;
+    }
+};
+
+export function join_where_clauses_and(filters : QueryFilter[])
+{
+    let where_clause = "";
+
+    for (let i = 0; i < filters.length; i++)
+    {
+        where_clause += `(${filters[i].get_where_clause()})`
+
+        if (i + 1 < filters.length)
         {
-            this.weeks.set(week.unique_id, week);
+            where_clause += " AND "
         }
     }
 
-    getImage(): DatabaseImage
-    {
-        let image: DatabaseImage = {
-            version: this.version,
-            next_available_index: this.next_available_index,
-            tasks: Array.from(this.tasks.values()),
-            goals: Array.from(this.goals.values()),
-            visions: Array.from(this.visions.values()),
-            days: Array.from(this.days.values()),
-            weeks: Array.from(this.weeks.values()),
-            most_recent_day_id: this.most_recent_day_id,
-            most_recent_week_id: this.most_recent_week_id
-        };
-
-        return image;
-    }
-}
-
-let empty_db : DatabaseImage = {
-    version: 1,
-    
-    tasks: [],
-    goals: [],
-    visions: [],
-
-    days: [],
-    weeks: [],
-
-    most_recent_day_id: { type: PackedRecord.Type.DAY, index: 0, group: PackedRecord.GROUP_LOCAL },
-    most_recent_week_id: { type: PackedRecord.Type.DAY, index: 0, group: PackedRecord.GROUP_LOCAL },
-    next_available_index: 0
+    return where_clause;
 }
 
 // Full read/write strategy
 @Injectable()
 export class DatabaseManager
 {
-    private static database_data: LoadedDatabaseImage;
-    private static data_updated_callbacks: Map<string, any>;
-    private static initialized;
-    private static loaded;
+    private static database_: SQLiteObject;
+    private static initialized: boolean;
 
-    constructor(private storage_: Storage)
+    private static data_updated_callbacks: Map<string, any>;
+
+    constructor(private platform_: Platform, 
+                private sqlite_porter_: SQLitePorter, 
+                private sqlite_: SQLite,
+                private http_: HttpClient)
     {
-        if (!DatabaseManager.initialized)
-        {
-            DatabaseManager.database_data = new LoadedDatabaseImage(empty_db);
+        if (!DatabaseManager.data_updated_callbacks)
             DatabaseManager.data_updated_callbacks = new Map<string, any>();
 
-            DatabaseManager.loaded = false;
-            DatabaseManager.initialized = true;
+        if (DatabaseManager.initialized)
+            return;
 
-            this.read_db();
-        }
-    }
-
-    private read_db()
-    {
-        let database_image = example_db_image;
-        DatabaseManager.database_data = new LoadedDatabaseImage(database_image);
-        DatabaseManager.loaded = true;
-        DatabaseManager.execute_data_updated_callbacks();
-        
-        // THEN
-        // start loop
-        CalendarManager.calendar_loop(this);
-        
-        /*
-        return new Promise((resolve, error) => {
-            this.storage_.get(KEY_DATABASE_IMAGE).then((db_image) =>
-            {
-                if (db_image)
-                {
-                    DatabaseManager.database_data = JSON.parse(db_image);
-
-                    DatabaseManager.execute_data_updated_callbacks();
-                    // Resolve (should use return codes or something)
-                    resolve("Success");
-                }
-                else
-                {
-                    DatabaseManager.database_data = example_db_image;
-                    this.save_results().then((msg) => {
-                        return this.read_db();
-                    });
-                }
+        this.platform_.ready().then(() => {
+            this.sqlite_.create({
+              name: 'local.db',
+              location: 'default'
+            })
+            .then((db: SQLiteObject) => {
+                DatabaseManager.database_ = db;
+                this.seed_database();
+                DatabaseManager.initialized = true;
             });
         });
-        */
     }
+ 
+    private seed_database() {
+        this.http_.get('assets/seed.sql', { responseType: 'text'})
+        .subscribe(sql => {
+        this.sqlite_porter_.importSqlToDb(DatabaseManager.database_, sql)
+            .then(_ => {
+                DatabaseManager.execute_data_updated_callbacks();
 
-    save_results()
-    {
-        const KEY_DATABASE_IMAGE = "key_database_image";
-        return this.storage_.set(KEY_DATABASE_IMAGE, JSON.stringify(DatabaseManager.database_data.getImage()));
+                // start loop
+                CalendarManager.calendar_loop(this);
+            })
+            .catch(e => console.error(e));
+        });
     }
 
     private static execute_data_updated_callbacks(no_callbacks?: boolean)
@@ -205,11 +191,64 @@ export class DatabaseManager
         }
     }
 
+    private executeSqlRows(query_str: string, params?: any[]) : Promise<any>
+    {
+        return DatabaseManager.database_.executeSql(query_str, params).then(result => {return result.rows});
+    }
+
+    // ========================================================================== TGV Packed Helpers
+    // Query for list of TVG nodes
+    query_packed_tvg_nodes(filters ?: QueryFilter[]) : Promise<PackedRecord.TgvNode[]>
+    {
+        let where_clause = "";
+        
+        if (filters)
+            where_clause = join_where_clauses_and(filters)
+
+        return DatabaseManager.database_.executeSql(`SELECT * from ${PackedRecord.TGV_TABLE} ${where_clause}`).then(result => {
+            let child_rows : PackedRecord.TgvNode[] = []
+            
+            // TODO(ABurroughs): For each?
+            if (result.rows.length > 0) {
+                for (let i = 0; i < result.rows.length; i++) {
+                    let match_row = result.rows.item(i)
+                    //child_rows.push(match_row); ??
+                    child_rows.push({
+                        id : match_row.id,
+                        owner: match_row.owner,
+                        users: match_row.users,
+                        parent_id: match_row.parent_id,
+                    
+                        type: match_row.type,
+                        
+                        name: match_row.name,
+                        details: match_row.details,
+                        date_created: match_row.date_created,
+                        date_closed: match_row.date_closed,
+                        resolution: match_row.resolution,
+
+                        day: match_row.day,
+                        week: match_row.week
+                    });
+                }
+            }
+
+            return child_rows;
+        }); 
+    }
+
+    insert_packed_tgv_node(node: PackedRecord.TgvNode) : Promise<any>
+    {
+        let params = [node.owner, node.users, node.parent_id, node.type, node.name, node.details, node.date_created, node.date_closed, node.resolution, node.day, node.week];
+        return DatabaseManager.database_.executeSql(`INSERT into ${PackedRecord.TGV_TABLE} VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+    }
+
+    // =================================================================================== Callbacks
     register_data_updated_callback(name: string, callback_function: any)
     {
         DatabaseManager.data_updated_callbacks.set(name, callback_function);
         
-        if (DatabaseManager.loaded)
+        if (DatabaseManager.initialized)
             callback_function();
     }
 
@@ -218,583 +257,198 @@ export class DatabaseManager
         DatabaseManager.data_updated_callbacks.delete(name);
     }
 
-    // ========================================================================================= GET
-    // TODO(ABurroughs): These methods should eventually accept filters (to improve performance)
-    get_task(unique_id: PackedRecord.TaskID): PackedRecord.Task
+    // ======================================================================================= QUERY
+    // ===== General
+    query_nodes(filters ?: QueryFilter[]): Promise<InflatedRecord.TgvNode[]>
     {
-        return PackedRecord.Task.copy(DatabaseManager.database_data.tasks.get(unique_id));
-    }
-    get_goal(unique_id: PackedRecord.GoalID): PackedRecord.Goal
-    {
-        return PackedRecord.Goal.copy(DatabaseManager.database_data.goals.get(unique_id));
-    }
-    get_vision(unique_id: PackedRecord.VisionID): PackedRecord.Vision
-    {
-        return PackedRecord.Vision.copy(DatabaseManager.database_data.visions.get(unique_id));
-    }
-    get_day(unique_id: PackedRecord.DayID): PackedRecord.Day
-    {
-        return PackedRecord.Day.copy(DatabaseManager.database_data.days.get(unique_id));
-    }
-    get_week(unique_id: PackedRecord.WeekID): PackedRecord.Week
-    {
-        return PackedRecord.Week.copy(DatabaseManager.database_data.weeks.get(unique_id));
-    }
-    get_tasks(): PackedRecord.Task[]
-    {
-        // TODO: copy
-        return Array.from(DatabaseManager.database_data.tasks.values());
-    }
-    get_goals(): PackedRecord.Goal[]
-    {
-        // TODO: copy
-        return Array.from(DatabaseManager.database_data.goals.values());
-    }
-    get_visions(): PackedRecord.Vision[]
-    {
-        // TODO: copy
-        return Array.from(DatabaseManager.database_data.visions.values());
-    }
-    get_days(): PackedRecord.Day[]
-    {
-        // TODO: copy
-        return Array.from(DatabaseManager.database_data.days.values());
-    }
-    get_weeks(): PackedRecord.Week[]
-    {
-        // TODO: copy
-        return Array.from(DatabaseManager.database_data.weeks.values());
-    }
-    get_most_recent_day(): PackedRecord.Day
-    {
-        return PackedRecord.Day.copy(DatabaseManager.database_data.days.get(DatabaseManager.database_data.most_recent_day_id));
-    }
-    get_most_recent_week(): PackedRecord.Week
-    {
-        return PackedRecord.Week.copy(DatabaseManager.database_data.weeks.get(this.get_most_recent_day().week_id));
-    }
-
-    // ======================================================================================== TASK
-    task_add(name: string,
-             details: string, 
-             date_created: Date,
-             date_completed: Date,
-             group: string[],
-             no_callbacks?: boolean) : PackedRecord.TaskID
-    {        
-        // Generate a unique ID
-        let new_unique_id = new PackedRecord.TaskID(DatabaseManager.database_data.next_available_index++, group);
-        
-        // Add to the database
-        let new_task = new PackedRecord.Task(name, details, date_created, date_completed, PackedRecord.NullID, new_unique_id);
-        DatabaseManager.database_data.tasks.set(new_unique_id, new_task);
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-
-        // Return the new ID
-        return new_unique_id;
-    }
-
-    task_remove(unique_id: PackedRecord.TaskID,
-                no_callbacks?: boolean)
-    {
-        // Fetch task from database
-        let task = DatabaseManager.database_data.tasks.get(unique_id);
-        
-        // Remove from parent
-        if (task.parent_id)
-        {
-            let parent_goal = DatabaseManager.database_data.goals.get(task.parent_id);
-            Util.remove_id_from_array(unique_id, parent_goal.child_ids);
-        }
-
-        // Remove task
-        DatabaseManager.database_data.tasks.delete(unique_id);
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    task_set_basic_attributes(unique_id: PackedRecord.TaskID,
-                              name: string,
-                              details: string, 
-                              date_created: Date,
-                              date_completed: Date,
-                              no_callbacks?: boolean)
-    {
-        // Fetch task from database
-        let task = DatabaseManager.database_data.tasks.get(unique_id);
-
-        // Update properties
-        task.name = name;
-        task.details = details;
-        task.date_created = date_created;
-        task.date_completed = date_completed;
-
-        // Write back to database (redundant atm)
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    task_toggle_completion(unique_id: PackedRecord.TaskID, 
-                           no_callbacks?: boolean)
-    {
-        // Query database for task
-        let task = DatabaseManager.database_data.tasks.get(unique_id);
-
-        // TODO: This doesn't belong here
-        if (task.date_completed == PackedRecord.DateIncomplete)
-            task.date_completed = new Date();
-        else
-            task.date_completed = PackedRecord.DateIncomplete;
-        
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    task_set_parent(unique_id: PackedRecord.ID,
-                    parent_id: PackedRecord.ID,
-                    no_callbacks?: boolean)
-    {
-        // Fetch task from database
-        let task = DatabaseManager.database_data.tasks.get(unique_id);
-
-        // If the parent_id is already set, remove this task_id from the current parent
-        if (task.parent_id != PackedRecord.NullID)
-        {
-            let parent = undefined;
-
-            if (unique_id.type == PackedRecord.Type.GOAL)
-            {
-                // Fetch parent goal from database
-                let parent = DatabaseManager.database_data.goals.get(task.parent_id);
-            }
-            else if (unique_id.type == PackedRecord.Type.VISION)
-            {
-                let parent = DatabaseManager.database_data.visions.get(task.parent_id);
-            }
-
-            // Remove the current task_id
-            Util.remove_id_from_array(unique_id, parent.child_ids);
-
-            // Write back to database (redundant atm)
-        }
-
-        // Set the new goal id
-        task.parent_id = parent_id;
-
-        // Add this task_id to the new parent
-        let parent = undefined;
-        
-        if (parent_id.type == PackedRecord.Type.GOAL)
-            parent = DatabaseManager.database_data.goals.get(task.parent_id);
-        else if (parent_id.type == PackedRecord.Type.VISION)
-            parent = DatabaseManager.database_data.visions.get(task.parent_id);
-        
-        parent.child_ids.push(unique_id);
-
-        // Write back to database (redundant atm)
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    // ======================================================================================== GOAL
-    goal_add(name: string,
-             details: string, 
-             date_created: Date,
-             date_completed: Date,
-             group: string[],
-             no_callbacks?: boolean) : PackedRecord.GoalID
-    {
-        // Generate a unique ID
-        let new_unique_id = new PackedRecord.GoalID(DatabaseManager.database_data.next_available_index++, group);
-        
-        // Add to the database
-        let new_task = new PackedRecord.Goal(name, details, date_created, date_completed, PackedRecord.NullID, undefined /* TODO */, new_unique_id);
-        DatabaseManager.database_data.goals.set(new_unique_id, new_task);
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-
-        // Return the new ID
-        return new_unique_id;
-    }
-
-    goal_remove(unique_id: PackedRecord.GoalID,
-                no_callbacks?: boolean)
-    {
-        // Fetch task from database
-        let goal = DatabaseManager.database_data.goals.get(unique_id);
-
-        // Remove from parent
-        if (goal.parent_id)
-        {
-            let parent_vision = DatabaseManager.database_data.visions.get(goal.parent_id);
-            Util.remove_id_from_array(unique_id, parent_vision.child_ids);
-        }
-
-        // Remove as parent from children
-        for (let task_id of goal.child_ids)
-        {
-            let task = DatabaseManager.database_data.tasks.get(task_id);
-            task.parent_id = PackedRecord.NullID;
-        }
-
-        // Remove goal
-        DatabaseManager.database_data.goals.delete(unique_id);
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    goal_set_basic_attributes(unique_id: PackedRecord.GoalID,
-                              name: string,
-                              details: string, 
-                              date_created: Date,
-                              date_completed: Date,
-                              no_callbacks?: boolean)
-    {
-        // Fetch goal from database
-        let goal = DatabaseManager.database_data.goals.get(unique_id);
-
-        // Update properties
-        goal.name = name;
-        goal.details = details;
-        goal.date_created = date_created;
-        goal.date_completed = date_completed;
-
-        // Write back to database (redundant atm)
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    goal_set_parent(unique_id: PackedRecord.VisionID,
-                    parent_id: PackedRecord.VisionID,
-                    no_callbacks?: boolean)
-    {
-        // Fetch goal from database
-        let goal = DatabaseManager.database_data.goals.get(unique_id);
-
-        // If the parent_id is already set, remove this task_id from the current parent vision
-        if (goal.parent_id)
-        {
-            let parent_vision = DatabaseManager.database_data.visions.get(goal.parent_id);
-
-            // Remove the current task_id
-            Util.remove_id_from_array(unique_id, parent_vision.child_ids);
-
-            // Write back to database (redundant atm)
-        }
-
-        // Set the new vision id
-        goal.parent_id = parent_id;
-
-        // Add this task_id to the new parent
-        let parent_vision = DatabaseManager.database_data.visions.get(goal.parent_id);
-        
-        parent_vision.child_ids.push(unique_id);
-
-        // Write back to database (redundant atm)
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    goal_set_child_ids(unique_id: PackedRecord.GoalID,
-                       child_ids: PackedRecord.TaskID[],
-                       no_callbacks?: boolean)
-    {
-        // Fetch goal from database
-        let goal = DatabaseManager.database_data.goals.get(unique_id);
-
-        // Remove as parent from orphaned child tasks
-        let new_child_ids_set = new CSet<PackedRecord.TaskID>(child_ids);
-
-        for (let existing_child_id of goal.child_ids)
-        {
-            if (!new_child_ids_set.has(existing_child_id))
-            {
-                let removed_task = DatabaseManager.database_data.tasks.get(existing_child_id);
-                removed_task.parent_id = PackedRecord.NullID;
-            }
-        }
-
-        // Add as parent for newly adopted child tasks
-        let existing_child_ids_set = new CSet<PackedRecord.TaskID>(goal.child_ids);
-        
-        for (let new_child_id of child_ids)
-        {
-            if (!existing_child_ids_set.has(new_child_id))
-            {
-                let added_task = DatabaseManager.database_data.tasks.get(new_child_id);
-                added_task.parent_id = unique_id;
-            }
-        }
-
-        // Set the child ids
-        goal.child_ids = child_ids.slice();
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
-
-    // ===================================================================================== VISIONS
-    vision_add(name: string,
-               details: string, 
-               date_created: Date,
-               date_completed: Date,
-               group: string[],
-               no_callbacks?: boolean) : PackedRecord.VisionID
-    {
-        // Generate a unique ID
-        let new_unique_id = new PackedRecord.VisionID(DatabaseManager.database_data.next_available_index++, group);
-        
-        // Add to the database
-        let new_vision = new PackedRecord.Vision(name, details, date_created, date_completed, undefined, new_unique_id);
-        DatabaseManager.database_data.visions.set(new_unique_id, new_vision);
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-
-        // Return the new ID
-        return new_unique_id;
-    }
-
-    vision_remove(unique_id: PackedRecord.VisionID,
-                  no_callbacks?: boolean)
-    {
-        // Fetch task from database
-        let vision = DatabaseManager.database_data.visions.get(unique_id);
-
-        // Remove as parent from children
-        for (let goal_id of vision.child_ids)
-        {
-            let goal = DatabaseManager.database_data.goals.get(goal_id);
-            goal.parent_id = PackedRecord.NullID;
-        }
-
-        // Remove goal
-        DatabaseManager.database_data.visions.delete(unique_id);
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+        return this.query_packed_tvg_nodes(filters).then(InflatedRecord.build_inflated_array);
     }
     
-    visions_set_basic_attributes(unique_id: PackedRecord.VisionID,
-                                 name: string,
-                                 details: string, 
-                                 date_created: Date,
-                                 date_completed: Date,
-                                 no_callbacks?: boolean)
+    get_nodes(unique_ids: InflatedRecord.ID[]) : Promise<InflatedRecord.TgvNode[]>
     {
-        // Fetch goal from database
-        let vision = DatabaseManager.database_data.visions.get(unique_id);
-
-        // Update properties
-        vision.name = name;
-        vision.details = details;
-        vision.date_created = date_created;
-        vision.date_completed = date_completed;
-
-        // Write back to database (redundant atm)
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+        let id_filter = new IdSetFilter(unique_ids, true);
+        return this.query_nodes([id_filter]);
     }
 
-    vision_set_child_ids(unique_id: PackedRecord.VisionID,
-                         child_ids: PackedRecord.GoalID[],
-                         no_callbacks?: boolean)
+    get_node(unique_id: InflatedRecord.ID) : Promise<InflatedRecord.TgvNode>
     {
-        // Fetch goal from database
-        let vision = DatabaseManager.database_data.visions.get(unique_id);
-
-        // Remove as parent from orphaned child goals
-        let new_child_ids_set = new CSet<PackedRecord.VisionID>(child_ids);
-
-        for (let existing_child_id of vision.child_ids)
-        {
-            if (!new_child_ids_set.has(existing_child_id))
-            {
-                let removed_goal = DatabaseManager.database_data.goals.get(existing_child_id);
-                removed_goal.parent_id = PackedRecord.NullID;
-            }
-        }
-
-        // Add as parent for newly adopted child goals
-        let existing_child_ids_set = new CSet<PackedRecord.GoalID>(vision.child_ids);
-
-        for (let new_child_id of child_ids)
-        {
-            if (!existing_child_ids_set.has(new_child_id))
-            {
-                let added_goal = DatabaseManager.database_data.goals.get(new_child_id);
-                added_goal.parent_id = unique_id;
-            }
-        }
-
-        // Set the child ids
-        vision.child_ids = child_ids.slice();
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+        return this.get_nodes([unique_id])[0];
     }
+    
+    // ===== Typedefs
+    get_tasks(unique_ids: InflatedRecord.ID[])   : Promise<InflatedRecord.Task[]>   { return this.get_nodes(unique_ids); }
+    get_goals(unique_ids: InflatedRecord.ID[])   : Promise<InflatedRecord.Goal[]>   { return this.get_nodes(unique_ids); }
+    get_visions(unique_ids: InflatedRecord.ID[]) : Promise<InflatedRecord.Vision[]> { return this.get_nodes(unique_ids); }
 
-    // ========================================================================================= DAY
-    day_add(date: Date, 
-            group: string[],
-            no_callbacks?: boolean) : PackedRecord.DayID
+    get_task(unique_id: InflatedRecord.ID)   : Promise<InflatedRecord.Task>  { return this.get_node(unique_id); }
+    get_goal(unique_id: InflatedRecord.ID)   : Promise<InflatedRecord.Goal>  { return this.get_node(unique_id); }
+    get_vision(unique_id: InflatedRecord.ID) : Promise<InflatedRecord.Vision> { return this.get_node(unique_id); }
+
+    query_tasks(filters ?: QueryFilter[]): Promise<InflatedRecord.Task[]>
     {
-        // Generate a unique ID
-        let new_unique_id = new PackedRecord.DayID(DatabaseManager.database_data.next_available_index++, group);
-
-        // Link to previous day
-        let previous_id = DatabaseManager.database_data.most_recent_day_id;
-
-        // Update most recent day
-        DatabaseManager.database_data.most_recent_day_id = new_unique_id;
+        let all_filters : QueryFilter[] = [new TypeFilter(PackedRecord.Type.TASK, true)];
         
-        // Add day
-        let new_day = new PackedRecord.Day(date, undefined /* TODO */, previous_id, PackedRecord.NullID, new_unique_id);
-        DatabaseManager.database_data.days.set(new_unique_id, new_day);
+        if (filters)
+        {
+            all_filters = all_filters.concat(filters);
+        }
 
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+        return this.query_nodes(all_filters);
+    }
+    
+    query_goals(filters ?: QueryFilter[]): Promise<InflatedRecord.Goal[]>
+    {
+        let all_filters : QueryFilter[] = [new TypeFilter(PackedRecord.Type.GOAL, true)];
+        
+        if (filters)
+        {
+            all_filters = all_filters.concat(filters);
+        }
 
-        return new_unique_id;
+        return this.query_nodes(all_filters);
     }
 
-    day_add_to_week(unique_id: PackedRecord.DayID,
-                    unique_week_id: PackedRecord.WeekID,
-                    no_callbacks?: boolean)
+    query_visions(filters ?: QueryFilter[]): Promise<InflatedRecord.Vision[]>
     {
-        // Query for week
-        let week = DatabaseManager.database_data.weeks.get(unique_week_id);
+        let all_filters : QueryFilter[] = [new TypeFilter(PackedRecord.Type.VISION, true)];
+        
+        if (filters)
+        {
+            all_filters = all_filters.concat(filters);
+        }
 
-        // Add day to week            
-        if (week.day_ids == undefined)
-            week.day_ids = [];
+        return this.query_nodes(all_filters);
+    }
+
+    // ====================================================================================== Modify
+    // ===== General
+    private tgv_add(inflated_node : InflatedRecord.TgvNode,
+                    no_callbacks?: boolean) : Promise<InflatedRecord.ID>
+    {
+        let packed_node = new PackedRecord.TgvNode(inflated_node);
+
+        return this.insert_packed_tgv_node(packed_node).then(result => {
+            return DatabaseManager.database_.executeSql(`SELECT last_insert_rowid() from ${PackedRecord.TGV_TABLE}`).then(result => {
+                DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+                return result; /* TODO which field?? */
+            });
+        });
+    }
+
+    private tgv_remove(unique_id: InflatedRecord.ID,
+                       no_callbacks?: boolean) : Promise<any>
+    {
+        return DatabaseManager.database_.executeSql(`DELETE from ${PackedRecord.TGV_TABLE} where id=${unique_id}`).then(result => {
+            DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+            return result;
+        });
+    }
+    
+    private tgv_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
+                                     no_callbacks?: boolean) : Promise<any>
+    {
+        let packed_node = new PackedRecord.TgvNode(inflated_node);
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.id]).then(result => {
+            DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+            return result;
+        });
+    }
+
+    private tgv_set_parent(unique_id: InflatedRecord.ID,
+                           parent_id: InflatedRecord.ID,
+                           no_callbacks?: boolean) : Promise<any>
+    {
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=? WHERE id=?`, [parent_id, unique_id]).then(result => {
+            DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+            return result;
+        });
+    }
+
+    private tgv_set_children(unique_id: InflatedRecord.ID,
+                             child_ids: InflatedRecord.ID[],
+                             no_callbacks?: boolean) : Promise<any>
+    {
+        let where_clause = "";
+
+        for (let i = 0; i < child_ids.length; i++)
+        {
+            where_clause += `unique_id=${child_ids[i]}`;
             
-        week.day_ids.push(unique_id);
+            if (i + 1 < child_ids.length)
+            {
+                where_clause += " OR ";
+            }
+        }
 
-        // Write back to database (currently redundant)
-        
-        // Query for day
-        let day = DatabaseManager.database_data.days.get(unique_id);
-
-        day.week_id = unique_week_id;
-
-        // Write back to database (currently redundant)
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=-1 WHERE parent_id=${unique_id}`).then(() => {
+            DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=${unique_id} WHERE ${where_clause}`).then((result) => {
+                DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+                return result;
+            })
+        });
     }
 
-    day_set_task_ids(unique_id: PackedRecord.DayID,
-                     task_ids: PackedRecord.TaskID[],
-                     no_callbacks?: boolean)
+    private tgv_toggle_completion(unique_id: InflatedRecord.ID, 
+                                  no_callbacks?: boolean) : Promise<any>
     {
-        // Query for day
-        let day = DatabaseManager.database_data.days.get(unique_id);
+        return this.get_node(unique_id).then(node => {
+            // TODO: This doesn't belong here
+            if (InflatedRecord.is_active(node))
+                node.date_closed = new Date();
+            else
+                node.date_closed = InflatedRecord.NULL_DATE;
 
-        day.task_ids = task_ids.slice();
-
-        // Write back to database (currently redundant)
-
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+            return this.tgv_set_basic_attributes(node, no_callbacks);
+        });
     }
 
-    // ======================================================================================== WEEK
-    week_add(date: Date, 
-             group: string[],
-             no_callbacks?: boolean) : PackedRecord.WeekID
-    {
-        // Generate a unique ID
-        let new_unique_id = new PackedRecord.WeekID(DatabaseManager.database_data.next_available_index++, group);
+    // ===== Typedefs
+    // Task
+    task_add(inflated_node : InflatedRecord.TgvNode,
+             no_callbacks?: boolean) : Promise<InflatedRecord.ID> { return this.tgv_add(inflated_node, no_callbacks); }
 
-        // Link to previous week
-        let previous_id = DatabaseManager.database_data.most_recent_day_id;
+    task_remove(unique_id: InflatedRecord.ID,
+                no_callbacks?: boolean) : Promise<any> { return this.tgv_remove(unique_id, no_callbacks); }
 
-        // Update most recent week
-        DatabaseManager.database_data.most_recent_week_id = new_unique_id;
-        
-        // Add week
-        let new_week = new PackedRecord.Week(date, undefined /* TODO */, undefined /* TODO */, previous_id, new_unique_id);
-        DatabaseManager.database_data.weeks.set(new_unique_id, new_week);
+    task_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
+                              no_callbacks?: boolean) : Promise<any> { return this.tgv_set_basic_attributes(inflated_node, no_callbacks); }
 
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+    task_toggle_completion(unique_id: InflatedRecord.ID, 
+                           no_callbacks?: boolean) : Promise<any> { return this.tgv_toggle_completion(unique_id, no_callbacks); }
 
-        return new_unique_id;
-    }
+    task_set_parent(unique_id: InflatedRecord.ID,
+                    parent_id: InflatedRecord.ID,
+                    no_callbacks?: boolean) : Promise<any> { return this.tgv_set_parent(unique_id, parent_id, no_callbacks); }
 
-    week_set_task_ids(unique_id: PackedRecord.WeekID,
-                      task_ids: PackedRecord.TaskID[],
-                      no_callbacks?: boolean)
-    {
-        // Query for week
-        let week = DatabaseManager.database_data.weeks.get(unique_id);
+    // Goal
+    goal_add(inflated_node : InflatedRecord.TgvNode,
+             no_callbacks?: boolean) : Promise<InflatedRecord.ID> { return this.tgv_add(inflated_node, no_callbacks); }
 
-        // Remove task from day
-        week.task_ids = task_ids.slice();
+    goal_remove(unique_id: InflatedRecord.ID,
+                no_callbacks?: boolean) : Promise<any> { return this.tgv_remove(unique_id, no_callbacks); }
 
-        // Write back to database (currently redundant)
+    goal_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
+                              no_callbacks?: boolean) : Promise<any> { return this.tgv_set_basic_attributes(inflated_node, no_callbacks); }
 
-        // Callbacks
-        DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    }
+    goal_set_parent(unique_id: InflatedRecord.ID,
+                    parent_id: InflatedRecord.ID,
+                    no_callbacks?: boolean) : Promise<any> { return this.tgv_set_parent(unique_id, parent_id, no_callbacks); }
 
-    // ====================================================================================== LEGACY
+    goal_set_child_ids(unique_id: number,
+                       child_ids: number[],
+                       no_callbacks?: boolean) : Promise<any> { return this.tgv_set_children(unique_id, child_ids, no_callbacks); }
 
-    // add_task_to_day(day_id: number, task_id: number, no_callbacks?: boolean)
-    // {
-    //     DatabaseManager.database_data.days.get(day_id).task_ids.push(task_id);
-    //     DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    // }
+    // Vision
+    vision_add(inflated_node : InflatedRecord.TgvNode,
+               no_callbacks?: boolean) : Promise<InflatedRecord.ID> { return this.tgv_add(inflated_node, no_callbacks); }
 
-    // add_tasks_to_day(day_id: number, task_ids: number[], no_callbacks?: boolean)
-    // {
-    //     DatabaseManager.database_data.days.get(day_id).task_ids =
-    //         DatabaseManager.database_data.days.get(day_id).task_ids.concat(task_ids);
-    //     DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    // }
+    vision_remove(unique_id: InflatedRecord.ID,
+                  no_callbacks?: boolean) : Promise<any> { return this.tgv_remove(unique_id, no_callbacks); }
 
-    // remove_task_from_day(day_id: number, remove_task_id: number, no_callbacks?: boolean)
-    // {
-    //     let day_task_ids = DatabaseManager.database_data.days.get(day_id).task_ids;
+    vision_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
+                                no_callbacks?: boolean) : Promise<any> { return this.tgv_set_basic_attributes(inflated_node, no_callbacks); }
 
-    //     let remove_index = day_task_ids.findIndex((task_id) => { return task_id == remove_task_id });
-    //     day_task_ids.splice(remove_index, 1);
-    //     DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    // }
-
-    // add_task_to_week(week_id: number, task_id: number, no_callbacks?: boolean)
-    // {
-    //     DatabaseManager.database_data.weeks.get(week_id).task_ids.push(task_id);
-    //     DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    // }
-
-    // add_tasks_to_week(week_id: number, task_ids: number[], no_callbacks?: boolean)
-    // {
-    //     DatabaseManager.database_data.weeks.get(week_id).task_ids = 
-    //         DatabaseManager.database_data.weeks.get(week_id).task_ids.concat(task_ids);
-    //     DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-    // }
-
-    // remove_task_from_week(week_id: number, day_id: number, remove_task_id: number, no_callbacks?: boolean)
-    // {
-    //     // Remove from week
-    //     let week_task_ids = DatabaseManager.database_data.weeks.get(week_id).task_ids;
-
-    //     let remove_index = week_task_ids.findIndex((task_id) => { return task_id == remove_task_id });
-    //     week_task_ids.splice(remove_index, 1);
-        
-    //     // Remove from day
-    //     this.remove_task_from_day(day_id, remove_task_id);
-    // }
+    vision_set_child_ids(unique_id: number,
+                         child_ids: number[],
+                         no_callbacks?: boolean) : Promise<any> { return this.tgv_set_children(unique_id, child_ids, no_callbacks); }
 }
