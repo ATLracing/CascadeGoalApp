@@ -10,7 +10,7 @@ import { ComponentAssociate } from '../../components/associate/associate';
 
 export class NewTaskPageSettings
 {
-  preset_goal: boolean;
+  parent_id: InflatedRecord.ID;
 }
 
 @Component({
@@ -21,7 +21,6 @@ export class NewTaskPageSettings
 export class NewTaskPage implements OnDestroy {
   private all_goals_: InflatedRecord.Goal[];
   private new_task_: InflatedRecord.Task;
-  private goal_parent_id_string_: InflatedRecord.ID;
   private input_settings_: NewTaskPageSettings;
 
   constructor(private database_manager_: DatabaseManager,
@@ -30,22 +29,21 @@ export class NewTaskPage implements OnDestroy {
               private addressed_transfer_: AddressedTransfer,
               private modal_controller_: ModalController)
   {
+    this.new_task_ = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
+
     this.input_settings_ = this.addressed_transfer_.get_for_route(router_, "settings");
     
+    // TODO: Fuck this..
     if (this.input_settings_ == undefined)
       this.input_settings_ = new NewTaskPageSettings();
 
-    database_manager_.register_data_updated_callback("new_task_page", async () => {
-      this.all_goals_ = await database_manager_.query_goals([]);
+    this.new_task_.parent_id = this.input_settings_.parent_id;
 
-      // Add stringified key
-      for (let goal of this.all_goals_)
-      {
-        goal.extra = { string_key: goal.id };
-      }
+    database_manager_.register_data_updated_callback("new_task_page", async () => {
+      this.all_goals_ = await database_manager_.query_goals([]);  // and this..
+
     });
 
-    this.new_task_ = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
     console.log("New Task constructed");
   }
 
@@ -53,21 +51,18 @@ export class NewTaskPage implements OnDestroy {
   {
     const modal = await this.modal_controller_.create({component: ComponentAssociate});
     
-    modal.onDidDismiss().then(data => {
+    modal.onDidDismiss().then(id => {
       // TODO
-      console.log(data);
+      console.log(id.data);
+      this.new_task_.parent_id = id.data;
     });
     return await modal.present();
   }
 
   save()
   {
-    // TODO(ABurroughs): This sucks
-    if (this.goal_parent_id_string_)
-      this.new_task_.parent_id = this.goal_parent_id_string_;
-    
-    this.database_manager_.task_add(this.new_task_);
-    //this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_task_);
+    // TODO(ABurroughs): Just add the task here..
+    this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_task_);
     this.router_.navigate(['../'], { relativeTo: this.route_} );
   }
 

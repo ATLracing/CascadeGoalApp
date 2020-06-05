@@ -82,7 +82,7 @@ export class DatabaseInflator
                                               level : PackedRecord.Type,
                                               database_manager : DatabaseManager) : Promise<InflatedRecord.TgvNode[]>
     {
-        if (child_nodes[0].type == level)
+        if (child_nodes.length == 0 || child_nodes[0].type == level)
         {
             return child_nodes;
         }
@@ -113,10 +113,11 @@ export class DatabaseInflator
         for (let child_node of child_nodes)
         {
             parent_nodes_map[child_node.parent_id].children.push(child_node);
-            child_node.parent = parent_nodes_map.get(child_node.parent_id);
+            let parent_node = parent_nodes_map[child_node.parent_id];   // TODO: get() doesn't work here; no idea why
+            child_node.parent = parent_node;
         }
-        
-        return await DatabaseInflator.inflate_parent_layer(Array.from(parent_nodes_map.values()), level, database_manager);
+
+        return await DatabaseInflator.inflate_parent_layer(parent_nodes, level, database_manager);
     }
 
     // =================================================================================== Interface

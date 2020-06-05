@@ -17,11 +17,11 @@
   <ion-item>
       <ion-textarea placeholder="Notes (recommended)" clearOnEdit="true" [(ngModel)]="new_goal_.details"></ion-textarea>
   </ion-item>
-  <ion-item *ngIf="!input_settings_.preset_vision">
+  <ion-item *ngIf="input_settings_.parent_id == undefined">
     <ion-label>Associated Vision</ion-label>
-    <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="vision_parent_id_string_" >
+    <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="new_goal_.parent_id" >
         <ion-select-option value="{{undefined}}">None</ion-select-option>
-        <ion-select-option *ngFor="let vision of all_visions_" value="{{vision.extra.string_key}}">{{vision.name}}</ion-select-option>
+        <ion-select-option *ngFor="let vision of all_visions_" value="{{vision.id}}">{{vision.name}}</ion-select-option>
       </ion-select>
   </ion-item>
   <ion-item lines="none">

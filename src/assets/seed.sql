@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS tgv_nodes_tbl(id INTEGER PRIMARY KEY AUTOINCREMENT,
                                          owner TEXT, 
                                          users TEXT,
                                          parent_id INTEGER,
-                                         type TEXT
+                                         type TEXT,
                                          name TEXT,
                                          details TEXT,
                                          date_created TEXT,

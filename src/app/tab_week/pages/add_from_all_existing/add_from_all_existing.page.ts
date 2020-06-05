@@ -4,6 +4,7 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 export class AddFromAllExistingInputs
 {
@@ -52,7 +53,7 @@ export class AddFromAllExistingPage implements OnDestroy {
     this.goals_[goal_index].extra.expanded = !this.goals_[goal_index].extra.expanded;
   }
 
-  save()
+  async save()
   {
     let new_task_ids = [];
     
@@ -62,10 +63,16 @@ export class AddFromAllExistingPage implements OnDestroy {
       {
         if (task.extra.selected)
         {
+          // TODO(ABurroughs): This is extremely inefficient
+          task.week = CalendarManager.get_iso_week();
+          await this.database_manager_.task_set_basic_attributes(task, true);
+          // Deprecated
           new_task_ids.push(task.id);
         }
       }
     }
+
+    this.database_manager_.manually_trigger_callbacks();
 
     this.save_callback_(new_task_ids);
     this.router_.navigate(['..'], { relativeTo: this.route_ });

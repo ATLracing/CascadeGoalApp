@@ -29,14 +29,15 @@ export class ManagePage {
               private addressed_transfer_: AddressedTransfer) {
     
       this.vision_index_ = 0;
+      this.expanded_visions_ = [];
 
       database_manager_.register_data_updated_callback("manage_page", async () => {
       
       this.expanded_visions_ = await database_manager_.query_visions();
-      
+
       for (let vision of this.expanded_visions_)
       {
-        DatabaseInflator.inflate_vision(vision, database_manager_, false);
+        await DatabaseInflator.inflate_vision(vision, database_manager_, false);
       }
 
       // Tack on UI info
@@ -58,32 +59,27 @@ export class ManagePage {
       !this.expanded_visions_[vision_index].children[goal_index].extra.expanded;
   }
 
-  add_task_to_goal(vision_index: number, goal_index: number)
+  async add_task_to_goal(vision_index: number, goal_index: number)
   {
     // TODO If something changes in another pane.. not good
     this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', async (new_task: InflatedRecord.Task) => {      
-      let new_task_id = await this.database_manager_.task_add(new_task, true);
-      
-      let parent_goal_id = this.expanded_visions_[vision_index].children[goal_index].id;
-
-      this.database_manager_.task_set_parent(new_task_id, parent_goal_id);
+      await this.database_manager_.task_add(new_task);
     });
 
-    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'settings', { preset_goal: true});
+    let parent_goal_id = this.expanded_visions_[vision_index].children[goal_index].id;
+    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'settings', { parent_id: parent_goal_id});
     this.router_.navigate(['new_task'], { relativeTo: this.route_ });
   }
 
-  add_goal_to_vision(vision_index: number)
+  async add_goal_to_vision(vision_index: number)
   {
     // TODO If something changes in another pane.. not good
     this.addressed_transfer_.put_for_route(this.router_, 'new_goal', 'callback', async (new_goal: InflatedRecord.Goal) => {
-      let new_goal_id = await this.database_manager_.goal_add(new_goal, true);
-
-      let parent_vision_id = this.expanded_visions_[vision_index].id;
-      this.database_manager_.goal_set_parent(parent_vision_id, new_goal_id);
+      await this.database_manager_.goal_add(new_goal);
     });
 
-    this.addressed_transfer_.put_for_route(this.router_, 'new_goal', 'settings', { preset_vision: true});
+    let parent_vision_id = this.expanded_visions_[vision_index].id;
+    this.addressed_transfer_.put_for_route(this.router_, 'new_goal', 'settings', { parent_id: parent_vision_id});
 
     this.router_.navigate(['new_goal'], { relativeTo: this.route_ });
   }

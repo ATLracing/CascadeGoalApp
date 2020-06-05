@@ -8,7 +8,7 @@ import { DatabaseInflator } from 'src/app/providers/database_inflator';
 
 export class NewGoalPageSettings
 {
-  preset_vision: boolean;
+  parent_id: InflatedRecord.ID;
 }
 
 @Component({
@@ -19,7 +19,6 @@ export class NewGoalPageSettings
 export class NewGoalPage implements OnDestroy {
   private new_goal_: InflatedRecord.Goal;
   private all_visions_: InflatedRecord.Vision[];
-  private vision_parent_id_string_: string;
   private input_settings_: NewGoalPageSettings;
 
   constructor(private database_manager_: DatabaseManager,
@@ -27,31 +26,24 @@ export class NewGoalPage implements OnDestroy {
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer)
   {
-    this.input_settings_ = this.addressed_transfer_.get_for_route(router_, "settings");
+    this.new_goal_ = InflatedRecord.construct_empty_node(InflatedRecord.Type.GOAL);
+
     if (this.input_settings_ == undefined)
       this.input_settings_ = new NewGoalPageSettings();
 
+    this.input_settings_ = this.addressed_transfer_.get_for_route(router_, "settings");
+    this.new_goal_.parent_id = this.input_settings_.parent_id;
+
     database_manager_.register_data_updated_callback("new_goal_page", async () => {
       this.all_visions_ = await database_manager_.query_visions();
-
-      // Add stringified key
-      for (let vision of this.all_visions_)
-      {
-        vision.extra = { string_key: JSON.stringify(vision.id) };
-      }
     });
 
-    this.new_goal_ = InflatedRecord.construct_empty_node(InflatedRecord.Type.GOAL);
     console.log("New Task constructed");
   }
 
   save()
-  {
-    // TODO(ABurroughs): This sucks
-    if (this.vision_parent_id_string_)
-      this.new_goal_.parent_id = JSON.parse(this.vision_parent_id_string_);//parseInt(this.vision_parent_id_string_);
-    
-      this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_goal_);
+  {    
+    this.addressed_transfer_.get_for_route(this.router_, "callback")(this.new_goal_);
     this.router_.navigate(['../'], { relativeTo: this.route_} );
   }
 

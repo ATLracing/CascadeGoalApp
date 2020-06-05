@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>
-      {{expanded_visions_[vision_index_].name}}
+      {{expanded_visions_[vision_index_]?.name}}
     </ion-title>
 
     <ion-buttons slot="end">
@@ -18,7 +18,7 @@
       <ion-slide *ngFor="let expanded_vision of expanded_visions_; let vision_index = index">
         <ion-item lines="none">
           <ion-list>
-            <ion-item *ngFor="let goal of expanded_vision.child_goals; let goal_index = index">
+            <ion-item *ngFor="let goal of expanded_vision.children; let goal_index = index">
               <ion-grid>
                 <ion-row align-items-stretch>
                   <ion-col>
@@ -26,16 +26,16 @@
                         <h2>{{goal.name}}</h2>
                       </ion-label>
                   </ion-col>
-                  <ion-col *ngIf="goal.extra.expanded">
+                  <ion-col *ngIf="goal.extra?.expanded">
                     <ion-button (click)="add_task_to_goal(vision_index, goal_index)">
                         <ion-icon slot="icon-only" name="add"></ion-icon>
                     </ion-button>
                   </ion-col>
                 </ion-row>
-                <ion-row *ngIf="goal.extra.expanded">
+                <ion-row *ngIf="goal.extra?.expanded">
                   <ion-col>
                     <ion-list lines="none">
-                      <ion-item *ngFor="let task of goal.child_tasks">
+                      <ion-item *ngFor="let task of goal.children">
                         <ion-label>
                           <h3>{{task.name}}</h3>
                         </ion-label>

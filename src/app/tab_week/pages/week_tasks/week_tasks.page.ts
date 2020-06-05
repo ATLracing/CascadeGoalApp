@@ -1,8 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DatabaseManager, WeekFilter } from 'src/app/providers/database_manager';
-import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
-import * as Util from 'src/app/providers/util';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
@@ -22,6 +20,9 @@ export class WeekTasksPage implements OnDestroy {
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer) {
     
+    this.tasks_ = [];
+    this.goals_ = [];
+
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {            
       // Get the current week
       let week_number = CalendarManager.get_iso_week();
@@ -39,8 +40,8 @@ export class WeekTasksPage implements OnDestroy {
 
         for (let task of goal.children)
         {
-          const STYLE_COMPLETE = 'line-through'
-          const STYLE_DAY = 'bold'
+          const STYLE_COMPLETE = 'line-through';
+          const STYLE_DAY = 'bold';
 
           let style_complete = !InflatedRecord.is_active(task) ? STYLE_COMPLETE : undefined
 
@@ -80,7 +81,7 @@ export class WeekTasksPage implements OnDestroy {
     
     this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "inputs", { excluded_ids: week_task_ids });
 
-    this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "callback", (new_task_ids: number[]) => {
+    this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "callback", (new_task_ids: InflatedRecord.ID[]) => {
       // Deprecated
     });
 

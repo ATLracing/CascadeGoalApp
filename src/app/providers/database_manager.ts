@@ -93,9 +93,9 @@ export class TypeFilter implements QueryFilter
     get_where_clause()
     {
         if (this.is_)
-            return `type=${this.type_}`;
+            return `type="${this.type_}"`;
         else
-            return `type!=${this.type_}`;
+            return `type!="${this.type_}"`;
     }
 };
 
@@ -120,12 +120,15 @@ export function join_where_clauses_and(filters : QueryFilter[])
 
     for (let i = 0; i < filters.length; i++)
     {
-        where_clause += `(${filters[i].get_where_clause()})`
+        if (filters[i].get_where_clause() === "")
+            continue;
 
-        if (i + 1 < filters.length)
+        if (i > 0)
         {
             where_clause += " AND "
         }
+
+        where_clause += `(${filters[i].get_where_clause()})`
     }
 
     return where_clause;
@@ -178,7 +181,7 @@ export class DatabaseManager
         });
     }
 
-    private static execute_data_updated_callbacks(no_callbacks?: boolean)
+    private static async execute_data_updated_callbacks(no_callbacks?: boolean)
     {
         if (no_callbacks)
             return;
@@ -205,13 +208,19 @@ export class DatabaseManager
         if (filters)
             where_clause = join_where_clauses_and(filters)
 
-        return DatabaseManager.database_.executeSql(`SELECT * from ${PackedRecord.TGV_TABLE} ${where_clause}`).then(result => {
-            let child_rows : PackedRecord.TgvNode[] = []
+        let query_str = `SELECT * from ${PackedRecord.TGV_TABLE} WHERE ${where_clause}`;
+        if (where_clause === "")
+        {
+            query_str = `SELECT * from ${PackedRecord.TGV_TABLE}`;
+        }
+
+        return DatabaseManager.database_.executeSql(query_str, []).then(result => {
+            let child_rows : PackedRecord.TgvNode[] = [];
             
             // TODO(ABurroughs): For each?
             if (result.rows.length > 0) {
                 for (let i = 0; i < result.rows.length; i++) {
-                    let match_row = result.rows.item(i)
+                    let match_row = result.rows.item(i);
                     //child_rows.push(match_row); ??
                     child_rows.push({
                         id : match_row.id,
@@ -255,6 +264,11 @@ export class DatabaseManager
     unregister_data_updated_callback(name: string)
     {
         DatabaseManager.data_updated_callbacks.delete(name);
+    }
+
+    manually_trigger_callbacks()
+    {
+        DatabaseManager.execute_data_updated_callbacks();
     }
 
     // ======================================================================================= QUERY
@@ -328,17 +342,15 @@ export class DatabaseManager
         let packed_node = new PackedRecord.TgvNode(inflated_node);
 
         return this.insert_packed_tgv_node(packed_node).then(result => {
-            return DatabaseManager.database_.executeSql(`SELECT last_insert_rowid() from ${PackedRecord.TGV_TABLE}`).then(result => {
-                DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-                return result; /* TODO which field?? */
-            });
+            DatabaseManager.execute_data_updated_callbacks(no_callbacks);
+            return result.insertId; 
         });
     }
 
     private tgv_remove(unique_id: InflatedRecord.ID,
                        no_callbacks?: boolean) : Promise<any>
     {
-        return DatabaseManager.database_.executeSql(`DELETE from ${PackedRecord.TGV_TABLE} where id=${unique_id}`).then(result => {
+        return DatabaseManager.database_.executeSql(`DELETE from ${PackedRecord.TGV_TABLE} where id=?`, [unique_id]).then(result => {
             DatabaseManager.execute_data_updated_callbacks(no_callbacks);
             return result;
         });
@@ -348,7 +360,7 @@ export class DatabaseManager
                                      no_callbacks?: boolean) : Promise<any>
     {
         let packed_node = new PackedRecord.TgvNode(inflated_node);
-        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.id]).then(result => {
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=?, day=?, week=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.day, packed_node.week, packed_node.id]).then(result => {
             DatabaseManager.execute_data_updated_callbacks(no_callbacks);
             return result;
         });
@@ -380,8 +392,8 @@ export class DatabaseManager
             }
         }
 
-        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=-1 WHERE parent_id=${unique_id}`).then(() => {
-            DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=${unique_id} WHERE ${where_clause}`).then((result) => {
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=-1 WHERE parent_id=?`, [unique_id]).then(() => {
+            DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=? WHERE ?`, [unique_id, where_clause]).then((result) => {
                 DatabaseManager.execute_data_updated_callbacks(no_callbacks);
                 return result;
             })

@@ -17,14 +17,7 @@
   <ion-item>
       <ion-textarea placeholder="Notes (optional)" clearOnEdit="true" [(ngModel)]="new_task_.details"></ion-textarea>
   </ion-item>
-  <ion-item *ngIf="!input_settings_.preset_goal">
-    <ion-label>Associated Goal</ion-label>
-    <ion-select value="none" okText="Associate" cancelText="Cancel" [(ngModel)]="goal_parent_id_string_" >
-        <ion-select-option value={{undefined}}>None</ion-select-option>
-        <ion-select-option *ngFor="let goal of all_goals_" value="{{goal.extra.string_key}}">{{goal.name}}</ion-select-option>
-      </ion-select>
-  </ion-item>
-  <ion-item>
+  <ion-item *ngIf="input_settings_.parent_id == undefined">
     <ion-button (click)="associate()">Associate</ion-button>
   </ion-item>
   <ion-item lines="none">

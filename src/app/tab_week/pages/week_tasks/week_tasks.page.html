@@ -28,7 +28,7 @@
         <ion-row *ngIf="goal.extra.expanded">
           <ion-col>
             <ion-list lines="none">
-              <ion-item-sliding *ngFor="let task of goal.child_tasks; let task_index = index">
+              <ion-item-sliding *ngFor="let task of goal.children; let task_index = index">
                 <ion-item-options side="end">
                   <ion-item-option color="danger" (click)="remove(goal_index, task_index)">Remove</ion-item-option>
                 </ion-item-options>

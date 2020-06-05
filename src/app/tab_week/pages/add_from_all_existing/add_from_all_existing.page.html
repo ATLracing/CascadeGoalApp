@@ -23,7 +23,7 @@
         <ion-row *ngIf="goal.extra.expanded">
           <ion-col>
             <ion-list lines="none">
-              <ion-item *ngFor="let task of goal.child_tasks">
+              <ion-item *ngFor="let task of goal.children">
                 <ion-label>
                   <h3>{{task.name}}</h3>
                 </ion-label>
