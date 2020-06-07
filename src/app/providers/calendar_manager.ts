@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core"
 import { DatabaseManager } from './database_manager';
-import * as PackedRecord from './packed_record';
+import * as InflatedRecord from './inflated_record';
 
 @Injectable()
 export class CalendarManager
@@ -52,5 +52,15 @@ export class CalendarManager
     static async calendar_loop(database_manager: DatabaseManager)
     {
         // TODO..
+    }
+
+    static in_today(task: InflatedRecord.Task)
+    {
+        return task.week == this.get_iso_week() && task.day == this.get_day_of_week();
+    }
+
+    static in_this_week(task: InflatedRecord.Task)
+    {
+        return task.week == this.get_iso_week();
     }
 }

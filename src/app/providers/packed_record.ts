@@ -42,7 +42,7 @@ export class TgvNode
      details: string;
      date_created: string;
      date_closed: string;
-     resolution: string;
+     resolution: number;
 
      day: number;
      week: number;
@@ -60,7 +60,7 @@ export class TgvNode
         this.details = inflated_node.details;
         this.date_created = JSON.stringify(inflated_node.date_created);
         this.date_closed = JSON.stringify(inflated_node.date_closed);
-        this.resolution = "TODO";
+        this.resolution = inflated_node.resolution;
 
         this.day = inflated_node.day;
         this.week = inflated_node.week;

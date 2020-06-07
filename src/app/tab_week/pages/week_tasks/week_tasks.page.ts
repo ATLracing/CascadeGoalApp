@@ -5,15 +5,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 
 @Component({
   selector: 'app-week-tasks',
   templateUrl: 'week_tasks.page.html',
-  styleUrls: ['week_tasks.page.scss']
 })
 export class WeekTasksPage implements OnDestroy {
   private tasks_: InflatedRecord.Task[];
-  private goals_: InflatedRecord.Goal[];
 
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
@@ -21,7 +20,6 @@ export class WeekTasksPage implements OnDestroy {
               private addressed_transfer_: AddressedTransfer) {
     
     this.tasks_ = [];
-    this.goals_ = [];
 
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {            
       // Get the current week
@@ -30,72 +28,95 @@ export class WeekTasksPage implements OnDestroy {
       // Query all tasks for the week
       let week_filter = new WeekFilter(week_number);
       this.tasks_ = await database_manager_.query_tasks([week_filter]);
-      
-      this.goals_ = await DatabaseInflator.construct_tree_from_tasks(this.tasks_, InflatedRecord.Type.GOAL, this.database_manager_);
-      
+            
       // Append UI info
-      for (let goal of this.goals_)
+      for (let task of this.tasks_)
       {
-        goal.extra = { expanded: true };
+        task.extra = {};
 
-        for (let task of goal.children)
-        {
-          const STYLE_COMPLETE = 'line-through';
-          const STYLE_DAY = 'bold';
+        // Style
+        const STYLE_COMPLETE = 'line-through';
+        const STYLE_DAY = 'bold';
 
-          let style_complete = !InflatedRecord.is_active(task) ? STYLE_COMPLETE : undefined
-
-          let day_number = CalendarManager.get_day_of_week();
-          let style_today = day_number == task.day ? STYLE_DAY : undefined;
-
-          task.extra = { 
-                         style_complete: style_complete,
-                         style_today: style_today
-                        };
-        }
+        task.extra.style_complete = !InflatedRecord.is_active(task) ? STYLE_COMPLETE : undefined
+        task.extra.today = CalendarManager.get_day_of_week() == task.day;
+        task.extra.style_today = task.extra.today ? STYLE_DAY : undefined;
       }
     });
   }
 
-  goal_show_hide_tasks(goal_index: number)
-  {
-    console.log("Show/hide tasks");
-    this.goals_[goal_index].extra.expanded = !this.goals_[goal_index].extra.expanded;
-  }
-
   add_new_task()
   {
-  }
+    let new_task = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
+    new_task.week = CalendarManager.get_iso_week();
 
-  add_existing_task()
-  {
-    console.log("Existing task");
-    
-    // Collect task IDs
-    let week_task_ids = [];
-    
-    for (let task of this.tasks_)
+    let configure_tgv_settings : ConfigureTgvPageSettings =
     {
-      week_task_ids.push(task.id);
-    }
-    
-    this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "inputs", { excluded_ids: week_task_ids });
+        // Node to configure (must have type field correctly set)
+        tgv_node: new_task,
+        
+        // Display elements
+        title: "New Task",
+        enable_associate: true,
+        enable_completion_status: false,
 
-    this.addressed_transfer_.put_for_route(this.router_, "add_from_all_existing", "callback", (new_task_ids: InflatedRecord.ID[]) => {
-      // Deprecated
-    });
+        // Callbacks
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        delete_callback: undefined
+    };
 
-    this.router_.navigate(['add_from_all_existing'], { relativeTo: this.route_} );
+    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
+    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
   }
 
-  async remove(goal_index: number, task_index: number)
+  edit_task(index: number)
   {
-    let remove_task = this.goals_[goal_index].children[task_index];
-    
+    let configure_tgv_settings : ConfigureTgvPageSettings =
+    {
+        // Node to configure (must have type field correctly set)
+        tgv_node: this.tasks_[index],
+        
+        // Display elements
+        title: "Edit Task",
+        enable_associate: true,
+        enable_completion_status: true,
+
+        // Callbacks
+        save_callback: (edited_task: InflatedRecord.TgvNode) => { 
+          this.database_manager_.task_set_basic_attributes(edited_task, true); 
+          this.database_manager_.task_set_parent(edited_task.id, edited_task.parent_id)
+        },
+        delete_callback: (edited_task: InflatedRecord.TgvNode) => { this.database_manager_.task_remove(edited_task.id); }
+    };
+
+    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
+    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
+  }
+
+  add_remove_today(index: number)
+  {
+    let task = this.tasks_[index];
+
+    if (CalendarManager.in_today(task))
+    {
+      task.day = InflatedRecord.NULL_DAY;
+    }
+    else
+    {
+      task.day = CalendarManager.get_day_of_week();
+    }
+
+    this.database_manager_.task_set_basic_attributes(task);
+  }
+
+  remove(index: number)
+  {
+    let remove_task = this.tasks_[index];
+
     remove_task.day = InflatedRecord.NULL_DAY;
     remove_task.week = InflatedRecord.NULL_WEEK;
 
-    await this.database_manager_.task_set_basic_attributes(remove_task);
+    this.database_manager_.task_set_basic_attributes(remove_task);
   }
 
   ngOnDestroy()

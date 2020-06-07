@@ -1,87 +1,120 @@
 import { Component, OnDestroy } from '@angular/core';
 import { DatabaseManager, DayFilter } from 'src/app/providers/database_manager';
-import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
-import * as Util from 'src/app/providers/util';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { ConfigureTgvPageSettings } from '../configure_tgv/configure_tgv.page';
+import { resolve } from 'url';
 
 @Component({
   selector: 'app-tab1',
   templateUrl: 'today_tasks.page.html',
   styleUrls: ['today_tasks.page.scss']
 })
+
 export class TaskListPage implements OnDestroy {
   private day_tasks_: InflatedRecord.Task[];
 
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
               private route_: ActivatedRoute,
-              private addressed_transfer_: AddressedTransfer) {
+              private addressed_transfer_: AddressedTransfer) 
+  {    
     database_manager_.register_data_updated_callback("today_tasks_page", async () => {      
-    
-    let day_number = CalendarManager.get_day_of_week();
-    let week_number = CalendarManager.get_iso_week();
+        let day_number = CalendarManager.get_day_of_week();
+        let week_number = CalendarManager.get_iso_week();
 
-    let day_filter = new DayFilter(day_number, week_number);
-    this.day_tasks_ = await database_manager_.query_tasks([day_filter]);
+        let day_filter = new DayFilter(day_number, week_number);
+        this.day_tasks_ = await database_manager_.query_tasks([day_filter]);
 
-      // Append extra info
-      for (let task of this.day_tasks_)
-      {
-        task.extra.completed = task.date_closed != InflatedRecord.NULL_DATE;
-
-        if (task.extra.carried)
+        // Append extra info
+        for (let task of this.day_tasks_)
         {
-          task.extra.style = {'color': 'orange'}
+            task.extra = {};
+            task.extra.completed = !InflatedRecord.is_active(task);
+            task.extra.expanded = false;
+
+            if (task.extra.carried)
+            {
+                task.extra.style = {'color': 'orange'}
+            }
+            else
+            {
+                task.extra.style = {};
+            }
         }
-        else
-        {
-          task.extra.style = {};
-        }
-      }
     });
-  }
-
-  ngOnDestroy()
-  {
-    console.log("Destroyed");
   }
 
   add_new_task()
   {
-    console.log("New task");
-    this.addressed_transfer_.put_for_route(this.router_, 'new_task', 'callback', (new_task: InflatedRecord.Task) => {
-      // Add new task
-      this.database_manager_.task_add(new_task);      
-    });
+    let new_task = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
+    new_task.day = CalendarManager.get_day_of_week();
+    new_task.week = CalendarManager.get_iso_week();
 
-    this.router_.navigate(['new_task'], { relativeTo: this.route_} );
+    let configure_tgv_settings : ConfigureTgvPageSettings =
+    {
+        // Node to configure (must have type field correctly set)
+        tgv_node: new_task,
+        
+        // Display elements
+        title: "New Task",
+        enable_associate: true,
+        enable_completion_status: false,
+
+        // Callbacks
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        delete_callback: undefined
+    };
+
+    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
+    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
   }
 
-  add_existing_task()
+  edit_task(index: number)
   {
-    console.log("Existing task");
-    
-    let day_task_ids = [];
-    for (let task of this.day_tasks_)
+    let configure_tgv_settings : ConfigureTgvPageSettings =
     {
-      day_task_ids.push(task.id);
-    }
-    
-    this.addressed_transfer_.put("existing_task_page_current_task_ids", day_task_ids);
-    this.addressed_transfer_.put("existing_task_page_callback", (new_task_ids: InflatedRecord.ID[]) => {
-      // TODO
-    });
+        // Node to configure (must have type field correctly set)
+        tgv_node: this.day_tasks_[index],
+        
+        // Display elements
+        title: "Edit Task",
+        enable_associate: true,
+        enable_completion_status: true,
 
-    this.router_.navigate(['existing_task'], { relativeTo: this.route_} );
+        // Callbacks
+        save_callback: (edited_task: InflatedRecord.TgvNode) => { 
+          this.database_manager_.task_set_basic_attributes(edited_task, true); 
+          this.database_manager_.task_set_parent(edited_task.id, edited_task.parent_id)
+        },
+        delete_callback: (edited_task: InflatedRecord.TgvNode) => { this.database_manager_.task_remove(edited_task.id); }
+    };
+
+    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
+    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
+  }
+
+  expand_collapse_task(index: number)
+  {
+    this.day_tasks_[index].extra.expanded = !this.day_tasks_[index].extra.expanded;
   }
 
   checkbox_change(index: number)
   {
     let task = this.day_tasks_[index];
-    this.database_manager_.task_toggle_completion(task.id);
+
+    if (InflatedRecord.is_active(task))
+    {
+      InflatedRecord.resolve(InflatedRecord.Resolution.COMPLETE, task);
+    }
+    else
+    {
+      InflatedRecord.resolve(InflatedRecord.Resolution.ACTIVE, task);
+    }
+
+    this.database_manager_.task_set_basic_attributes(task);  
   }
 
   remove(index: number)
@@ -92,5 +125,10 @@ export class TaskListPage implements OnDestroy {
     remove_task.day = InflatedRecord.NULL_DAY;
 
     this.database_manager_.task_set_basic_attributes(remove_task);
+  }
+
+  ngOnDestroy()
+  {
+    this.database_manager_.unregister_data_updated_callback("today_tasks_page");
   }
 }

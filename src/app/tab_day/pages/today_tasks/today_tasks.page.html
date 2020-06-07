@@ -4,9 +4,6 @@
         <ion-button (click)="add_new_task()">
           <ion-icon slot="icon-only" name="add-circle"></ion-icon>
         </ion-button>
-      <ion-button (click)="add_existing_task()">
-          <ion-icon slot="icon-only" name="list"></ion-icon>
-        </ion-button>
     </ion-buttons>
     <ion-title>
       Today
@@ -16,7 +13,7 @@
 
 <ion-content>
   <ion-list>
-    <ion-item-sliding *ngFor="let task of day_?.tasks; let i = index">
+    <ion-item-sliding *ngFor="let task of day_tasks_; let i = index" (press)="expand_collapse_task(i)">
       <ion-item-options side="end">
         <ion-item-option color="danger" (click)="remove(i)">Remove</ion-item-option>
       </ion-item-options>
@@ -25,8 +22,14 @@
         <ion-label>
           <h3>{{task.name}}</h3>
           <p>{{task.goal?.name}}</p>
-        </ion-label>
-          <ion-checkbox slot="start" [(ngModel)]="task.extra.completed" (click)="checkbox_change(i)"></ion-checkbox>
+          <p *ngIf="task.extra.expanded">{{task.details}}</p>
+        </ion-label>  
+        <ion-checkbox slot="start" [(ngModel)]="task.extra.completed" (click)="checkbox_change(i)"></ion-checkbox>
+        <ion-buttons slot="end">
+          <ion-button (click)="edit_task(i)">
+            <ion-icon slot="icon-only" name="create"></ion-icon>
+          </ion-button>
+        </ion-buttons>
       </ion-item>
     </ion-item-sliding>
   </ion-list>

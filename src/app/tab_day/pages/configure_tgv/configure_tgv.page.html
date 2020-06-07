@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar>
+      <ion-buttons slot="start">
+          <ion-back-button></ion-back-button>
+        </ion-buttons>
+    <ion-title>
+      {{settings_.title}}
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-item>
+    <ion-label>Name</ion-label>
+    <ion-input placeholder="Brief title" [(ngModel)]="tgv_node_.name"></ion-input>
+  </ion-item>
+  
+  <ion-item>
+      <ion-textarea placeholder="Notes (optional)" clearOnEdit="true" [(ngModel)]="tgv_node_.details"></ion-textarea>
+  </ion-item>
+
+  <ion-item *ngIf="settings_.enable_associate">
+    <ion-label>Parent: {{parent_name_}}</ion-label>
+    <ion-icon slot="end" name="add-circle" (click)="associate()"></ion-icon>
+  </ion-item>
+  
+  <ion-item *ngIf="settings_.enable_completion_status">
+    <ion-label>Status: </ion-label>
+    <ion-select slot="end" value={{tgv_node_.resolution}} (ionChange)="set_resolution($event)">
+      <ion-select-option value=0>Active</ion-select-option>
+      <ion-select-option value=1>Complete</ion-select-option>
+      <ion-select-option value=2>Won't Do</ion-select-option>
+    </ion-select>
+  </ion-item>
+  
+  <ion-item lines="none">
+    <ion-button *ngIf="settings_.delete_callback" slot="start" (click)="delete()" color="danger">Delete</ion-button>
+    <ion-button slot="end" (click)="save()">Save</ion-button>
+  </ion-item>
+  
+</ion-content>

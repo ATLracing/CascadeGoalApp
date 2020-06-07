@@ -6,12 +6,16 @@
  */
 
 import * as PackedRecord from 'src/app/providers/packed_record';
+import { CalendarManager } from './calendar_manager';
 
 export type ID = number;
 
 export enum Resolution
 {
-    TODO = 0
+    ACTIVE = 0,
+    COMPLETE = 1,
+    WONT_DO = 2,
+    DELETED = 3
 };
 
 export const NULL_DATE = new Date(0);
@@ -85,7 +89,7 @@ export class TgvNode
         this.details = packed_node.details;
         this.date_created = JSON.parse(packed_node.date_created);
         this.date_closed = JSON.parse(packed_node.date_closed);
-        this.resolution = Resolution.TODO;  // TODO
+        this.resolution = packed_node.resolution;
         
         this.day = packed_node.day;
         this.week = packed_node.week;
@@ -108,7 +112,7 @@ export function construct_empty_node(type: Type) : TgvNode
              details: "",
              date_created: new Date(),
              date_closed: NULL_DATE,
-             resolution: Resolution.TODO,
+             resolution: Resolution.ACTIVE,
              day: NULL_DAY,
              week: NULL_WEEK,
              parent_id: NULL_ID,
@@ -139,5 +143,30 @@ export class Vision extends TgvNode{};
 
 export function is_active(node : TgvNode) : boolean
 {
-    return node.date_closed !== NULL_DATE;
+    return JSON.stringify(node.date_closed) === JSON.stringify(NULL_DATE);
+}
+
+export function resolution_to_string(resolution: Resolution) : string
+{
+    switch(resolution)
+    {
+        case Resolution.ACTIVE: return "Active";
+        case Resolution.COMPLETE: return "Complete";
+        case Resolution.WONT_DO: return "Won't Do";
+        case Resolution.DELETED: return "Deleted";
+    }
+}
+
+export function resolve(resolution: Resolution, /*out*/ node: TgvNode)
+{
+    node.resolution = resolution;
+
+    if (resolution == Resolution.ACTIVE)
+    {
+        node.date_closed = NULL_DATE;
+    }
+    else
+    {
+        node.date_closed = CalendarManager.get_date();
+    }
 }

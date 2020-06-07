@@ -6,7 +6,6 @@ import { ModalController } from '@ionic/angular';
 @Component({
   selector: 'associate-component',
   templateUrl: 'associate.html',
-  styleUrls: ['associate.scss']
 })
 export class ComponentAssociate {
   private visions_: InflatedRecord.Vision[];
@@ -40,6 +39,5 @@ export class ComponentAssociate {
     {
       this.modal_controller_.dismiss(this.visions_[i].id);
     }
-
   }
 }

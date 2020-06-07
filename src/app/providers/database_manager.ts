@@ -286,7 +286,7 @@ export class DatabaseManager
 
     get_node(unique_id: InflatedRecord.ID) : Promise<InflatedRecord.TgvNode>
     {
-        return this.get_nodes([unique_id])[0];
+        return this.get_nodes([unique_id]).then(nodes => nodes[0]);
     }
     
     // ===== Typedefs
@@ -360,7 +360,7 @@ export class DatabaseManager
                                      no_callbacks?: boolean) : Promise<any>
     {
         let packed_node = new PackedRecord.TgvNode(inflated_node);
-        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=?, day=?, week=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.day, packed_node.week, packed_node.id]).then(result => {
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=?, resolution=?, day=?, week=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.resolution, packed_node.day, packed_node.week, packed_node.id]).then(result => {
             DatabaseManager.execute_data_updated_callbacks(no_callbacks);
             return result;
         });
@@ -400,20 +400,6 @@ export class DatabaseManager
         });
     }
 
-    private tgv_toggle_completion(unique_id: InflatedRecord.ID, 
-                                  no_callbacks?: boolean) : Promise<any>
-    {
-        return this.get_node(unique_id).then(node => {
-            // TODO: This doesn't belong here
-            if (InflatedRecord.is_active(node))
-                node.date_closed = new Date();
-            else
-                node.date_closed = InflatedRecord.NULL_DATE;
-
-            return this.tgv_set_basic_attributes(node, no_callbacks);
-        });
-    }
-
     // ===== Typedefs
     // Task
     task_add(inflated_node : InflatedRecord.TgvNode,
@@ -424,9 +410,6 @@ export class DatabaseManager
 
     task_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
                               no_callbacks?: boolean) : Promise<any> { return this.tgv_set_basic_attributes(inflated_node, no_callbacks); }
-
-    task_toggle_completion(unique_id: InflatedRecord.ID, 
-                           no_callbacks?: boolean) : Promise<any> { return this.tgv_toggle_completion(unique_id, no_callbacks); }
 
     task_set_parent(unique_id: InflatedRecord.ID,
                     parent_id: InflatedRecord.ID,

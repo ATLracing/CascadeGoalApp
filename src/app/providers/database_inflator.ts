@@ -112,8 +112,8 @@ export class DatabaseInflator
         
         for (let child_node of child_nodes)
         {
-            parent_nodes_map[child_node.parent_id].children.push(child_node);
             let parent_node = parent_nodes_map[child_node.parent_id];   // TODO: get() doesn't work here; no idea why
+            parent_node.children.push(child_node);
             child_node.parent = parent_node;
         }
 

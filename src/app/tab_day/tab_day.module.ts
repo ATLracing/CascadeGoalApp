@@ -8,6 +8,8 @@ import { TabDayRoutingModule } from './tab_day-routing.module';
 import { NewTaskPage } from './pages/new_task/new_task.page';
 import { ExistingTaskPage } from './pages/existing_task/existing_task.page';
 import { ComponentAssociate } from './components/associate/associate';
+import { ConfigureTgvPage } from './pages/configure_tgv/configure_tgv.page';
+import { ComponentSetCompletion } from './components/set_completion/set_completion';
 
 @NgModule({
   imports: [
@@ -16,7 +18,7 @@ import { ComponentAssociate } from './components/associate/associate';
     FormsModule,
     TabDayRoutingModule
   ],
-  entryComponents: [ComponentAssociate],
-  declarations: [TaskListPage, NewTaskPage, ExistingTaskPage, TaskListComponent, ComponentAssociate]
+  entryComponents: [ComponentAssociate, ComponentSetCompletion],
+  declarations: [TaskListPage, ConfigureTgvPage, NewTaskPage, ExistingTaskPage, TaskListComponent, ComponentAssociate, ComponentSetCompletion]
 })
 export class TabTasksModule {}
