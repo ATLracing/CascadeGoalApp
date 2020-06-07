@@ -41,7 +41,8 @@ export class ManagePage {
       this.settings_ = { show_completed: false };
 
       database_manager_.register_data_updated_callback("manage_page", async () => {
-        this.expanded_visions_ = await ManagePage.get_expanded_visions(this.settings_, this.database_manager_)});
+        this.expanded_visions_ = await ManagePage.get_expanded_visions(this.settings_, this.database_manager_)
+      });
   }
 
   static async get_expanded_visions(settings: ManageSettings, database_manager: DatabaseManager): Promise<InflatedRecord.Vision[]>
@@ -109,6 +110,36 @@ export class ManagePage {
     this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
   }
 
+  add_task_to_vision(vision_index: number)
+  {
+    // Get parent vision
+    let parent_vision = this.expanded_visions_[vision_index];
+
+    // Create blank goal
+    let new_task = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
+    
+    // Set goal's parent ID
+    new_task.parent_id = parent_vision.id;
+
+    let configure_tgv_settings : ConfigureTgvPageSettings =
+    {
+        // Node to configure (must have type field correctly set)
+        tgv_node: new_task,
+        
+        // Display elements
+        title: "New Task",
+        enable_associate: false,
+        enable_completion_status: false,
+
+        // Callbacks
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        delete_callback: undefined
+    };
+
+    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
+    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
+  }
+
   add_new_vision()
   {
     let new_vision = InflatedRecord.construct_empty_node(InflatedRecord.Type.VISION);
@@ -125,6 +156,29 @@ export class ManagePage {
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.vision_add(new_task); },
+        delete_callback: undefined
+    };
+
+    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
+    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
+  }
+
+  edit_vision()
+  {
+    let vision = this.expanded_visions_[this.vision_index_];
+
+    let configure_tgv_settings : ConfigureTgvPageSettings =
+    {
+        // Node to configure (must have type field correctly set)
+        tgv_node: vision,
+        
+        // Display elements
+        title: "Edit Vision",
+        enable_associate: false,
+        enable_completion_status: false,
+
+        // Callbacks
+        save_callback: (vision: InflatedRecord.TgvNode) => { this.database_manager_.vision_set_basic_attributes(vision); },
         delete_callback: undefined
     };
 

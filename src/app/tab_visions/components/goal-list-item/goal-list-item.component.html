@@ -18,7 +18,7 @@
   </ion-col>
 </ion-row>
 <!--Row 2 (tasks)-->
-<ion-row *ngIf="expanded_">
+<ion-row *ngIf="show_list_">
   <ion-col>
     <ion-list lines="none">
       <task-list-item *ngFor="let task of goal.children" [task]="task" [add_mode]="add_mode"></task-list-item>

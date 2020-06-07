@@ -14,6 +14,7 @@ export class GoalListItemComponent implements OnInit {
   @Input() goal: InflatedRecord.Goal;
   @Input() add_mode: boolean;
   expanded_: boolean;
+  show_list_: boolean;
 
   // TODO..
   static goal_id_map;
@@ -30,6 +31,7 @@ export class GoalListItemComponent implements OnInit {
   expand_collapse()
   {
     this.expanded_ = !this.expanded_;
+    this.show_list_ = this.expanded_ && this.goal.children.length > 0;
     GoalListItemComponent.goal_id_map[this.goal.id] = this.expanded_;
   }
 
@@ -89,6 +91,12 @@ export class GoalListItemComponent implements OnInit {
     if (GoalListItemComponent.goal_id_map[this.goal.id])
     {
       this.expanded_ = GoalListItemComponent.goal_id_map[this.goal.id];
+      this.show_list_ = this.expanded_ && this.goal.children.length > 0;
     }
+  }
+
+  ngOnChanges()
+  {
+    this.show_list_ = this.expanded_ && this.goal.children.length > 0;
   }
 }
