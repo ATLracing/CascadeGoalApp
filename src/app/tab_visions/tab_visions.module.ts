@@ -8,6 +8,9 @@ import { TabManageRoutingModule } from './tab_visions-router.module';
 import { TabTasksModule } from '../tab_day/tab_day.module';
 import { NewGoalPage } from './pages/new_goal/new_goal.page';
 import { NewVisionPage } from './pages/new_vision/new_vision.page';
+import { GoalListItemComponent } from './components/goal-list-item/goal-list-item.component';
+import { TaskListItemComponent } from './components/task-list-item/task-list-item.component';
+import { SettingsComponent } from './components/settings/settings';
 
 @NgModule({
   imports: [
@@ -17,6 +20,7 @@ import { NewVisionPage } from './pages/new_vision/new_vision.page';
     TabManageRoutingModule,
     TabTasksModule,
   ],
-  declarations: [ManagePage, NewGoalPage, NewVisionPage]
+  entryComponents: [SettingsComponent],
+  declarations: [ManagePage, NewGoalPage, NewVisionPage, GoalListItemComponent, TaskListItemComponent, SettingsComponent ]
 })
 export class Tab3PageModule {}

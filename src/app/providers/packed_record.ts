@@ -25,7 +25,7 @@ export function inflated_to_packed_type(type: InflatedRecord.Type) : string
 }
 
 export const NULL_ID = -1;          // TODO: Just use SQL NULL?
-export const NULL_DATE_STR = "0";
+export const NULL_DATE_STR = JSON.stringify(InflatedRecord.NULL_DATE);
 
 export const TGV_NODE_COLUMNS = "id, owner, users, parent_id, type, name, details, date_created, date_closed, resolution, day, week";
 

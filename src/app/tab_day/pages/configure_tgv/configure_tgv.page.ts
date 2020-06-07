@@ -44,10 +44,16 @@ export class ConfigureTgvPage {
 
     // Set parent string
     this.parent_name_ = "";
+    this.update_parent(this.tgv_node_.parent_id);
+  }
+
+  update_parent(parent_id: InflatedRecord.ID)
+  {
+    this.tgv_node_.parent_id = parent_id;
 
     if (this.tgv_node_.parent_id != InflatedRecord.NULL_ID)
     {
-      database_manager_.get_node(this.tgv_node_.parent_id).then(parent => {
+      this.database_manager_.get_node(this.tgv_node_.parent_id).then(parent => {
         this.parent_name_ = parent.name;
       });
     }
@@ -59,14 +65,10 @@ export class ConfigureTgvPage {
 
   async associate()
   {
-    const modal = await this.modal_controller_.create({component: ComponentAssociate});
+    const modal = await this.modal_controller_.create({component: ComponentAssociate, componentProps: { is_task: this.tgv_node_.type == InflatedRecord.Type.TASK } });
     
     modal.onDidDismiss().then(id => {
-      this.tgv_node_.parent_id = id.data;
-      
-      this.database_manager_.get_node(this.tgv_node_.parent_id).then(parent => {
-        this.parent_name_ = parent.name;
-      });
+      this.update_parent(id.data);
     });
 
     return await modal.present();

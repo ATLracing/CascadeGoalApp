@@ -5,13 +5,13 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button (click)="add_new_vision()">
+      <ion-button (click)="toggle_set_to_week_mode()">
         <ion-icon slot="icon-only" name="calendar"></ion-icon>
       </ion-button>
       <ion-button (click)="add_new_vision()">
         <ion-icon slot="icon-only" name="add-circle"></ion-icon>
       </ion-button>
-      <ion-button (click)="add_new_vision()">
+      <ion-button (click)="open_settings()">
         <ion-icon slot="icon-only" name="cog"></ion-icon>
       </ion-button>
   </ion-buttons>
@@ -30,34 +30,7 @@
           <!----------------------------------------------------------------------------Goal List-->
           <ion-list>
               <ion-grid *ngFor="let goal of expanded_vision.children; let goal_index = index">
-                <ion-row>
-                  <ion-col>
-                    <ion-item>
-                      <ion-label (click)="goal_show_hide_tasks(vision_index, goal_index)">
-                        <h2>{{goal.name}}</h2>
-                      </ion-label>
-                      <ion-icon slot="start" name="flag"></ion-icon>
-                      <ion-buttons slot="end" *ngIf="goal.extra?.expanded">
-                        <ion-button (click)="add_task_to_goal(vision_index, goal_index)">
-                          <ion-icon slot="icon-only" name="add"></ion-icon>
-                        </ion-button>
-                      </ion-buttons>
-                    </ion-item>
-                  </ion-col>
-                </ion-row>
-                <ion-row *ngIf="goal.extra?.expanded">
-                  <ion-col>
-                    <!------------------------------------------------------------------Task List-->
-                    <ion-list lines="none">
-                      <ion-item *ngFor="let task of goal.children">
-                        <ion-label>
-                          <h3>{{task.name}}</h3>
-                        </ion-label>
-                        <ion-icon slot="start" name="git-commit"></ion-icon>
-                      </ion-item>
-                    </ion-list>
-                  </ion-col>
-                </ion-row>
+                <goal-list-item [goal]="goal" [add_mode]="send_to_week_mode_"></goal-list-item>
               </ion-grid>
             <ion-item lines="none">
               <ion-button (click)="add_goal_to_vision(vision_index)">New Goal</ion-button>
@@ -67,12 +40,7 @@
             <ion-label>Freestanding Tasks</ion-label>
           </ion-list-header>
           <ion-list>
-            <ion-item *ngFor="let free_task of expanded_vision.extra.freestanding_tasks">
-              <ion-label>
-                <h3>{{free_task.name}}</h3>
-              </ion-label>
-              <ion-icon slot="start" name="git-commit"></ion-icon>
-            </ion-item>
+            <task-list-item *ngFor="let free_task of expanded_vision.extra.freestanding_tasks" [task]="free_task" [add_mode]="send_to_week_mode_"></task-list-item>
           </ion-list>
         </ion-content>
       </ion-slide>

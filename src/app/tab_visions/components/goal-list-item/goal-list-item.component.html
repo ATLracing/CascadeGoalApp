@@ -1,0 +1,27 @@
+<!--Row 1 (goal header)-->
+<ion-row>
+  <ion-col>
+    <ion-item>
+      <ion-label (click)="expand_collapse()">
+        <h2>{{goal.name}}</h2>
+      </ion-label>
+      <ion-icon slot="start" name="flag"></ion-icon>
+      <ion-buttons slot="end">
+        <ion-button *ngIf="expanded_" (click)="add_task_to_goal()">
+          <ion-icon slot="icon-only" name="add"></ion-icon>
+        </ion-button>
+        <ion-button *ngIf="!expanded_" (click)="edit()">
+          <ion-icon slot="icon-only" name="create"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-col>
+</ion-row>
+<!--Row 2 (tasks)-->
+<ion-row *ngIf="expanded_">
+  <ion-col>
+    <ion-list lines="none">
+      <task-list-item *ngFor="let task of goal.children" [task]="task" [add_mode]="add_mode"></task-list-item>
+    </ion-list>
+  </ion-col>
+</ion-row>
