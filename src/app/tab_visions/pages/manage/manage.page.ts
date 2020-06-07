@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { DatabaseManager } from 'src/app/providers/database_manager';
+import { DatabaseManager, ParentFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
@@ -16,6 +16,8 @@ import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/co
 export class ManagePage {
   private expanded_visions_: InflatedRecord.Vision[];
   private vision_index_;
+  private send_to_week_mode_: boolean; 
+  
   private slide_options_ = {
     initialSlide: 0,
     speed: 400
@@ -31,6 +33,7 @@ export class ManagePage {
     
       this.vision_index_ = 0;
       this.expanded_visions_ = [];
+      this.send_to_week_mode_ = false;
 
       database_manager_.register_data_updated_callback("manage_page", async () => {
       
@@ -43,13 +46,16 @@ export class ManagePage {
 
       // Tack on UI info
       for (let expanded_vision of this.expanded_visions_)
-      {
+      {        
         for (let expanded_goal of expanded_vision.children)
         {
           expanded_goal.extra = { expanded: false };
         }
+        
+        // Get directly-associated tasks
+        // TODO: This is lame..
+        expanded_vision.extra.freestanding_tasks= await database_manager_.query_tasks([new ParentFilter(expanded_vision.id, true)]);
       }
-
     });
   }
 
@@ -62,7 +68,32 @@ export class ManagePage {
 
   add_task_to_goal(vision_index: number, goal_index: number)
   {
+    // Get parent vision
+    let parent_goal = this.expanded_visions_[vision_index].children[goal_index];
 
+    // Create blank goal
+    let new_goal = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
+    
+    // Set goal's parent ID
+    new_goal.parent_id = parent_goal.id;
+
+    let configure_tgv_settings : ConfigureTgvPageSettings =
+    {
+        // Node to configure (must have type field correctly set)
+        tgv_node: new_goal,
+        
+        // Display elements
+        title: "New Task",
+        enable_associate: false,
+        enable_completion_status: false,
+
+        // Callbacks
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        delete_callback: undefined
+    };
+
+    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
+    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
   }
 
   add_goal_to_vision(vision_index: number)

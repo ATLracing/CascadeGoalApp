@@ -1,15 +1,12 @@
 ion-slides {
-    height: 100%;    // TODO TODO TODO
+    height: 100%;
     width: 100%;
 }
 
-// ion-item {
-//     height: 100%;
-//     width: 100%;
+ion-grid {
+    --ion-grid-padding: 0px;
+}
 
-//     --padding-start: 8px;   // TODO TODO TODO
-// }
-
-ion-list {
-    width: 100%;
+ion-content {
+    --padding-start: 0px;
 }

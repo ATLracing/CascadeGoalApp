@@ -10,9 +10,11 @@ import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/co
 @Component({
   selector: 'app-week-tasks',
   templateUrl: 'week_tasks.page.html',
+  styleUrls: ['week_tasks.scss']
 })
 export class WeekTasksPage implements OnDestroy {
   private tasks_: InflatedRecord.Task[];
+  private editing_unlocked_: boolean;
 
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
@@ -20,6 +22,7 @@ export class WeekTasksPage implements OnDestroy {
               private addressed_transfer_: AddressedTransfer) {
     
     this.tasks_ = [];
+    this.editing_unlocked_ = false;
 
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {            
       // Get the current week
@@ -28,12 +31,19 @@ export class WeekTasksPage implements OnDestroy {
       // Query all tasks for the week
       let week_filter = new WeekFilter(week_number);
       this.tasks_ = await database_manager_.query_tasks([week_filter]);
-            
+      
+      // Get parent
+      for (let task of this.tasks_)
+      {
+        if (task.parent_id != InflatedRecord.NULL_ID)
+        {
+          task.parent = await database_manager_.get_node(task.parent_id);
+        }
+      }
+
       // Append UI info
       for (let task of this.tasks_)
       {
-        task.extra = {};
-
         // Style
         const STYLE_COMPLETE = 'line-through';
         const STYLE_DAY = 'bold';
@@ -42,7 +52,22 @@ export class WeekTasksPage implements OnDestroy {
         task.extra.today = CalendarManager.get_day_of_week() == task.day;
         task.extra.style_today = task.extra.today ? STYLE_DAY : undefined;
       }
+
+      // Sort on completion
+      this.tasks_.sort((a, b) => { 
+        if (InflatedRecord.is_active(a) == InflatedRecord.is_active(b))
+          return 0;
+        if (InflatedRecord.is_active(a) && !InflatedRecord.is_active(b))
+          return -1;
+        
+        return 1;
+      });
     });
+  }
+
+  lock_unlock_editing()
+  {
+    this.editing_unlocked_ = ! this.editing_unlocked_;
   }
 
   add_new_task()

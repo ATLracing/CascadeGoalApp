@@ -96,7 +96,7 @@ export class TgvNode
 
         this.parent_id = packed_node.parent_id;
 
-        this.extra = undefined;
+        this.extra = {};
     }
 };
 

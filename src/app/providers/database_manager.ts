@@ -86,16 +86,17 @@ export class DayFilter implements QueryFilter
 
 export class TypeFilter implements QueryFilter
 {
-    constructor(private type_ : string, private is_: boolean)
+    constructor(private type_ : InflatedRecord.Type, private is_: boolean)
     {
     }
 
     get_where_clause()
     {
+        let type_str = PackedRecord.inflated_to_packed_type(this.type_);
         if (this.is_)
-            return `type="${this.type_}"`;
+            return `type="${type_str}"`;
         else
-            return `type!="${this.type_}"`;
+            return `type!="${type_str}"`;
     }
 };
 
@@ -300,7 +301,7 @@ export class DatabaseManager
 
     query_tasks(filters ?: QueryFilter[]): Promise<InflatedRecord.Task[]>
     {
-        let all_filters : QueryFilter[] = [new TypeFilter(PackedRecord.Type.TASK, true)];
+        let all_filters : QueryFilter[] = [new TypeFilter(InflatedRecord.Type.TASK, true)];
         
         if (filters)
         {
@@ -312,7 +313,7 @@ export class DatabaseManager
     
     query_goals(filters ?: QueryFilter[]): Promise<InflatedRecord.Goal[]>
     {
-        let all_filters : QueryFilter[] = [new TypeFilter(PackedRecord.Type.GOAL, true)];
+        let all_filters : QueryFilter[] = [new TypeFilter(InflatedRecord.Type.GOAL, true)];
         
         if (filters)
         {
@@ -324,7 +325,7 @@ export class DatabaseManager
 
     query_visions(filters ?: QueryFilter[]): Promise<InflatedRecord.Vision[]>
     {
-        let all_filters : QueryFilter[] = [new TypeFilter(PackedRecord.Type.VISION, true)];
+        let all_filters : QueryFilter[] = [new TypeFilter(InflatedRecord.Type.VISION, true)];
         
         if (filters)
         {

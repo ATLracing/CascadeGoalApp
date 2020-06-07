@@ -5,10 +5,14 @@
     </ion-title>
 
     <ion-buttons slot="end">
+      <ion-button (click)="lock_unlock_editing()">
+        <ion-icon slot="icon-only" name="clipboard"></ion-icon>
+      </ion-button>
+
       <ion-button (click)="add_new_task()">
         <ion-icon slot="icon-only" name="add-circle"></ion-icon>
       </ion-button>
-  </ion-buttons>
+    </ion-buttons>
   
   </ion-toolbar>
 </ion-header>
@@ -22,13 +26,15 @@
       <ion-item>
         <ion-label>
           <h3 [ngStyle]="{'text-decoration': task.extra.style_complete, 'font-weight': task.extra.style_today }">{{task.name}}</h3>
+          <ion-note *ngIf="task.parent">{{task.parent.name}}</ion-note>
         </ion-label>
+        <ion-icon *ngIf="!editing_unlocked_" slot="start" name="git-commit"></ion-icon>
         <ion-buttons slot="end">
           <ion-button (click)="edit_task(i)">
             <ion-icon slot="icon-only" name="create"></ion-icon>
           </ion-button>
         </ion-buttons>
-        <ion-buttons slot="start">
+        <ion-buttons *ngIf="editing_unlocked_" slot="start">
           <ion-button *ngIf="!task.extra.today" (click)="add_remove_today(i)">
             <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
           </ion-button>

@@ -1,4 +1,4 @@
-import { DatabaseManager, ParentFilter, QueryFilter, IdSetFilter } from './database_manager'
+import { DatabaseManager, ParentFilter, QueryFilter, IdSetFilter, TypeFilter } from './database_manager'
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
 
@@ -27,6 +27,9 @@ export class DatabaseInflator
         {
             all_filters = all_filters.concat(goal_filters);
         }
+
+        // Only search layer directly beneath
+        all_filters = all_filters.concat(new TypeFilter(current_node.type - 1, true));
 
         let child_nodes = await database_manager.query_nodes(all_filters);
 

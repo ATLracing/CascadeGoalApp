@@ -18,10 +18,10 @@
         <ion-item-option color="danger" (click)="remove(i)">Remove</ion-item-option>
       </ion-item-options>
 
-      <ion-item [ngStyle]="task.extra.style">
+      <ion-item [ngStyle]="task?.extra.style">
         <ion-label>
           <h3>{{task.name}}</h3>
-          <p>{{task.goal?.name}}</p>
+          <ion-note *ngIf="task.parent">{{task.parent.name}}</ion-note>
           <p *ngIf="task.extra.expanded">{{task.details}}</p>
         </ion-label>  
         <ion-checkbox slot="start" [(ngModel)]="task.extra.completed" (click)="checkbox_change(i)"></ion-checkbox>

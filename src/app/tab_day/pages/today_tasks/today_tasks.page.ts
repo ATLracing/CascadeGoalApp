@@ -28,10 +28,18 @@ export class TaskListPage implements OnDestroy {
         let day_filter = new DayFilter(day_number, week_number);
         this.day_tasks_ = await database_manager_.query_tasks([day_filter]);
 
+        // Get parent
+        for (let task of this.day_tasks_)
+        {
+          if (task.parent_id != InflatedRecord.NULL_ID)
+          {
+            task.parent = await database_manager_.get_node(task.parent_id);
+          }
+        }
+
         // Append extra info
         for (let task of this.day_tasks_)
         {
-            task.extra = {};
             task.extra.completed = !InflatedRecord.is_active(task);
             task.extra.expanded = false;
 
