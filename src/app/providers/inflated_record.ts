@@ -87,8 +87,8 @@ export class TgvNode
         
         this.name = packed_node.name;
         this.details = packed_node.details;
-        this.date_created = JSON.parse(packed_node.date_created);
-        this.date_closed = JSON.parse(packed_node.date_closed);
+        this.date_created = new Date(packed_node.date_created);
+        this.date_closed = new Date(packed_node.date_closed);
         this.resolution = packed_node.resolution;
         
         this.day = packed_node.day;
@@ -118,6 +118,16 @@ export function construct_empty_node(type: Type) : TgvNode
              parent_id: NULL_ID,
              extra: undefined
             };
+}
+
+export function copy_node(node: TgvNode) : TgvNode
+{
+    let copy = JSON.parse(JSON.stringify(node));
+    
+    copy.date_closed  = new Date(copy.date_closed);
+    copy.date_created = new Date(copy.date_created);
+    
+    return copy;
 }
 
 export function build_inflated(packed : PackedRecord.TgvNode) : TgvNode

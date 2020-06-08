@@ -25,7 +25,7 @@ export function inflated_to_packed_type(type: InflatedRecord.Type) : string
 }
 
 export const NULL_ID = -1;          // TODO: Just use SQL NULL?
-export const NULL_DATE_STR = JSON.stringify(InflatedRecord.NULL_DATE);
+export const NULL_DATE_STR = InflatedRecord.NULL_DATE.toISOString();
 
 export const TGV_NODE_COLUMNS = "id, owner, users, parent_id, type, name, details, date_created, date_closed, resolution, day, week";
 
@@ -58,8 +58,8 @@ export class TgvNode
         
         this.name = inflated_node.name;
         this.details = inflated_node.details;
-        this.date_created = JSON.stringify(inflated_node.date_created);
-        this.date_closed = JSON.stringify(inflated_node.date_closed);
+        this.date_created = inflated_node.date_created.toISOString();
+        this.date_closed = inflated_node.date_closed.toISOString();
         this.resolution = inflated_node.resolution;
 
         this.day = inflated_node.day;

@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ElementRef, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { DatabaseManager, WeekFilter, ActiveFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -15,12 +15,13 @@ export class WeekTasksPage implements OnDestroy {
   private active_tasks_: InflatedRecord.Task[];
   private complete_tasks_: InflatedRecord.Task[];
   private editing_unlocked_: boolean;
+  private display_analytics_: boolean;
 
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer) {
-    
+
     this.active_tasks_ = [];
     this.complete_tasks_ = [];
     this.editing_unlocked_ = false;
@@ -39,6 +40,11 @@ export class WeekTasksPage implements OnDestroy {
   lock_unlock_editing()
   {
     this.editing_unlocked_ = ! this.editing_unlocked_;
+  }
+
+  toggle_analytics()
+  {
+    this.display_analytics_ = !this.display_analytics_;
   }
 
   add_new_task()

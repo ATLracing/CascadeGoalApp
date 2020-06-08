@@ -5,6 +5,9 @@
     </ion-title>
 
     <ion-buttons slot="end">
+      <ion-button (click)="toggle_analytics()">
+        <ion-icon slot="icon-only" name="analytics"></ion-icon>
+      </ion-button>
       <ion-button (click)="lock_unlock_editing()">
         <ion-icon slot="icon-only" name="clipboard"></ion-icon>
       </ion-button>
@@ -17,6 +20,7 @@
 </ion-header>
 
 <ion-content>
+  <week-bar-chart *ngIf="display_analytics_"></week-bar-chart>
   <ion-list>
     <ion-item-divider>
       <ion-label>Active ({{active_tasks_.length}})</ion-label>

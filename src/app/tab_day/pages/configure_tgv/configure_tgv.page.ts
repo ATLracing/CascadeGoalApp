@@ -40,7 +40,7 @@ export class ConfigureTgvPage {
   {
     // Retrieve page settings
     this.settings_ = this.addressed_transfer_.get_for_route(router_, "settings");
-    this.tgv_node_ = JSON.parse(JSON.stringify(this.settings_.tgv_node));
+    this.tgv_node_ = InflatedRecord.copy_node(this.settings_.tgv_node);
 
     // Set parent string
     this.parent_name_ = "";

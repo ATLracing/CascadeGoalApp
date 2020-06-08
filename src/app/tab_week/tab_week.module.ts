@@ -1,5 +1,4 @@
 import { IonicModule } from '@ionic/angular';
-import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +7,7 @@ import { AddFromAllExistingPage } from './pages/add_from_all_existing/add_from_a
 import { TabWeekRoutingModule } from './tab_week-router.module';
 import { TabTasksModule } from '../tab_day/tab_day.module';
 import { WeekTaskListItemComponent } from './components/task-list-item/week-task-list-item.component';
+import { WeekBarChartComponent } from './components/week-bar-chart/week-bar-chart.component';
 
 @NgModule({
   imports: [
@@ -17,6 +17,6 @@ import { WeekTaskListItemComponent } from './components/task-list-item/week-task
     TabWeekRoutingModule,
     TabTasksModule
   ],
-  declarations: [ WeekTasksPage, AddFromAllExistingPage, WeekTaskListItemComponent]
+  declarations: [ WeekTasksPage, AddFromAllExistingPage, WeekTaskListItemComponent, WeekBarChartComponent]
 })
 export class TabWeekModule {}

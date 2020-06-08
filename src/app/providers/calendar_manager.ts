@@ -25,7 +25,11 @@ export class CalendarManager
     // Returns the ISO week of the date.
     static get_iso_week() : number 
     {
-        var date = new Date();
+        return CalendarManager.get_iso_week_from_date(new Date());
+    }
+
+    static get_iso_week_from_date(date: Date) : number
+    {
         date.setHours(0, 0, 0, 0);
         // Thursday in current week decides the year.
         date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
@@ -46,7 +50,17 @@ export class CalendarManager
 
     static get_day_of_week() : number
     {
-        return new Date().getDay(); // TODO
+        return this.get_day_of_week_from_date(new Date());
+    }
+
+    static get_day_of_week_from_date(date: Date) : number
+    {
+        let day_number = date.getDay() - 1;
+
+        if (day_number < 0) // TODO: Because mod with negative numbers never works the way you want it to..
+            day_number += 7;
+
+        return day_number;
     }
 
     static async calendar_loop(database_manager: DatabaseManager)
