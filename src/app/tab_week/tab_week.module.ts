@@ -7,6 +7,7 @@ import { WeekTasksPage } from './pages/week_tasks/week_tasks.page';
 import { AddFromAllExistingPage } from './pages/add_from_all_existing/add_from_all_existing.page';
 import { TabWeekRoutingModule } from './tab_week-router.module';
 import { TabTasksModule } from '../tab_day/tab_day.module';
+import { WeekTaskListItemComponent } from './components/task-list-item/week-task-list-item.component';
 
 @NgModule({
   imports: [
@@ -16,6 +17,6 @@ import { TabTasksModule } from '../tab_day/tab_day.module';
     TabWeekRoutingModule,
     TabTasksModule
   ],
-  declarations: [ WeekTasksPage, AddFromAllExistingPage ]
+  declarations: [ WeekTasksPage, AddFromAllExistingPage, WeekTaskListItemComponent]
 })
 export class TabWeekModule {}

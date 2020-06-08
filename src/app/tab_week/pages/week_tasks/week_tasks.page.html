@@ -8,7 +8,6 @@
       <ion-button (click)="lock_unlock_editing()">
         <ion-icon slot="icon-only" name="clipboard"></ion-icon>
       </ion-button>
-
       <ion-button (click)="add_new_task()">
         <ion-icon slot="icon-only" name="add-circle"></ion-icon>
       </ion-button>
@@ -19,30 +18,13 @@
 
 <ion-content>
   <ion-list>
-    <ion-item-sliding *ngFor="let task of tasks_; let i = index">
-      <ion-item-options side="end">
-        <ion-item-option color="danger" (click)="remove(i)">Remove</ion-item-option>
-      </ion-item-options>
-      <ion-item>
-        <ion-label>
-          <h3 [ngStyle]="{'text-decoration': task.extra.style_complete, 'font-weight': task.extra.style_today }">{{task.name}}</h3>
-          <ion-note *ngIf="task.parent">{{task.parent.name}}</ion-note>
-        </ion-label>
-        <ion-icon *ngIf="!editing_unlocked_" slot="start" name="git-commit"></ion-icon>
-        <ion-buttons slot="end">
-          <ion-button (click)="edit_task(i)">
-            <ion-icon slot="icon-only" name="create"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-        <ion-buttons *ngIf="editing_unlocked_" slot="start">
-          <ion-button *ngIf="!task.extra.today" (click)="add_remove_today(i)">
-            <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-          </ion-button>
-          <ion-button *ngIf="task.extra.today"(click)="add_remove_today(i)">
-            <ion-icon slot="icon-only" name="close"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-item>
-    </ion-item-sliding>
+    <ion-item-divider>
+      <ion-label>Active ({{active_tasks_.length}})</ion-label>
+    </ion-item-divider>
+    <week-task-list-item *ngFor="let task of active_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>
+    <ion-item-divider>
+      <ion-label>Complete ({{complete_tasks_.length}})</ion-label>
+    </ion-item-divider>
+    <week-task-list-item *ngFor="let task of complete_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>
   </ion-list>
 </ion-content>

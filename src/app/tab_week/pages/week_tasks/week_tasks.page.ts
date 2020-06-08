@@ -1,9 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, WeekFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, WeekFilter, ActiveFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
-import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 
@@ -13,7 +12,8 @@ import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/co
   styleUrls: ['week_tasks.scss']
 })
 export class WeekTasksPage implements OnDestroy {
-  private tasks_: InflatedRecord.Task[];
+  private active_tasks_: InflatedRecord.Task[];
+  private complete_tasks_: InflatedRecord.Task[];
   private editing_unlocked_: boolean;
 
   constructor(private database_manager_: DatabaseManager,
@@ -21,7 +21,8 @@ export class WeekTasksPage implements OnDestroy {
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer) {
     
-    this.tasks_ = [];
+    this.active_tasks_ = [];
+    this.complete_tasks_ = [];
     this.editing_unlocked_ = false;
 
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {            
@@ -30,38 +31,8 @@ export class WeekTasksPage implements OnDestroy {
       
       // Query all tasks for the week
       let week_filter = new WeekFilter(week_number);
-      this.tasks_ = await database_manager_.query_tasks([week_filter]);
-      
-      // Get parent
-      for (let task of this.tasks_)
-      {
-        if (task.parent_id != InflatedRecord.NULL_ID)
-        {
-          task.parent = await database_manager_.get_node(task.parent_id);
-        }
-      }
-
-      // Append UI info
-      for (let task of this.tasks_)
-      {
-        // Style
-        const STYLE_COMPLETE = 'line-through';
-        const STYLE_DAY = 'bold';
-
-        task.extra.style_complete = !InflatedRecord.is_active(task) ? STYLE_COMPLETE : undefined
-        task.extra.today = CalendarManager.get_day_of_week() == task.day;
-        task.extra.style_today = task.extra.today ? STYLE_DAY : undefined;
-      }
-
-      // Sort on completion
-      this.tasks_.sort((a, b) => { 
-        if (InflatedRecord.is_active(a) == InflatedRecord.is_active(b))
-          return 0;
-        if (InflatedRecord.is_active(a) && !InflatedRecord.is_active(b))
-          return -1;
-        
-        return 1;
-      });
+      this.active_tasks_ = await database_manager_.query_tasks([week_filter, new ActiveFilter(true)]);
+      this.complete_tasks_ = await database_manager_.query_tasks([week_filter, new ActiveFilter(false)]);
     });
   }
 
@@ -94,12 +65,12 @@ export class WeekTasksPage implements OnDestroy {
     this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
   }
 
-  edit_task(index: number)
+  edit_task(index: number, is_active: boolean)
   {
     let configure_tgv_settings : ConfigureTgvPageSettings =
     {
         // Node to configure (must have type field correctly set)
-        tgv_node: this.tasks_[index],
+        tgv_node: is_active ? this.active_tasks_[index] : this.complete_tasks_[index],
         
         // Display elements
         title: "Edit Task",
@@ -118,9 +89,9 @@ export class WeekTasksPage implements OnDestroy {
     this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
   }
 
-  add_remove_today(index: number)
+  add_remove_today(index: number, is_active: boolean)
   {
-    let task = this.tasks_[index];
+    let task = is_active ? this.active_tasks_[index] : this.complete_tasks_[index];
 
     if (CalendarManager.in_today(task))
     {
@@ -134,9 +105,9 @@ export class WeekTasksPage implements OnDestroy {
     this.database_manager_.task_set_basic_attributes(task);
   }
 
-  remove(index: number)
+  remove(index: number, is_active: boolean)
   {
-    let remove_task = this.tasks_[index];
+    let remove_task = is_active ? this.active_tasks_[index] : this.complete_tasks_[index];
 
     remove_task.day = InflatedRecord.NULL_DAY;
     remove_task.week = InflatedRecord.NULL_WEEK;
