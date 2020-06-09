@@ -61,26 +61,26 @@ export class ActiveFilter implements QueryFilter
 
 export class WeekFilter implements QueryFilter
 {
-    constructor(private week_number: number) 
+    constructor(private week_number_: number, private year_number_: number) 
     {
     }
 
     get_where_clause()
     {
-        return `week=${this.week_number}`;
+        return `week=${this.week_number_} AND year=${this.year_number_}`;
     }
 };
 
 export class DayFilter implements QueryFilter
 {
-    constructor(private day_number: number, private week_number: number)
+    constructor(private day_number_: number, private week_number_: number, private year_number_: number)
     {
 
     }
 
     get_where_clause()
     {
-        return `day=${this.day_number} AND week=${this.week_number}`;
+        return `day=${this.day_number_} AND week=${this.week_number_} AND year=${this.year_number_}`;
     }
 };
 
@@ -238,7 +238,8 @@ export class DatabaseManager
                         resolution: match_row.resolution,
 
                         day: match_row.day,
-                        week: match_row.week
+                        week: match_row.week,
+                        year: match_row.year
                     });
                 }
             }
@@ -249,8 +250,8 @@ export class DatabaseManager
 
     insert_packed_tgv_node(node: PackedRecord.TgvNode) : Promise<any>
     {
-        let params = [node.owner, node.users, node.parent_id, node.type, node.name, node.details, node.date_created, node.date_closed, node.resolution, node.day, node.week];
-        return DatabaseManager.database_.executeSql(`INSERT into ${PackedRecord.TGV_TABLE} VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+        let params = [node.owner, node.users, node.parent_id, node.type, node.name, node.details, node.date_created, node.date_closed, node.resolution, node.day, node.week, node.year];
+        return DatabaseManager.database_.executeSql(`INSERT into ${PackedRecord.TGV_TABLE} VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
     }
 
     // =================================================================================== Callbacks
@@ -361,7 +362,7 @@ export class DatabaseManager
                                      no_callbacks?: boolean) : Promise<any>
     {
         let packed_node = new PackedRecord.TgvNode(inflated_node);
-        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=?, resolution=?, day=?, week=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.resolution, packed_node.day, packed_node.week, packed_node.id]).then(result => {
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=?, resolution=?, day=?, week=?, year=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.resolution, packed_node.day, packed_node.week, packed_node.year, packed_node.id]).then(result => {
             DatabaseManager.execute_data_updated_callbacks(no_callbacks);
             return result;
         });

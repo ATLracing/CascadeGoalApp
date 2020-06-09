@@ -14,7 +14,7 @@
 <ion-content>
   <ion-list>
     <ion-item-sliding *ngFor="let task of day_tasks_; let i = index" (press)="expand_collapse_task(i)">
-      <ion-item-options side="end" *ngIf="task.extra.is_active">
+      <ion-item-options side="end" *ngIf="!task.extra.completed">
         <ion-item-option color="danger" (click)="remove(i)">Remove</ion-item-option>
       </ion-item-options>
 

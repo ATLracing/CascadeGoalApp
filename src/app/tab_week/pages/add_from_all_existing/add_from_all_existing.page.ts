@@ -64,7 +64,7 @@ export class AddFromAllExistingPage implements OnDestroy {
         if (task.extra.selected)
         {
           // TODO(ABurroughs): This is extremely inefficient
-          task.week = CalendarManager.get_iso_week();
+          InflatedRecord.set_this_week(task);
           await this.database_manager_.task_set_basic_attributes(task, true);
           // Deprecated
           new_task_ids.push(task.id);

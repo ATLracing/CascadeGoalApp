@@ -22,6 +22,7 @@ export const NULL_DATE = new Date(0);
 export const NULL_ID = -1;
 export const NULL_DAY = -1;
 export const NULL_WEEK = -1;
+export const NULL_YEAR = -1;
 
 export enum Type
 {
@@ -65,6 +66,7 @@ export class TgvNode
 
     day: number;
     week: number;
+    year: number;
 
     // Packed node info
     parent_id: ID;
@@ -93,6 +95,7 @@ export class TgvNode
         
         this.day = packed_node.day;
         this.week = packed_node.week;
+        this.year = packed_node.year;
 
         this.parent_id = packed_node.parent_id;
 
@@ -115,6 +118,7 @@ export function construct_empty_node(type: Type) : TgvNode
              resolution: Resolution.ACTIVE,
              day: NULL_DAY,
              week: NULL_WEEK,
+             year: NULL_YEAR,
              parent_id: NULL_ID,
              extra: undefined
             };
@@ -183,4 +187,37 @@ export function resolve(resolution: Resolution, /*out*/ node: TgvNode)
     {
         node.date_closed = CalendarManager.get_date();
     }
+}
+
+export function set_day(day: number, week:number, year: number, /*out*/ node: TgvNode)
+{
+    node.day = day;
+    node.week = week;
+    node.year = year;
+}
+
+export function set_week(week: number, year: number, /*out*/ node: TgvNode)
+{
+    node.week = week;
+    node.year = year;
+}
+
+export function set_today(/*out*/ node: TgvNode)
+{
+    set_day(CalendarManager.get_day_of_week(), CalendarManager.get_iso_week(), CalendarManager.get_iso_week_year(), node);
+}
+
+export function set_this_week(/*out*/ node: TgvNode)
+{
+    set_week(CalendarManager.get_iso_week(), CalendarManager.get_iso_week_year(), node);
+}
+
+export function clear_day(/*out*/ node: TgvNode)
+{
+    node.day = NULL_DAY;
+}
+
+export function clear_week(/*out*/ node: TgvNode)
+{
+    set_week(NULL_WEEK, NULL_YEAR, node);
 }

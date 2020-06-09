@@ -24,8 +24,9 @@ export class TaskListPage implements OnDestroy {
     database_manager_.register_data_updated_callback("today_tasks_page", async () => {      
         let day_number = CalendarManager.get_day_of_week();
         let week_number = CalendarManager.get_iso_week();
-
-        let day_filter = new DayFilter(day_number, week_number);
+        let year_number = CalendarManager.get_iso_week_year();
+        
+        let day_filter = new DayFilter(day_number, week_number, year_number);
         this.day_tasks_ = await database_manager_.query_tasks([day_filter]);
 
         // Get parent
@@ -51,8 +52,6 @@ export class TaskListPage implements OnDestroy {
             {
                 task.extra.style = {};
             }
-
-            task.extra.is_active = InflatedRecord.is_active(task);
         }
     });
   }
@@ -60,8 +59,7 @@ export class TaskListPage implements OnDestroy {
   add_new_task()
   {
     let new_task = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
-    new_task.day = CalendarManager.get_day_of_week();
-    new_task.week = CalendarManager.get_iso_week();
+    InflatedRecord.set_today(new_task);
 
     let configure_tgv_settings : ConfigureTgvPageSettings =
     {
@@ -132,7 +130,7 @@ export class TaskListPage implements OnDestroy {
     console.log("Remove: " + index);
     let remove_task = this.day_tasks_[index];
 
-    remove_task.day = InflatedRecord.NULL_DAY;
+    InflatedRecord.clear_day(remove_task);
 
     this.database_manager_.task_set_basic_attributes(remove_task);
   }

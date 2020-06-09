@@ -23,9 +23,10 @@ export class ExistingTaskPage implements OnDestroy {
 
     database_manager_.register_data_updated_callback("existing_task_page", async () => {
       let week_number = CalendarManager.get_iso_week();
+      let year_number = CalendarManager.get_iso_week_year();
       
       // Filters
-      let week_filter = new WeekFilter(week_number);
+      let week_filter = new WeekFilter(week_number, year_number);
       let exclude_filter = new IdSetFilter(existing_day_task_ids, false /*excluding*/);
       let active_filter = new ActiveFilter(true);
       

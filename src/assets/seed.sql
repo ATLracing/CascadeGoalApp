@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS tgv_nodes_tbl(id INTEGER PRIMARY KEY AUTOINCREMENT,
                                          date_closed TEXT,
                                          resolution INTEGER,
                                          day INTEGER,
-                                         week INTEGER);
+                                         week INTEGER,
+                                         year INTEGER);
 
 CREATE TABLE IF NOT EXISTS day_tbl(id INTEGER PRIMARY KEY AUTOINCREMENT,
                                    previous_id INTEGER,

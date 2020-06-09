@@ -43,10 +43,15 @@ export class CalendarManager
     // Returns the four-digit year corresponding to the ISO week of the date.
     static get_iso_week_year() :number
     {
-        var date = new Date();
+        return this.get_iso_week_year_from_date(new Date());
+    }
+
+    static get_iso_week_year_from_date(date: Date) : number
+    {
         date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
         return date.getFullYear();
     }
+
 
     static get_day_of_week() : number
     {
@@ -70,11 +75,16 @@ export class CalendarManager
 
     static in_today(task: InflatedRecord.Task)
     {
-        return task.week == this.get_iso_week() && task.day == this.get_day_of_week();
+        return task.day == this.get_day_of_week() && this.in_this_week(task);
     }
 
     static in_this_week(task: InflatedRecord.Task)
     {
-        return task.week == this.get_iso_week();
+        return task.week == this.get_iso_week() && this.in_this_year(task);
+    }
+
+    static in_this_year(task: InflatedRecord.Task)
+    {
+        return task.year == this.get_iso_week_year();
     }
 }

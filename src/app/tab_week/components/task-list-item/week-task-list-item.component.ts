@@ -53,11 +53,11 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges{
   {
     if (CalendarManager.in_today(this.task))
     {
-      this.task.day = InflatedRecord.NULL_DAY;
+      InflatedRecord.clear_day(this.task);
     }
     else
     {
-      this.task.day = CalendarManager.get_day_of_week();
+      InflatedRecord.set_today(this.task);
     }
 
     this.database_manager_.task_set_basic_attributes(this.task);
@@ -65,9 +65,7 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges{
 
   remove()
   {
-    this.task.day = InflatedRecord.NULL_DAY;
-    this.task.week = InflatedRecord.NULL_WEEK;
-
+    InflatedRecord.clear_week(this.task);
     this.database_manager_.task_set_basic_attributes(this.task);
   }
 

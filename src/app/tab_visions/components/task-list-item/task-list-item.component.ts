@@ -28,11 +28,11 @@ export class TaskListItemComponent implements OnInit, OnChanges{
   {
     if (CalendarManager.in_this_week(this.task))
     {
-      this.task.week = InflatedRecord.NULL_WEEK;
+      InflatedRecord.clear_week(this.task);
     }
     else
     {
-      this.task.week = CalendarManager.get_iso_week();
+      InflatedRecord.set_this_week(this.task);
     }
 
     this.database_manager_.task_set_basic_attributes(this.task);

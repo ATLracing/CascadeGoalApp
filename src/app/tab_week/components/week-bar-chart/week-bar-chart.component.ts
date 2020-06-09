@@ -22,7 +22,7 @@ export class WeekBarChartComponent implements AfterViewInit {
     const BACKGROUND_COLOR_TODAY = "rgba(42, 155, 255, 0.2)";
     const BORDER_COLOR_TODAY = "rgba(42, 155, 255, 0.3)";
 
-    let week_filter = new WeekFilter(CalendarManager.get_iso_week());
+    let week_filter = new WeekFilter(CalendarManager.get_iso_week(), CalendarManager.get_iso_week_year());
 
     // TODO(ABurroughs): Should be for route
     this.database_manager_.register_data_updated_callback("chart_update_callback", async () => {

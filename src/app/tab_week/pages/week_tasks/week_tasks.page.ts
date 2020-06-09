@@ -29,9 +29,10 @@ export class WeekTasksPage implements OnDestroy {
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {            
       // Get the current week
       let week_number = CalendarManager.get_iso_week();
+      let year_number = CalendarManager.get_iso_week_year();
       
       // Query all tasks for the week
-      let week_filter = new WeekFilter(week_number);
+      let week_filter = new WeekFilter(week_number, year_number);
       this.active_tasks_ = await database_manager_.query_tasks([week_filter, new ActiveFilter(true)]);
       this.complete_tasks_ = await database_manager_.query_tasks([week_filter, new ActiveFilter(false)]);
     });
@@ -50,7 +51,7 @@ export class WeekTasksPage implements OnDestroy {
   add_new_task()
   {
     let new_task = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
-    new_task.week = CalendarManager.get_iso_week();
+    InflatedRecord.set_this_week(new_task);
 
     let configure_tgv_settings : ConfigureTgvPageSettings =
     {
@@ -101,11 +102,11 @@ export class WeekTasksPage implements OnDestroy {
 
     if (CalendarManager.in_today(task))
     {
-      task.day = InflatedRecord.NULL_DAY;
+      InflatedRecord.clear_day(task);
     }
     else
     {
-      task.day = CalendarManager.get_day_of_week();
+      InflatedRecord.set_today(task);
     }
 
     this.database_manager_.task_set_basic_attributes(task);
@@ -114,9 +115,7 @@ export class WeekTasksPage implements OnDestroy {
   remove(index: number, is_active: boolean)
   {
     let remove_task = is_active ? this.active_tasks_[index] : this.complete_tasks_[index];
-
-    remove_task.day = InflatedRecord.NULL_DAY;
-    remove_task.week = InflatedRecord.NULL_WEEK;
+    InflatedRecord.clear_week(remove_task);
 
     this.database_manager_.task_set_basic_attributes(remove_task);
   }
