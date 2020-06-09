@@ -122,6 +122,10 @@ export function construct_empty_node(type: Type) : TgvNode
 
 export function copy_node(node: TgvNode) : TgvNode
 {
+    // TODO
+    node.parent = undefined;
+    node.children = [];
+
     let copy = JSON.parse(JSON.stringify(node));
     
     copy.date_closed  = new Date(copy.date_closed);

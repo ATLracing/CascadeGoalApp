@@ -17,6 +17,7 @@ const STYLE_ACTIVE = 'bold';
 export class TaskListItemComponent implements OnInit, OnChanges{
   @Input() task: InflatedRecord.Task;
   @Input() add_mode: boolean;
+  add_mode_disabled_ : boolean;
 
   constructor(private addressed_transfer_: AddressedTransfer,
               private database_manager_  : DatabaseManager,
@@ -70,5 +71,6 @@ export class TaskListItemComponent implements OnInit, OnChanges{
     this.task.extra.style_complete = !InflatedRecord.is_active(this.task) ? STYLE_COMPLETE : undefined
     this.task.extra.active = CalendarManager.in_this_week(this.task);
     this.task.extra.style_active = this.task.extra.active ? STYLE_ACTIVE : undefined;
+    this.add_mode_disabled_ = !InflatedRecord.is_active(this.task);
   }
 }

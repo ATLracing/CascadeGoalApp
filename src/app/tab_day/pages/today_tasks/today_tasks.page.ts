@@ -51,6 +51,8 @@ export class TaskListPage implements OnDestroy {
             {
                 task.extra.style = {};
             }
+
+            task.extra.is_active = InflatedRecord.is_active(task);
         }
     });
   }

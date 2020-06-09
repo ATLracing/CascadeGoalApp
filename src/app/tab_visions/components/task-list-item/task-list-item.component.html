@@ -5,10 +5,10 @@
   <ion-icon *ngIf="!add_mode" slot="start" name="git-commit"></ion-icon>
 
   <ion-buttons *ngIf="add_mode" slot="start">
-    <ion-button *ngIf="!task.extra.this_week" (click)="add_remove_this_week()">
+    <ion-button *ngIf="!task.extra.this_week" disabled="{{add_mode_disabled_}}" (click)="add_remove_this_week()">
       <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
     </ion-button>
-    <ion-button *ngIf="task.extra.this_week"(click)="add_remove_this_week()">
+    <ion-button *ngIf="task.extra.this_week" disabled="{{add_mode_disabled_}}" (click)="add_remove_this_week()">
       <ion-icon slot="icon-only" name="close"></ion-icon>
     </ion-button>
   </ion-buttons>

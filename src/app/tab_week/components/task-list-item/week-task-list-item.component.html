@@ -1,5 +1,5 @@
 <ion-item-sliding>
-  <ion-item-options side="end">
+  <ion-item-options side="end" *ngIf="!add_mode_disabled_">
     <ion-item-option color="danger" (click)="remove()">Remove</ion-item-option>
   </ion-item-options>
   <ion-item>
@@ -14,10 +14,10 @@
       </ion-button>
     </ion-buttons>
     <ion-buttons *ngIf="add_mode" slot="start">
-      <ion-button *ngIf="!task.extra.today" (click)="add_remove_today()">
+      <ion-button *ngIf="!task.extra.today" disabled="{{add_mode_disabled_}}" (click)="add_remove_today()">
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
-      <ion-button *ngIf="task.extra.today"(click)="add_remove_today()">
+      <ion-button *ngIf="task.extra.today" disabled="{{add_mode_disabled_}}" (click)="add_remove_today()">
         <ion-icon slot="icon-only" name="close"></ion-icon>
       </ion-button>
     </ion-buttons>

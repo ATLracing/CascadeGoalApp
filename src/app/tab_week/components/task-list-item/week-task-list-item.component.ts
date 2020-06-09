@@ -17,6 +17,7 @@ const STYLE_TODAY = 'bold';
 export class WeekTaskListItemComponent implements OnInit, OnChanges{
   @Input() task: InflatedRecord.Task;
   @Input() add_mode: boolean;
+  add_mode_disabled_ : boolean;
 
   constructor(private addressed_transfer_: AddressedTransfer,
               private database_manager_  : DatabaseManager,
@@ -82,5 +83,6 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges{
     this.task.extra.style_today = this.task.extra.today ? STYLE_TODAY : undefined;
 
     this.database_manager_.get_node(this.task.parent_id).then(parent => { this.task.parent = parent; });
+    this.add_mode_disabled_ = !InflatedRecord.is_active(this.task);
   }
 }
