@@ -30,7 +30,7 @@ export class ComponentAssociate implements OnInit {
   {
     if (i == -1)
     {
-      this.modal_controller_.dismiss(InflatedRecord.NULL_ID);
+      this.modal_controller_.dismiss(undefined);
     }
     else if (this.tab_ === "goals")
     {

@@ -18,12 +18,6 @@ export enum Resolution
     DELETED = 3
 };
 
-export const NULL_DATE = new Date(0);
-export const NULL_ID = -1;
-export const NULL_DAY = -1;
-export const NULL_WEEK = -1;
-export const NULL_YEAR = -1;
-
 export enum Type
 {
     TASK,
@@ -89,8 +83,8 @@ export class TgvNode
         
         this.name = packed_node.name;
         this.details = packed_node.details;
-        this.date_created = new Date(packed_node.date_created);
-        this.date_closed = new Date(packed_node.date_closed);
+        this.date_created = packed_node.date_created ? new Date(packed_node.date_created) : undefined;
+        this.date_closed = packed_node.date_closed ? new Date(packed_node.date_closed) : undefined;
         this.resolution = packed_node.resolution;
         
         this.day = packed_node.day;
@@ -107,19 +101,19 @@ export function construct_empty_node(type: Type) : TgvNode
 {
     return { parent: undefined,
              children: undefined,
-             id: NULL_ID,
+             id: undefined,
              owner: "",
              users: [],
              type: type,
              name: "",
              details: "",
              date_created: new Date(),
-             date_closed: NULL_DATE,
+             date_closed: undefined,
              resolution: Resolution.ACTIVE,
-             day: NULL_DAY,
-             week: NULL_WEEK,
-             year: NULL_YEAR,
-             parent_id: NULL_ID,
+             day: undefined,
+             week: undefined,
+             year: undefined,
+             parent_id: undefined,
              extra: undefined
             };
 }
@@ -132,7 +126,8 @@ export function copy_node(node: TgvNode) : TgvNode
 
     let copy = JSON.parse(JSON.stringify(node));
     
-    copy.date_closed  = new Date(copy.date_closed);
+    copy.parent = parent;
+    copy.date_closed  = node.date_closed ? new Date(copy.date_closed) : undefined;
     copy.date_created = new Date(copy.date_created);
     
     return copy;
@@ -161,7 +156,7 @@ export class Vision extends TgvNode{};
 
 export function is_active(node : TgvNode) : boolean
 {
-    return JSON.stringify(node.date_closed) === JSON.stringify(NULL_DATE);
+    return node.date_closed == undefined;
 }
 
 export function resolution_to_string(resolution: Resolution) : string
@@ -181,7 +176,7 @@ export function resolve(resolution: Resolution, /*out*/ node: TgvNode)
 
     if (resolution == Resolution.ACTIVE)
     {
-        node.date_closed = NULL_DATE;
+        node.date_closed = undefined;
     }
     else
     {
@@ -214,10 +209,10 @@ export function set_this_week(/*out*/ node: TgvNode)
 
 export function clear_day(/*out*/ node: TgvNode)
 {
-    node.day = NULL_DAY;
+    node.day = undefined;
 }
 
 export function clear_week(/*out*/ node: TgvNode)
 {
-    set_week(NULL_WEEK, NULL_YEAR, node);
+    set_week(undefined, undefined, node);
 }

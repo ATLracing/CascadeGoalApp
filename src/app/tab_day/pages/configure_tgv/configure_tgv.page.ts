@@ -51,7 +51,7 @@ export class ConfigureTgvPage {
   {
     this.tgv_node_.parent_id = parent_id;
 
-    if (this.tgv_node_.parent_id != InflatedRecord.NULL_ID)
+    if (this.tgv_node_.parent_id)
     {
       this.database_manager_.get_node(this.tgv_node_.parent_id).then(parent => {
         this.parent_name_ = parent.name;

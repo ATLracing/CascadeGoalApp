@@ -32,7 +32,7 @@ export class TaskListPage implements OnDestroy {
         // Get parent
         for (let task of this.day_tasks_)
         {
-          if (task.parent_id != InflatedRecord.NULL_ID)
+          if (task.parent_id)
           {
             task.parent = await database_manager_.get_node(task.parent_id);
           }

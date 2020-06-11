@@ -53,9 +53,9 @@ export class ActiveFilter implements QueryFilter
     get_where_clause()
     {
         if (this.is_active_)
-            return `date_closed="${PackedRecord.NULL_DATE_STR}"`;
+            return `date_closed IS NULL`;
         else
-            return `date_closed!="${PackedRecord.NULL_DATE_STR}"`;
+            return `date_closed IS NOT NULL`;
     }
 };
 
