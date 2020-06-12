@@ -64,7 +64,7 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges {
     this.database_manager_.task_set_basic_attributes(this.task);
   }
 
-  remove()
+  remove_from_week()
   {
     InflatedRecord.clear_week(this.task);
     this.database_manager_.task_set_basic_attributes(this.task);
