@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { DatabaseManager, ParentFilter, ActiveFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ActiveFilter, ParentFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';

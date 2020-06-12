@@ -8,6 +8,7 @@ import { SQLite, SQLiteObject } from '@ionic-native/sqlite/ngx';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject } from 'rxjs';
 import { inflate } from 'zlib';
+import { DiscreteDate, DiscreteDateLevel } from './discrete_date';
 
 // ============================================================================== Filter Abstraction
 // TODO(ABurroughs): Trying to avoid raw SQL queries in the UI. But perhaps that's stupid.. 
@@ -59,31 +60,6 @@ export class ActiveFilter implements QueryFilter
     }
 };
 
-export class WeekFilter implements QueryFilter
-{
-    constructor(private week_number_: number, private year_number_: number) 
-    {
-    }
-
-    get_where_clause()
-    {
-        return `week=${this.week_number_} AND year=${this.year_number_}`;
-    }
-};
-
-export class DayFilter implements QueryFilter
-{
-    constructor(private day_number_: number, private week_number_: number, private year_number_: number)
-    {
-
-    }
-
-    get_where_clause()
-    {
-        return `day=${this.day_number_} AND week=${this.week_number_} AND year=${this.year_number_}`;
-    }
-};
-
 export class TypeFilter implements QueryFilter
 {
     constructor(private type_ : InflatedRecord.Type, private is_: boolean)
@@ -112,6 +88,116 @@ export class ParentFilter implements QueryFilter
             return `parent_id=${this.parent_id_}`;
         else
             return `parent_id!=${this.parent_id_}`;
+    }
+};
+
+export class DateContainsFilter implements QueryFilter
+{
+    constructor(private date: DiscreteDate) 
+    {
+    }
+
+    get_where_clause()
+    {
+        let where_clause = "";
+
+        if (this.date.year)
+        {
+            where_clause += `year=${this.date.year}`;
+        }
+        if (this.date.week)
+        {
+            where_clause += ` AND week=${this.date.week}`;
+        }
+        if (this.date.day)
+        {
+            where_clause += ` AND day=${this.date.day}`;
+        }
+
+        return where_clause;
+    }
+};
+
+export class DateCompletedContainsFilter implements QueryFilter
+{
+    constructor(private date: DiscreteDate) 
+    {
+    }
+
+    get_where_clause()
+    {
+        let where_clause = "";
+
+        if (this.date.year)
+        {
+            where_clause += `year_completed=${this.date.year}`;
+        }
+        if (this.date.week)
+        {
+            where_clause += ` AND week_completed=${this.date.week}`;
+        }
+        if (this.date.day)
+        {
+            where_clause += ` AND day_completed=${this.date.day}`;
+        }
+
+        return where_clause;
+    }
+};
+
+export class DatePriorFilter implements QueryFilter
+{
+    constructor(private date: DiscreteDate) 
+    {
+    }
+
+    get_where_clause()
+    {
+        let where_clause = "";
+
+        if (this.date.year)
+        {
+            where_clause += `year<${this.date.year}`;
+        }
+        if (this.date.week)
+        {
+            where_clause += ` OR year=${this.date.year} AND week<${this.date.week}`;
+        }
+        if (this.date.day)
+        {
+            where_clause += ` OR year=${this.date.year} AND week=${this.date.week} AND day<${this.date.day}`;
+        }
+
+        return where_clause;
+    }
+};
+
+export class DateLevelFilter implements QueryFilter
+{
+    constructor(private level_: DiscreteDateLevel) 
+    {
+    }
+
+    get_where_clause()
+    {
+        if (this.level_ == DiscreteDateLevel.DAY)
+            return 'day IS NOT NULL';
+        if (this.level_ == DiscreteDateLevel.WEEK)
+            return 'week IS NOT NULL';
+        if (this.level_ == DiscreteDateLevel.YEAR)
+            return 'year IS NOT NULL';
+    }
+};
+
+export class CustomFilter implements QueryFilter
+{
+    constructor(private where_clause_: string)
+    {
+    }
+
+    get_where_clause()
+    {
+        return this.where_clause_;
     }
 };
 
@@ -174,9 +260,6 @@ export class DatabaseManager
         this.sqlite_porter_.importSqlToDb(DatabaseManager.database_, sql)
             .then(_ => {
                 DatabaseManager.execute_data_updated_callbacks();
-
-                // start loop
-                CalendarManager.calendar_loop(this);
             })
             .catch(e => console.error(e));
         });
@@ -239,7 +322,14 @@ export class DatabaseManager
 
                         day: match_row.day,
                         week: match_row.week,
-                        year: match_row.year
+                        year: match_row.year,
+
+                        day_completed: match_row.day_completed,
+                        week_completed: match_row.week_completed,
+                        year_completed: match_row.year_completed,
+
+                        abandoned_day_count: match_row.abandoned_day_count,
+                        abandoned_week_count: match_row.abandoned_week_count
                     });
                 }
             }
@@ -250,8 +340,8 @@ export class DatabaseManager
 
     insert_packed_tgv_node(node: PackedRecord.TgvNode) : Promise<any>
     {
-        let params = [node.owner, node.users, node.parent_id, node.type, node.name, node.details, node.date_created, node.date_closed, node.resolution, node.day, node.week, node.year];
-        return DatabaseManager.database_.executeSql(`INSERT into ${PackedRecord.TGV_TABLE} VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
+        let params = [node.owner, node.users, node.parent_id, node.type, node.name, node.details, node.date_created, node.date_closed, node.resolution, node.day, node.week, node.year, node.day_completed, node.week_completed, node.year_completed, node.abandoned_day_count, node.abandoned_week_count];
+        return DatabaseManager.database_.executeSql(`INSERT into ${PackedRecord.TGV_TABLE} VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, params);
     }
 
     // =================================================================================== Callbacks
@@ -362,7 +452,7 @@ export class DatabaseManager
                                      no_callbacks?: boolean) : Promise<any>
     {
         let packed_node = new PackedRecord.TgvNode(inflated_node);
-        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=?, resolution=?, day=?, week=?, year=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.resolution, packed_node.day, packed_node.week, packed_node.year, packed_node.id]).then(result => {
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=?, resolution=?, day=?, week=?, year=?, day_completed=?, week_completed=?, year_completed=?, abandoned_day_count=?, abandoned_week_count=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.resolution, packed_node.day, packed_node.week, packed_node.year, packed_node.day_completed, packed_node.week_completed, packed_node.year_completed, packed_node.abandoned_day_count, packed_node.abandoned_week_count, packed_node.id]).then(result => {
             DatabaseManager.execute_data_updated_callbacks(no_callbacks);
             return result;
         });

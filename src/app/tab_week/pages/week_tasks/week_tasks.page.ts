@@ -1,10 +1,10 @@
-import { Component, OnDestroy, ElementRef, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { DatabaseManager, WeekFilter, ActiveFilter } from 'src/app/providers/database_manager';
+import { Component, OnDestroy } from '@angular/core';
+import { DatabaseManager, ActiveFilter, DatePriorFilter, DateContainsFilter, DateCompletedContainsFilter, DateLevelFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
-import { CalendarManager } from 'src/app/providers/calendar_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
+import { get_today, DiscreteDateLevel, get_level, get_this_week } from 'src/app/providers/discrete_date';
 
 @Component({
   selector: 'app-week-tasks',
@@ -12,6 +12,7 @@ import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/co
   styleUrls: ['week_tasks.scss']
 })
 export class WeekTasksPage implements OnDestroy {
+  private overdue_tasks_: InflatedRecord.Task[];
   private active_tasks_: InflatedRecord.Task[];
   private complete_tasks_: InflatedRecord.Task[];
   private editing_unlocked_: boolean;
@@ -22,19 +23,16 @@ export class WeekTasksPage implements OnDestroy {
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer) {
 
+    this.overdue_tasks_ = [];
     this.active_tasks_ = [];
     this.complete_tasks_ = [];
     this.editing_unlocked_ = false;
 
-    database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {            
-      // Get the current week
-      let week_number = CalendarManager.get_iso_week();
-      let year_number = CalendarManager.get_iso_week_year();
-      
+    database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {                  
       // Query all tasks for the week
-      let week_filter = new WeekFilter(week_number, year_number);
-      this.active_tasks_ = await database_manager_.query_tasks([week_filter, new ActiveFilter(true)]);
-      this.complete_tasks_ = await database_manager_.query_tasks([week_filter, new ActiveFilter(false)]);
+      this.overdue_tasks_ = await database_manager_.query_tasks([new DatePriorFilter(get_this_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true) ]);
+      this.active_tasks_ = await database_manager_.query_tasks([new DateContainsFilter(get_this_week()), new ActiveFilter(true) /*, new CustomFilter(`NOT day<${today.day}`)*/]);
+      this.complete_tasks_ = await database_manager_.query_tasks([new DateCompletedContainsFilter(get_this_week())]);
     });
   }
 
@@ -100,7 +98,7 @@ export class WeekTasksPage implements OnDestroy {
   {
     let task = is_active ? this.active_tasks_[index] : this.complete_tasks_[index];
 
-    if (CalendarManager.in_today(task))
+    if (get_level(task.discrete_date) == DiscreteDateLevel.DAY)
     {
       InflatedRecord.clear_day(task);
     }

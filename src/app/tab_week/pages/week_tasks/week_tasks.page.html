@@ -22,6 +22,10 @@
 <ion-content>
   <week-bar-chart *ngIf="display_analytics_"></week-bar-chart>
   <ion-list>
+    <ion-item-divider *ngIf="overdue_tasks_.length > 0">
+      <ion-label>Overdue ({{overdue_tasks_.length}})</ion-label>
+    </ion-item-divider>
+    <week-task-list-item *ngFor="let task of overdue_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>
     <ion-item-divider>
       <ion-label>Active ({{active_tasks_.length}})</ion-label>
     </ion-item-divider>

@@ -5,6 +5,7 @@ import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
+import { get_level, DiscreteDateLevel, get_today, contains } from 'src/app/providers/discrete_date';
 
 const STYLE_COMPLETE = 'line-through';
 const STYLE_TODAY = 'bold';
@@ -14,7 +15,7 @@ const STYLE_TODAY = 'bold';
   templateUrl: './week-task-list-item.component.html',
   styleUrls: ['./week-task-list-item.component.scss'],
 })
-export class WeekTaskListItemComponent implements OnInit, OnChanges{
+export class WeekTaskListItemComponent implements OnInit, OnChanges {
   @Input() task: InflatedRecord.Task;
   @Input() add_mode: boolean;
   add_mode_disabled_ : boolean;
@@ -51,7 +52,7 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges{
 
   add_remove_today()
   {
-    if (CalendarManager.in_today(this.task))
+    if (get_level(this.task.discrete_date) == DiscreteDateLevel.DAY)
     {
       InflatedRecord.clear_day(this.task);
     }
@@ -76,10 +77,14 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges{
 
   ngOnChanges()
   {
-    this.task.extra.style_complete = !InflatedRecord.is_active(this.task) ? STYLE_COMPLETE : undefined
-    this.task.extra.today = CalendarManager.in_today(this.task);
+    this.task.extra.style_complete = !InflatedRecord.is_active(this.task) ? STYLE_COMPLETE : undefined;
+    
+    if (InflatedRecord.is_active(this.task))
+      this.task.extra.today = contains(this.task.discrete_date, get_today());
+    else
+      this.task.extra.today = contains(this.task.discrete_date_completed, get_today());
+    
     this.task.extra.style_today = this.task.extra.today ? STYLE_TODAY : undefined;
-
     this.database_manager_.get_node(this.task.parent_id).then(parent => { this.task.parent = parent; });
     this.add_mode_disabled_ = !InflatedRecord.is_active(this.task);
   }

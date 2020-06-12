@@ -7,6 +7,7 @@
 
 import * as PackedRecord from 'src/app/providers/packed_record';
 import { CalendarManager } from './calendar_manager';
+import { DiscreteDate, get_null_date, get_today, prior_to, get_this_week, get_level, DiscreteDateLevel } from './discrete_date';
 
 export type ID = number;
 
@@ -58,9 +59,11 @@ export class TgvNode
     date_closed: Date;
     resolution: Resolution;
 
-    day: number;
-    week: number;
-    year: number;
+    discrete_date: DiscreteDate;
+    discrete_date_completed: DiscreteDate;
+
+    abandoned_day_count: number;
+    abandoned_week_count: number;
 
     // Packed node info
     parent_id: ID;
@@ -87,9 +90,11 @@ export class TgvNode
         this.date_closed = packed_node.date_closed ? new Date(packed_node.date_closed) : undefined;
         this.resolution = packed_node.resolution;
         
-        this.day = packed_node.day;
-        this.week = packed_node.week;
-        this.year = packed_node.year;
+        this.discrete_date = { day: packed_node.day, week: packed_node.week, year: packed_node.year };
+        this.discrete_date_completed = { day: packed_node.day_completed, week: packed_node.week_completed, year: packed_node.year_completed };
+
+        this.abandoned_day_count = packed_node.abandoned_day_count;
+        this.abandoned_week_count = packed_node.abandoned_week_count;
 
         this.parent_id = packed_node.parent_id;
 
@@ -110,9 +115,10 @@ export function construct_empty_node(type: Type) : TgvNode
              date_created: new Date(),
              date_closed: undefined,
              resolution: Resolution.ACTIVE,
-             day: undefined,
-             week: undefined,
-             year: undefined,
+             discrete_date: get_null_date(),
+             discrete_date_completed: get_null_date(),
+             abandoned_day_count: 0,
+             abandoned_week_count: 0,
              parent_id: undefined,
              extra: undefined
             };
@@ -150,15 +156,6 @@ export function build_inflated_array(packed : PackedRecord.TgvNode[]) : TgvNode[
     return inflated_array;
 }
 
-export class Task   extends TgvNode{};
-export class Goal   extends TgvNode{};
-export class Vision extends TgvNode{};
-
-export function is_active(node : TgvNode) : boolean
-{
-    return node.date_closed == undefined;
-}
-
 export function resolution_to_string(resolution: Resolution) : string
 {
     switch(resolution)
@@ -170,6 +167,18 @@ export function resolution_to_string(resolution: Resolution) : string
     }
 }
 
+export class Task   extends TgvNode{};
+export class Goal   extends TgvNode{};
+export class Vision extends TgvNode{};
+
+// ============================================================================ Query for Properties
+export function is_active(node : TgvNode) : boolean
+{
+    return node.date_closed == undefined;
+}
+
+// ========================================================================================= Actions
+// TODO(ABurroughs): This ought to be in the database layer itself
 export function resolve(resolution: Resolution, /*out*/ node: TgvNode)
 {
     node.resolution = resolution;
@@ -177,42 +186,54 @@ export function resolve(resolution: Resolution, /*out*/ node: TgvNode)
     if (resolution == Resolution.ACTIVE)
     {
         node.date_closed = undefined;
+        node.discrete_date_completed = get_null_date();
     }
     else
     {
         node.date_closed = CalendarManager.get_date();
+        node.discrete_date_completed = get_today();
     }
 }
 
-export function set_day(day: number, week:number, year: number, /*out*/ node: TgvNode)
+export function set_date(date: DiscreteDate, /*out*/ node: TgvNode)
 {
-    node.day = day;
-    node.week = week;
-    node.year = year;
-}
+    let today = get_today();
+    let this_week = get_this_week();
+    
+    if (is_active(node))  // TODO(ABurroughs): Completed tasks shouldn't be moved anyway
+    {
+        if (prior_to(node.discrete_date, this_week))
+        {
+            node.abandoned_week_count++;
 
-export function set_week(week: number, year: number, /*out*/ node: TgvNode)
-{
-    node.week = week;
-    node.year = year;
+            if (get_level(node.discrete_date) == DiscreteDateLevel.DAY)
+                node.abandoned_day_count++;
+        }
+        else if (prior_to(node.discrete_date, today))
+        {
+            node.abandoned_day_count++;
+        }
+    }
+
+    node.discrete_date = date;
 }
 
 export function set_today(/*out*/ node: TgvNode)
 {
-    set_day(CalendarManager.get_day_of_week(), CalendarManager.get_iso_week(), CalendarManager.get_iso_week_year(), node);
+    set_date(get_today(), node);
 }
 
 export function set_this_week(/*out*/ node: TgvNode)
 {
-    set_week(CalendarManager.get_iso_week(), CalendarManager.get_iso_week_year(), node);
+    set_date(get_this_week(), node);
 }
 
 export function clear_day(/*out*/ node: TgvNode)
 {
-    node.day = undefined;
+    set_date({day: undefined, week: node.discrete_date.week, year: node.discrete_date.year}, node);
 }
 
 export function clear_week(/*out*/ node: TgvNode)
 {
-    set_week(undefined, undefined, node);
+    set_date(get_null_date(), node);
 }

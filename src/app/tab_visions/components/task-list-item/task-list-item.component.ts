@@ -1,10 +1,10 @@
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
-import { CalendarManager } from 'src/app/providers/calendar_manager';
 import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
+import { get_this_week, contains } from 'src/app/providers/discrete_date';
 
 const STYLE_COMPLETE = 'line-through';
 const STYLE_ACTIVE = 'bold';
@@ -26,7 +26,7 @@ export class TaskListItemComponent implements OnInit, OnChanges{
 
   add_remove_this_week()
   {
-    if (CalendarManager.in_this_week(this.task))
+    if (contains(this.task.discrete_date, get_this_week()))
     {
       InflatedRecord.clear_week(this.task);
     }
@@ -66,10 +66,10 @@ export class TaskListItemComponent implements OnInit, OnChanges{
 
   ngOnChanges()
   {
-    this.task.extra.this_week = CalendarManager.in_this_week(this.task);
+    this.task.extra.this_week = contains(this.task.discrete_date, get_this_week()); // TODO
 
     this.task.extra.style_complete = !InflatedRecord.is_active(this.task) ? STYLE_COMPLETE : undefined
-    this.task.extra.active = CalendarManager.in_this_week(this.task);
+    this.task.extra.active = this.task.extra.this_week;
     this.task.extra.style_active = this.task.extra.active ? STYLE_ACTIVE : undefined;
     this.add_mode_disabled_ = !InflatedRecord.is_active(this.task);
   }

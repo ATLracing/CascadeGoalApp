@@ -13,24 +13,18 @@
 
 <ion-content>
   <ion-list>
-    <ion-item-sliding *ngFor="let task of day_tasks_; let i = index" (press)="expand_collapse_task(i)">
-      <ion-item-options side="end" *ngIf="!task.extra.completed">
-        <ion-item-option color="danger" (click)="remove(i)">Remove</ion-item-option>
-      </ion-item-options>
-
-      <ion-item [ngStyle]="task?.extra.style">
-        <ion-label>
-          <h3>{{task.name}}</h3>
-          <ion-note *ngIf="task.parent">{{task.parent.name}}</ion-note>
-          <p *ngIf="task.extra.expanded">{{task.details}}</p>
-        </ion-label>  
-        <ion-checkbox slot="start" [(ngModel)]="task.extra.completed" (click)="checkbox_change(i)"></ion-checkbox>
-        <ion-buttons slot="end">
-          <ion-button (click)="edit_task(i)">
-            <ion-icon slot="icon-only" name="create"></ion-icon>
-          </ion-button>
-        </ion-buttons>
-      </ion-item>
-    </ion-item-sliding>
+    
+    <ion-item-divider *ngIf="overdue_tasks_.length > 0">
+      <ion-label>Overdue ({{overdue_tasks_.length}})</ion-label>
+    </ion-item-divider>
+    <day-task-list-item *ngFor="let task of overdue_tasks_" [task]="task"></day-task-list-item>
+    <ion-item-divider>
+      <ion-label>Active ({{active_tasks_.length}})</ion-label>
+    </ion-item-divider>
+    <day-task-list-item *ngFor="let task of active_tasks_" [task]="task"></day-task-list-item>
+    <ion-item-divider>
+      <ion-label>Complete ({{complete_tasks_.length}})</ion-label>
+    </ion-item-divider>
+    <day-task-list-item *ngFor="let task of complete_tasks_" [task]="task"></day-task-list-item>
   </ion-list>
 </ion-content>

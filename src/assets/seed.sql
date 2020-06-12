@@ -1,3 +1,5 @@
+--DROP TABLE tgv_nodes_tbl;
+
 CREATE TABLE IF NOT EXISTS tgv_nodes_tbl(id INTEGER PRIMARY KEY AUTOINCREMENT, 
                                          owner TEXT, 
                                          users TEXT,
@@ -10,7 +12,12 @@ CREATE TABLE IF NOT EXISTS tgv_nodes_tbl(id INTEGER PRIMARY KEY AUTOINCREMENT,
                                          resolution INTEGER,
                                          day INTEGER,
                                          week INTEGER,
-                                         year INTEGER);
+                                         year INTEGER,
+                                         day_completed INTEGER,
+                                         week_completed INTEGER,
+                                         year_completed INTEGER,
+                                         abandoned_day_count INTEGER,
+                                         abandoned_week_count INTEGER);
 
 CREATE TABLE IF NOT EXISTS day_tbl(id INTEGER PRIMARY KEY AUTOINCREMENT,
                                    previous_id INTEGER,
@@ -23,3 +30,8 @@ CREATE TABLE IF NOT EXISTS week_tbl(id INTEGER PRIMARY KEY AUTOINCREMENT,
                                     date TEXT,
                                     day_ids TEXT,
                                     task_ids TEXT);
+
+--INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, NULL, "vision", "First Vision", "Deets", NULL, NULL, 0, 3, 24, 2020, NULL, NULL, NULL, 0, 0);
+--INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, NULL, "task", "Task Today", "Deets", NULL, NULL, 0, 3, 24, 2020, NULL, NULL, NULL, 0, 0);
+--INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, NULL, "task", "Task Yesterday", "Deets", NULL, NULL, 0, 2, 24, 2020, NULL, NULL, NULL, 0, 0);
+--INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, NULL, "task", "Last Week", "Deets", NULL, NULL, 0, NULL, 23, 2020, NULL, NULL, NULL, 0, 0);

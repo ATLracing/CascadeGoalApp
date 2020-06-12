@@ -1,0 +1,19 @@
+<ion-item-sliding (press)="expand_collapse()">
+  <ion-item-options side="end" *ngIf="!completed_">
+    <ion-item-option color="danger" (click)="remove()">Remove</ion-item-option>
+  </ion-item-options>
+
+  <ion-item [ngStyle]="style_">
+    <ion-label>
+      <h3>{{task.name}}</h3>
+      <ion-note *ngIf="task.parent">{{task.parent.name}}</ion-note>
+      <p *ngIf="expanded_">{{task.details}}</p>
+    </ion-label>  
+    <ion-checkbox slot="start" [(ngModel)]="completed_" (click)="checkbox_change()"></ion-checkbox>
+    <ion-buttons slot="end">
+      <ion-button (click)="edit()">
+        <ion-icon slot="icon-only" name="create"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-item>
+</ion-item-sliding>

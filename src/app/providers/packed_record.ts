@@ -43,6 +43,13 @@ export class TgvNode
      week: number;
      year: number;
 
+     day_completed: number;
+     week_completed: number;
+     year_completed: number;
+
+     abandoned_day_count: number;
+     abandoned_week_count: number;
+
      constructor(inflated_node : InflatedRecord.TgvNode)
      {
         this.id = inflated_node.id;
@@ -58,9 +65,16 @@ export class TgvNode
         this.date_closed = inflated_node.date_closed ? inflated_node.date_closed.toISOString() : undefined;
         this.resolution = inflated_node.resolution;
 
-        this.day = inflated_node.day;
-        this.week = inflated_node.week;
-        this.year = inflated_node.year;
+        this.day = inflated_node.discrete_date.day;
+        this.week = inflated_node.discrete_date.week;
+        this.year = inflated_node.discrete_date.year;
+
+        this.day_completed = inflated_node.discrete_date_completed.day;
+        this.week_completed = inflated_node.discrete_date_completed.week;
+        this.year_completed = inflated_node.discrete_date_completed.year;
+
+        this.abandoned_day_count = inflated_node.abandoned_day_count;
+        this.abandoned_week_count = inflated_node.abandoned_week_count;
      }
 };
 
