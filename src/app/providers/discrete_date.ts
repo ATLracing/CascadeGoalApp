@@ -94,14 +94,23 @@ function compare_spec(date: DiscreteDate, spec: DiscreteDate, operator: (lhs: nu
 
     if (spec.year && date.year != spec.year)
     {
+        if (!date.year)
+            return false;
+        
         return operator(date.year, spec.year);
     }
     if (spec.week && date.week != spec.week)
     {
+        if (!date.week)
+            return false;
+
         return operator(date.week, spec.week);
     }
-    if (spec.day && date.day != spec.day)
+    if (spec.day)
     {
+        if (!date.day)
+            return false;
+
         return operator(date.day, spec.day);
     }
 
@@ -110,7 +119,7 @@ function compare_spec(date: DiscreteDate, spec: DiscreteDate, operator: (lhs: nu
 
 export function contains(containee: DiscreteDate, container: DiscreteDate)
 {
-    return compare_spec(containee, container, (a, b) => { return false; });
+    return compare_spec(containee, container, (a, b) => { return a == b; });
 }
 
 export function prior_to(date: DiscreteDate, spec: DiscreteDate)

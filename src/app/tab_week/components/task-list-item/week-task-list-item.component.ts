@@ -5,10 +5,7 @@ import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { get_level, DiscreteDateLevel, get_today, contains } from 'src/app/providers/discrete_date';
-
-const STYLE_COMPLETE = 'line-through';
-const STYLE_TODAY = 'bold';
+import { get_level, DiscreteDateLevel, get_today, contains, prior_to } from 'src/app/providers/discrete_date';
 
 @Component({
   selector: 'week-task-list-item',
@@ -19,6 +16,9 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges {
   @Input() task: InflatedRecord.Task;
   @Input() add_mode: boolean;
   add_mode_disabled_ : boolean;
+  text_style_ : {[key:string] : string};
+  icon_color_ : string;
+  is_today_: boolean;
 
   constructor(private addressed_transfer_: AddressedTransfer,
               private database_manager_  : DatabaseManager,
@@ -77,15 +77,35 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges {
 
   ngOnChanges()
   {
-    this.task.extra.style_complete = !InflatedRecord.is_active(this.task) ? STYLE_COMPLETE : undefined;
+    // Determine attributes
+    let today = get_today();
+
+    let is_active = InflatedRecord.is_active(this.task);
+    let due_today = contains(this.task.discrete_date, today);
+    let overdue_day = is_active && get_level(this.task.discrete_date) == DiscreteDateLevel.DAY && prior_to(this.task.discrete_date, today);
+    let completed_today = contains(this.task.discrete_date_completed, today);
     
-    if (InflatedRecord.is_active(this.task))
-      this.task.extra.today = contains(this.task.discrete_date, get_today());
-    else
-      this.task.extra.today = contains(this.task.discrete_date_completed, get_today());
+    // Set UI parameters
+    this.is_today_ = due_today || overdue_day || completed_today;
+    this.add_mode_disabled_ = !is_active;
+
+    // Configure text style
+    this.text_style_ = {};
+
+    if (!is_active)
+      this.text_style_['text-decoration'] = "line-through"; 
     
-    this.task.extra.style_today = this.task.extra.today ? STYLE_TODAY : undefined;
+    if (this.is_today_)
+      this.text_style_['font-weight'] = "bold";
+    
+    // Configure icon style
+    this.icon_color_ = "black";
+
+    if (overdue_day)
+    {
+      this.icon_color_ = 'warning';
+    }
+
     this.database_manager_.get_node(this.task.parent_id).then(parent => { this.task.parent = parent; });
-    this.add_mode_disabled_ = !InflatedRecord.is_active(this.task);
   }
 }

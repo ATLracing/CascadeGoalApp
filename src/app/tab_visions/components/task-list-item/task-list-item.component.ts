@@ -4,10 +4,7 @@ import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { get_this_week, contains } from 'src/app/providers/discrete_date';
-
-const STYLE_COMPLETE = 'line-through';
-const STYLE_ACTIVE = 'bold';
+import { get_this_week, contains, get_today, prior_to } from 'src/app/providers/discrete_date';
 
 @Component({
   selector: 'task-list-item',
@@ -18,6 +15,9 @@ export class TaskListItemComponent implements OnInit, OnChanges{
   @Input() task: InflatedRecord.Task;
   @Input() add_mode: boolean;
   add_mode_disabled_ : boolean;
+  text_style_ : {[key:string] : string};
+  icon_color_ : string;
+  is_this_week_: boolean;
 
   constructor(private addressed_transfer_: AddressedTransfer,
               private database_manager_  : DatabaseManager,
@@ -66,11 +66,34 @@ export class TaskListItemComponent implements OnInit, OnChanges{
 
   ngOnChanges()
   {
-    this.task.extra.this_week = contains(this.task.discrete_date, get_this_week()); // TODO
+    // Determine attributes
+    let today = get_today();
+    let this_week = get_this_week();
 
-    this.task.extra.style_complete = !InflatedRecord.is_active(this.task) ? STYLE_COMPLETE : undefined
-    this.task.extra.active = this.task.extra.this_week;
-    this.task.extra.style_active = this.task.extra.active ? STYLE_ACTIVE : undefined;
-    this.add_mode_disabled_ = !InflatedRecord.is_active(this.task);
+    let is_active = InflatedRecord.is_active(this.task);
+    let due_this_week = contains(this.task.discrete_date, this_week);
+    let overdue = prior_to(this.task.discrete_date, today);
+    let completed_this_week = contains(this.task.discrete_date_completed, this_week);
+
+    // Set UI parameters
+    this.is_this_week_ = due_this_week || overdue || completed_this_week;
+    this.add_mode_disabled_ = !is_active;
+
+    // Configure text style
+    this.text_style_ = {};
+
+    if (!is_active)
+      this.text_style_['text-decoration'] = "line-through"; 
+    
+    if (this.is_this_week_)
+      this.text_style_['font-weight'] = "bold";
+    
+    // Configure icon style
+    this.icon_color_ = "black";
+
+    if (overdue)
+    {
+      this.icon_color_ = 'warning';
+    }
   }
 }
