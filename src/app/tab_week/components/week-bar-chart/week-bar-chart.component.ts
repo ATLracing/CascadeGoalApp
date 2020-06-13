@@ -1,4 +1,4 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, Input, OnChanges } from '@angular/core';
 import { Chart } from 'chart.js';
 import { DatabaseManager, DateContainsFilter } from 'src/app/providers/database_manager';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
@@ -10,11 +10,15 @@ import { get_this_week, get_today } from 'src/app/providers/discrete_date';
   templateUrl: './week-bar-chart.component.html',
   styleUrls: ['./week-bar-chart.component.scss'],
 })
-export class WeekBarChartComponent implements AfterViewInit {
+export class WeekBarChartComponent implements AfterViewInit, OnChanges {
   @ViewChild("barCanvas", { static: false }) bar_canvas_: ElementRef;
+  @Input() tasks;
   private bar_chart_: Chart;
+  private after_init_: boolean;
   
-  constructor(private database_manager_: DatabaseManager) {}
+  constructor() {
+    this.after_init_ = false;
+  }
 
   ngAfterViewInit()
   {
@@ -26,84 +30,89 @@ export class WeekBarChartComponent implements AfterViewInit {
     let week_filter = new DateContainsFilter(get_this_week());
 
     // TODO(ABurroughs): Should be for route
-    this.database_manager_.register_data_updated_callback("chart_update_callback", async () => {
-      let tasks = await this.database_manager_.query_tasks([week_filter]);
-      let chart_data = {
-        type: "bar",
-        data: {
-          labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-          datasets: [
+    let chart_data = {
+      type: "bar",
+      data: {
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        datasets: [
+          {
+            label: "Completed Tasks",
+            data: [0, 0, 0, 0, 0, 0, 0],
+            backgroundColor: [
+              BACKGROUND_COLOR,
+              BACKGROUND_COLOR,
+              BACKGROUND_COLOR,
+              BACKGROUND_COLOR,
+              BACKGROUND_COLOR,
+              BACKGROUND_COLOR,
+              BACKGROUND_COLOR
+            ],
+            borderColor: [
+              BORDER_COLOR,
+              BORDER_COLOR,
+              BORDER_COLOR,
+              BORDER_COLOR,
+              BORDER_COLOR,
+              BORDER_COLOR,
+              BORDER_COLOR
+            ],
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        scales: {
+          xAxes: [
             {
-              label: "Completed Tasks",
-              data: [0, 0, 0, 0, 0, 0, 0],
-              backgroundColor: [
-                BACKGROUND_COLOR,
-                BACKGROUND_COLOR,
-                BACKGROUND_COLOR,
-                BACKGROUND_COLOR,
-                BACKGROUND_COLOR,
-                BACKGROUND_COLOR,
-                BACKGROUND_COLOR
-              ],
-              borderColor: [
-                BORDER_COLOR,
-                BORDER_COLOR,
-                BORDER_COLOR,
-                BORDER_COLOR,
-                BORDER_COLOR,
-                BORDER_COLOR,
-                BORDER_COLOR
-              ],
-              borderWidth: 1
+              gridLines: {
+                display: false
+              }
+            }
+          ],
+          yAxes: [
+            {
+              ticks: {
+                precision: 0,
+                beginAtZero: true
+              }
             }
           ]
         },
-        options: {
-          scales: {
-            xAxes: [
-              {
-                gridLines: {
-                  display: false
-                }
-              }
-            ],
-            yAxes: [
-              {
-                ticks: {
-                  precision: 0,
-                  beginAtZero: true
-                }
-              }
-            ]
-          },
-          legend: {
-            display: false
-          },
-          title: {
-            display: true,
-            text: "Completed Tasks"
-          }
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: "Completed Tasks"
         }
-      };
+      }
+    };
 
-      // Obtain # completed tasks for each day of the week
-      for (let task of tasks)
+    // Obtain # completed tasks for each day of the week
+    for (let task of this.tasks)
+    {
+      if (InflatedRecord.is_active(task) || task.resolution != InflatedRecord.Resolution.COMPLETE)
       {
-        if (InflatedRecord.is_active(task) || task.resolution != InflatedRecord.Resolution.COMPLETE)
-        {
-          continue;
-        }
-
-        let index = task.discrete_date_completed.day;
-        chart_data.data.datasets[0].data[index]++;
+        continue;
       }
 
-      // Set today's color
-      let today_index = get_today().day;
-      chart_data.data.datasets[0].backgroundColor[today_index] = BACKGROUND_COLOR_TODAY;
-      chart_data.data.datasets[0].borderColor[today_index] = BORDER_COLOR_TODAY;
-      
-      this.bar_chart_ = new Chart(this.bar_canvas_.nativeElement, chart_data);
-    });
+      let index = task.discrete_date_completed.day;
+      chart_data.data.datasets[0].data[index]++;
+    }
+
+    // Set today's color
+    let today_index = get_today().day;
+    chart_data.data.datasets[0].backgroundColor[today_index] = BACKGROUND_COLOR_TODAY;
+    chart_data.data.datasets[0].borderColor[today_index] = BORDER_COLOR_TODAY;
+    
+    this.bar_chart_ = new Chart(this.bar_canvas_.nativeElement, chart_data);
+    
+    this.after_init_ = true;
+  }
+
+  ngOnChanges()
+  {
+    if (this.after_init_)
+      this.ngAfterViewInit();
   }
 }
