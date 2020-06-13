@@ -5,7 +5,6 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ModalController, AlertController } from '@ionic/angular';
 import { ComponentAssociate } from '../../components/associate/associate';
 import { DatabaseManager } from 'src/app/providers/database_manager';
-import { ComponentSetCompletion } from '../../components/set_completion/set_completion';
 
 export class ConfigureTgvPageSettings
 {

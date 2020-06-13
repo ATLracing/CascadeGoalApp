@@ -4,7 +4,7 @@ import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
-import { get_today, DiscreteDateLevel, get_level, get_this_week } from 'src/app/providers/discrete_date';
+import { DiscreteDateLevel, get_level, get_this_week } from 'src/app/providers/discrete_date';
 
 @Component({
   selector: 'app-week-tasks',
@@ -16,6 +16,7 @@ export class WeekTasksPage implements OnDestroy {
   private active_tasks_: InflatedRecord.Task[];
   private complete_tasks_: InflatedRecord.Task[];
   private editing_unlocked_: boolean;
+  private editing_unlocked_color_: string;
   private display_analytics_: boolean;
 
   constructor(private database_manager_: DatabaseManager,
@@ -26,6 +27,8 @@ export class WeekTasksPage implements OnDestroy {
     this.overdue_tasks_ = [];
     this.active_tasks_ = [];
     this.complete_tasks_ = [];
+
+    this.editing_unlocked_color_ = "black";
     this.editing_unlocked_ = false;
 
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {                  
@@ -39,6 +42,7 @@ export class WeekTasksPage implements OnDestroy {
   lock_unlock_editing()
   {
     this.editing_unlocked_ = ! this.editing_unlocked_;
+    this.editing_unlocked_color_ = this.editing_unlocked_color_ === "black" ? "primary" : "black";
   }
 
   toggle_analytics()
