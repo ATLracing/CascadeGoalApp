@@ -60,8 +60,6 @@ export class WeekDonutChartComponent implements AfterViewInit, OnChanges, OnDest
                       "#f95d6a",
                       "#ff7c43",
                       "#ffa600"];
-
-      this.donut_chart_ = new Chart(this.donut_canvas_.nativeElement, chart_data);
       
       let parent_id_map = new Map<InflatedRecord.ID, number>();
       let goal_parent_id_map = new Map<InflatedRecord.ID, number>();
@@ -83,7 +81,10 @@ export class WeekDonutChartComponent implements AfterViewInit, OnChanges, OnDest
       let parent_id_array = Array.from(parent_id_map.keys());
 
       if (parent_id_array.length == 0)
+      {
+        this.donut_chart_ = new Chart(this.donut_canvas_.nativeElement, chart_data); // Default
         return;
+      }  
 
       let parent_filter = new IdSetFilter(parent_id_array, true);
       let parents = await this.database_manager_.query_nodes([parent_filter]);
@@ -127,7 +128,10 @@ export class WeekDonutChartComponent implements AfterViewInit, OnChanges, OnDest
       }
 
       if (vision_name_map.size == 0)
+      {
+        this.donut_chart_ = new Chart(this.donut_canvas_.nativeElement, chart_data); // Default
         return;
+      } 
 
       // Update chart data
       chart_data.data.datasets[0].data = Array.from(vision_name_map.values());
