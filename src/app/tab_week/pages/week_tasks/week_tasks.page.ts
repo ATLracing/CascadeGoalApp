@@ -15,9 +15,11 @@ export class WeekTasksPage implements OnDestroy {
   private overdue_tasks_: InflatedRecord.Task[];
   private active_tasks_: InflatedRecord.Task[];
   private complete_tasks_: InflatedRecord.Task[];
+  private all_tasks_: InflatedRecord.Task[];
   private editing_unlocked_: boolean;
   private editing_unlocked_color_: string;
   private display_analytics_: boolean;
+  private toggle_analytics_color_: string;
 
   constructor(private database_manager_: DatabaseManager,
               private router_: Router,
@@ -27,15 +29,21 @@ export class WeekTasksPage implements OnDestroy {
     this.overdue_tasks_ = [];
     this.active_tasks_ = [];
     this.complete_tasks_ = [];
+    this.all_tasks_ = [];
 
     this.editing_unlocked_color_ = "black";
     this.editing_unlocked_ = false;
+
+    this.toggle_analytics_color_ = "black";
+    this.display_analytics_ = false;
 
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {                  
       // Query all tasks for the week
       this.overdue_tasks_ = await database_manager_.query_tasks([new DatePriorFilter(get_this_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true) ]);
       this.active_tasks_ = await database_manager_.query_tasks([new DateContainsFilter(get_this_week()), new ActiveFilter(true) /*, new CustomFilter(`NOT day<${today.day}`)*/]);
       this.complete_tasks_ = await database_manager_.query_tasks([new DateCompletedContainsFilter(get_this_week())]);
+
+      this.all_tasks_ = this.overdue_tasks_.concat(this.active_tasks_).concat(this.complete_tasks_);
     });
   }
 
@@ -48,6 +56,7 @@ export class WeekTasksPage implements OnDestroy {
   toggle_analytics()
   {
     this.display_analytics_ = !this.display_analytics_;
+    this.toggle_analytics_color_ = this.toggle_analytics_color_ === "black" ? "primary" : "black";
   }
 
   add_new_task()

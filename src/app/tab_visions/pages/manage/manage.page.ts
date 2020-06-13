@@ -17,6 +17,7 @@ export class ManagePage {
   private expanded_visions_: InflatedRecord.Vision[];
   private vision_index_;
   private send_to_week_mode_: boolean;
+  private send_to_week_color_string_: string;
   private settings_: ManageSettings;
 
   private slide_options_ = {
@@ -36,6 +37,7 @@ export class ManagePage {
       this.vision_index_ = 0;
       this.expanded_visions_ = [];
       this.send_to_week_mode_ = false;
+      this.send_to_week_color_string_ = "black";
       
       // Default settings 
       this.settings_ = { show_completed: false };
@@ -194,6 +196,7 @@ export class ManagePage {
   toggle_set_to_week_mode()
   {
     this.send_to_week_mode_ = !this.send_to_week_mode_;
+    this.send_to_week_color_string_ = this.send_to_week_color_string_ === "black" ? "primary" : "black";
   }
 
   async open_settings()

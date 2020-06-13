@@ -7,6 +7,7 @@ import { TabWeekRoutingModule } from './tab_week-router.module';
 import { TabTasksModule } from '../tab_day/tab_day.module';
 import { WeekTaskListItemComponent } from './components/task-list-item/week-task-list-item.component';
 import { WeekBarChartComponent } from './components/week-bar-chart/week-bar-chart.component';
+import { WeekDonutChartComponent } from './components/week-donut-chart/week-donut-chart.component';
 
 @NgModule({
   imports: [
@@ -16,6 +17,6 @@ import { WeekBarChartComponent } from './components/week-bar-chart/week-bar-char
     TabWeekRoutingModule,
     TabTasksModule
   ],
-  declarations: [ WeekTasksPage, WeekTaskListItemComponent, WeekBarChartComponent]
+  declarations: [ WeekTasksPage, WeekTaskListItemComponent, WeekBarChartComponent, WeekDonutChartComponent]
 })
 export class TabWeekModule {}

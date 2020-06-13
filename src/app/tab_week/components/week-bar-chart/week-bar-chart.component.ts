@@ -22,14 +22,11 @@ export class WeekBarChartComponent implements AfterViewInit, OnChanges {
 
   ngAfterViewInit()
   {
-    const BACKGROUND_COLOR = "rgba(0, 0, 0, 0.2)";
-    const BORDER_COLOR = "rgba(0, 0, 0, 0.3)";
-    const BACKGROUND_COLOR_TODAY = "rgba(42, 155, 255, 0.2)";
-    const BORDER_COLOR_TODAY = "rgba(42, 155, 255, 0.3)";
+    const BACKGROUND_COLOR = "#6996b3";
+    const BORDER_COLOR = "#6996b3";
+    const BACKGROUND_COLOR_TODAY = "#004c6d";
+    const BORDER_COLOR_TODAY = "#004c6d";
 
-    let week_filter = new DateContainsFilter(get_this_week());
-
-    // TODO(ABurroughs): Should be for route
     let chart_data = {
       type: "bar",
       data: {

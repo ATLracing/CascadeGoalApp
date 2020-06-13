@@ -6,7 +6,7 @@
 
     <ion-buttons slot="end">
       <ion-button (click)="toggle_analytics()">
-        <ion-icon slot="icon-only" name="analytics"></ion-icon>
+        <ion-icon slot="icon-only" name="analytics" color="{{toggle_analytics_color_}}"></ion-icon>
       </ion-button>
       <ion-button (click)="lock_unlock_editing()">
         <ion-icon slot="icon-only" name="clipboard" color="{{editing_unlocked_color_}}"></ion-icon>
@@ -21,6 +21,7 @@
 
 <ion-content>
   <week-bar-chart *ngIf="display_analytics_" [tasks]="complete_tasks_"></week-bar-chart>
+  <week-donut-chart *ngIf="display_analytics_" [tasks]="all_tasks_"></week-donut-chart>
   <ion-list>
     <ion-item-divider *ngIf="overdue_tasks_.length > 0">
       <ion-label>Overdue ({{overdue_tasks_.length}})</ion-label>

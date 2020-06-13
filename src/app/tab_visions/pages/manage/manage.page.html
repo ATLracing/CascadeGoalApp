@@ -6,7 +6,7 @@
 
     <ion-buttons *ngIf="vision_index_ < expanded_visions_.length" slot="end">
       <ion-button (click)="toggle_set_to_week_mode()">
-        <ion-icon slot="icon-only" name="calendar"></ion-icon>
+        <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
       </ion-button>
       <ion-button (click)="edit_vision()">
         <ion-icon slot="icon-only" name="create"></ion-icon>
