@@ -43,7 +43,7 @@ export class WeekDonutChartComponent implements AfterViewInit, OnChanges, OnDest
         options: {
           legend: {
           //   display: false
-            onClick: undefined
+            onClick: null
           },
           title: {
             display: true,

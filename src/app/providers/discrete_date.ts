@@ -66,7 +66,7 @@ export function get_day(day: number, week: number, year: number) : DiscreteDate
 
 export function get_week(week: number, year: number) : DiscreteDate
 {
-    return {day: undefined, week: week, year: year};
+    return {day: null, week: week, year: year};
 }
 
 export function get_today() : DiscreteDate
@@ -78,12 +78,12 @@ export function get_today() : DiscreteDate
 export function get_this_week() : DiscreteDate
 {
     let date = new Date();
-    return { day: undefined, week: get_iso_week_from_date(date), year: get_iso_week_year_from_date(date) };
+    return { day: null, week: get_iso_week_from_date(date), year: get_iso_week_year_from_date(date) };
 }
 
 export function get_null_date(): DiscreteDate
 {
-    return {day: undefined, week: undefined, year: undefined};
+    return {day: null, week: null, year: null};
 }
 
 function compare_spec(date: DiscreteDate, spec: DiscreteDate, operator: (lhs: number, rhs: number) => boolean) : boolean

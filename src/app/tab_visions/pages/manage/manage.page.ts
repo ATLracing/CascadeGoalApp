@@ -105,7 +105,7 @@ export class ManagePage {
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.goal_add(new_task); },
-        delete_callback: undefined
+        delete_callback: null
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
@@ -135,7 +135,7 @@ export class ManagePage {
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
-        delete_callback: undefined
+        delete_callback: null
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
@@ -158,7 +158,7 @@ export class ManagePage {
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.vision_add(new_task); },
-        delete_callback: undefined
+        delete_callback: null
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
@@ -181,7 +181,7 @@ export class ManagePage {
 
         // Callbacks
         save_callback: (vision: InflatedRecord.TgvNode) => { this.database_manager_.vision_set_basic_attributes(vision); },
-        delete_callback: undefined
+        delete_callback: null
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);

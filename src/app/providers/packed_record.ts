@@ -61,8 +61,8 @@ export class TgvNode
         
         this.name = inflated_node.name;
         this.details = inflated_node.details;
-        this.date_created = inflated_node.date_created ? inflated_node.date_created.toISOString() : undefined;
-        this.date_closed = inflated_node.date_closed ? inflated_node.date_closed.toISOString() : undefined;
+        this.date_created = inflated_node.date_created ? inflated_node.date_created.toISOString() : null;
+        this.date_closed = inflated_node.date_closed ? inflated_node.date_closed.toISOString() : null;
         this.resolution = inflated_node.resolution;
 
         this.day = inflated_node.discrete_date.day;

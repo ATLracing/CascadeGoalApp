@@ -30,7 +30,7 @@ export class ComponentAssociate implements OnInit {
   {
     if (i == -1)
     {
-      this.modal_controller_.dismiss(undefined);
+      this.modal_controller_.dismiss(null);
     }
     else if (this.tab_ === "goals")
     {

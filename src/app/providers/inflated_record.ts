@@ -8,6 +8,7 @@
 import * as PackedRecord from 'src/app/providers/packed_record';
 import { CalendarManager } from './calendar_manager';
 import { DiscreteDate, get_null_date, get_today, prior_to, get_this_week, get_level, DiscreteDateLevel } from './discrete_date';
+import * as _ from 'lodash';
 
 export type ID = number;
 
@@ -74,8 +75,8 @@ export class TgvNode
     constructor(packed_node: PackedRecord.TgvNode)
     {
         // Node pointers
-        this.parent = undefined;
-        this.children = undefined;
+        this.parent = null;
+        this.children = null;
 
         // Node info
         this.id = packed_node.id;
@@ -86,8 +87,8 @@ export class TgvNode
         
         this.name = packed_node.name;
         this.details = packed_node.details;
-        this.date_created = packed_node.date_created ? new Date(packed_node.date_created) : undefined;
-        this.date_closed = packed_node.date_closed ? new Date(packed_node.date_closed) : undefined;
+        this.date_created = packed_node.date_created ? new Date(packed_node.date_created) : null;
+        this.date_closed = packed_node.date_closed ? new Date(packed_node.date_closed) : null;
         this.resolution = packed_node.resolution;
         
         this.discrete_date = { day: packed_node.day, week: packed_node.week, year: packed_node.year };
@@ -104,36 +105,36 @@ export class TgvNode
 
 export function construct_empty_node(type: Type) : TgvNode
 {
-    return { parent: undefined,
-             children: undefined,
-             id: undefined,
+    return { parent: null,
+             children: null,
+             id: null,
              owner: "",
              users: [],
              type: type,
              name: "",
              details: "",
              date_created: new Date(),
-             date_closed: undefined,
+             date_closed: null,
              resolution: Resolution.ACTIVE,
              discrete_date: get_null_date(),
              discrete_date_completed: get_null_date(),
              abandoned_day_count: 0,
              abandoned_week_count: 0,
-             parent_id: undefined,
-             extra: undefined
+             parent_id: null,
+             extra: null
             };
 }
 
 export function copy_node(node: TgvNode) : TgvNode
 {
     // TODO
-    node.parent = undefined;
+    node.parent = null;
     node.children = [];
 
     let copy = JSON.parse(JSON.stringify(node));
     
     copy.parent = parent;
-    copy.date_closed  = node.date_closed ? new Date(copy.date_closed) : undefined;
+    copy.date_closed  = node.date_closed ? new Date(copy.date_closed) : null;
     copy.date_created = new Date(copy.date_created);
     
     return copy;
@@ -174,7 +175,7 @@ export class Vision extends TgvNode{};
 // ============================================================================ Query for Properties
 export function is_active(node : TgvNode) : boolean
 {
-    return node.date_closed == undefined;
+    return node.date_closed == null;
 }
 
 // ========================================================================================= Actions
@@ -185,7 +186,7 @@ export function resolve(resolution: Resolution, /*out*/ node: TgvNode)
 
     if (resolution == Resolution.ACTIVE)
     {
-        node.date_closed = undefined;
+        node.date_closed = null;
         node.discrete_date_completed = get_null_date();
     }
     else
@@ -230,10 +231,48 @@ export function set_this_week(/*out*/ node: TgvNode)
 
 export function clear_day(/*out*/ node: TgvNode)
 {
-    set_date({day: undefined, week: node.discrete_date.week, year: node.discrete_date.year}, node);
+    set_date({day: null, week: node.discrete_date.week, year: node.discrete_date.year}, node);
 }
 
 export function clear_week(/*out*/ node: TgvNode)
 {
     set_date(get_null_date(), node);
+}
+
+// TODO(ABurroughs): Possibly useless
+export function update(updated_node_list: TgvNode[], existing_node_list: TgvNode[])
+{
+    if (updated_node_list.length != existing_node_list.length)
+        return false;
+
+
+    for (let i = 0; i < updated_node_list.length; i++)
+    {
+        let existing = existing_node_list[i];
+        let updated = updated_node_list[i];
+
+        let update = existing == null;
+
+        if (!update)
+        {
+            let existing_packed = new PackedRecord.TgvNode(existing);
+            let updated_packed = new PackedRecord.TgvNode(updated);
+            update = !_.isEqual(existing_packed, updated_packed);
+        }
+
+        if (update)
+        {
+            // DEBUG
+            if (existing)
+            {
+                let existing_packed = new PackedRecord.TgvNode(existing);
+                let updated_packed = new PackedRecord.TgvNode(updated);
+                let a = 0;
+            }
+            
+            existing_node_list[i] = updated;
+        }
+    }
+
+    return true;
 }

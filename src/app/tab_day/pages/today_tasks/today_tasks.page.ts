@@ -77,7 +77,7 @@ export class TaskListPage implements OnDestroy {
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
-        delete_callback: undefined
+        delete_callback: null
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);

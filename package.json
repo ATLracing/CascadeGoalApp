@@ -33,6 +33,7 @@
     "cordova-sqlite-storage": "3.4.0",
     "core-js": "^2.6.11",
     "hammerjs": "^2.0.8",
+    "lodash": "^4.17.15",
     "rxjs": "^6.5.5",
     "tslib": "^1.13.0",
     "uk.co.workingedge.cordova.plugin.sqliteporter": "^1.1.1",
