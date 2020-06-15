@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { DiscreteDateLevel, get_level, get_this_week } from 'src/app/providers/discrete_date';
+import { DatabaseInflator } from 'src/app/providers/database_inflator';
 
 @Component({
   selector: 'app-week-tasks',
@@ -39,11 +40,19 @@ export class WeekTasksPage implements OnDestroy {
 
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {                  
       // Query all tasks for the week
-      this.overdue_tasks_ = await database_manager_.query_tasks([new DatePriorFilter(get_this_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true) ]);
-      this.active_tasks_ = await database_manager_.query_tasks([new DateContainsFilter(get_this_week()), new ActiveFilter(true) /*, new CustomFilter(`NOT day<${today.day}`)*/]);
-      this.complete_tasks_ = await database_manager_.query_tasks([new DateCompletedContainsFilter(get_this_week())]);
+      let overdue_tasks = await database_manager_.query_tasks([new DatePriorFilter(get_this_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true) ]);
+      let active_tasks = await database_manager_.query_tasks([new DateContainsFilter(get_this_week()), new ActiveFilter(true)]);
+      let complete_tasks = await database_manager_.query_tasks([new DateCompletedContainsFilter(get_this_week())]);
+      let all_tasks = overdue_tasks.concat(active_tasks).concat(complete_tasks);
 
-      this.all_tasks_ = this.overdue_tasks_.concat(this.active_tasks_).concat(this.complete_tasks_);
+      // Inflate tasks
+      await DatabaseInflator.upward_inflate(all_tasks, database_manager_);
+
+      // Update list pointers
+      this.overdue_tasks_ = overdue_tasks;
+      this.active_tasks_ = active_tasks;
+      this.complete_tasks_ = complete_tasks;
+      this.all_tasks_ = all_tasks;
     });
   }
 

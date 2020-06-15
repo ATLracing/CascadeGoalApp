@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ConfigureTgvPageSettings } from '../configure_tgv/configure_tgv.page';
 import { get_today, DiscreteDateLevel } from 'src/app/providers/discrete_date';
+import { DatabaseInflator } from 'src/app/providers/database_inflator';
 
 @Component({
   selector: 'app-tab1',
@@ -29,34 +30,17 @@ export class TaskListPage implements OnDestroy {
     database_manager_.register_data_updated_callback("today_tasks_page", async () => {              
         let today = get_today();
       
-        this.overdue_tasks_ = await database_manager_.query_tasks([new DatePriorFilter(today), new DateLevelFilter(DiscreteDateLevel.DAY), new ActiveFilter(true)]);
-        this.active_tasks_ = await database_manager_.query_tasks([new DateContainsFilter(today), new ActiveFilter(true)]);
-        this.complete_tasks_ = await database_manager_.query_tasks([new DateCompletedContainsFilter(today)]);
+        let overdue_tasks = await database_manager_.query_tasks([new DatePriorFilter(today), new DateLevelFilter(DiscreteDateLevel.DAY), new ActiveFilter(true)]);
+        let active_tasks = await database_manager_.query_tasks([new DateContainsFilter(today), new ActiveFilter(true)]);
+        let complete_tasks = await database_manager_.query_tasks([new DateCompletedContainsFilter(today)]);
 
-        // Get parent
-        for (let task of this.active_tasks_)
-        {
-          if (task.parent_id)
-          {
-            task.parent = await database_manager_.get_node(task.parent_id);
-          }
-        }
+        let all_tasks = overdue_tasks.concat(active_tasks).concat(complete_tasks);
 
-        // Append extra info
-        for (let task of this.active_tasks_)
-        {
-            task.extra.completed = !InflatedRecord.is_active(task);
-            task.extra.expanded = false;
+        await DatabaseInflator.upward_inflate(all_tasks, database_manager_);
 
-            if (task.extra.carried)
-            {
-                task.extra.style = {'color': 'orange'}
-            }
-            else
-            {
-                task.extra.style = {};
-            }
-        }
+        this.overdue_tasks_ = overdue_tasks;
+        this.active_tasks_ = active_tasks;
+        this.complete_tasks_ = complete_tasks;
     });
   }
 

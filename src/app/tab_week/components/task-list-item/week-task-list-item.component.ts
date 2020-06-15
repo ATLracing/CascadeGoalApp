@@ -5,7 +5,7 @@ import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { get_level, DiscreteDateLevel, get_today, contains, prior_to } from 'src/app/providers/discrete_date';
+import { get_level, DiscreteDateLevel, get_today, contains, prior_to, get_this_week } from 'src/app/providers/discrete_date';
 
 @Component({
   selector: 'week-task-list-item',
@@ -100,12 +100,9 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges {
     
     // Configure icon style
     this.icon_color_ = "black";
-
     if (overdue_day)
     {
       this.icon_color_ = 'warning';
     }
-
-    this.database_manager_.get_node(this.task.parent_id).then(parent => { this.task.parent = parent; });
   }
 }

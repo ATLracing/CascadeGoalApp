@@ -1,6 +1,7 @@
 import { DatabaseManager, ParentFilter, QueryFilter, IdSetFilter, TypeFilter } from './database_manager'
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
+import { notEqual } from 'assert';
 
 export class DatabaseInflator
 {
@@ -81,6 +82,7 @@ export class DatabaseInflator
         return parent_node;
     }
 
+
     private static async inflate_parent_layer(child_nodes : InflatedRecord.TgvNode[],
                                               level : PackedRecord.Type,
                                               database_manager : DatabaseManager) : Promise<InflatedRecord.TgvNode[]>
@@ -151,16 +153,43 @@ export class DatabaseInflator
     }
 
     // Upward min-tree construction
-    static async construct_tree_from_tasks(tasks : InflatedRecord.Task[], level : InflatedRecord.Type, database_manager : DatabaseManager) : Promise<InflatedRecord.TgvNode[]>
+    static async upward_inflate(nodes : InflatedRecord.TgvNode[], database_manager : DatabaseManager)
     {
-        // Inflate packed_tasks
-        let inflated_tasks : InflatedRecord.TgvNode[] = [];
+        let parent_id_map = new Map<InflatedRecord.ID, InflatedRecord.TgvNode[]>(); // Parent ID -> Child
 
-        for (let task of tasks)
+        for (let node of nodes)
         {
-            inflated_tasks.push(task);
+            if (node.parent_id)
+            {
+                if (!parent_id_map.has(node.parent_id))
+                {
+                    parent_id_map.set(node.parent_id, [node]);
+                }
+                else
+                {
+                    let children = parent_id_map.get(node.parent_id);
+                    children.push(node);
+                    parent_id_map.set(node.parent_id, children);
+                }
+            }
         }
 
-        return DatabaseInflator.inflate_parent_layer(inflated_tasks, level, database_manager);
+        let query_ids = Array.from(parent_id_map.keys());
+
+        if (query_ids.length > 0)
+        {
+            let parent_nodes = await database_manager.query_nodes([new IdSetFilter(query_ids, true)]);
+            this.upward_inflate(parent_nodes, database_manager);
+
+            for (let parent of parent_nodes)
+            {
+                parent.children = parent_id_map.get(parent.id);
+                
+                for (let child of parent.children)
+                {
+                    child.parent = parent;
+                }
+            }
+        }
     }
 }
