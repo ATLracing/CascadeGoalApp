@@ -101,15 +101,15 @@ export class DateContainsFilter implements QueryFilter
     {
         let where_clause = "";
 
-        if (this.date.year)
+        if (this.date.year != null)
         {
             where_clause += `year=${this.date.year}`;
         }
-        if (this.date.week)
+        if (this.date.week != null)
         {
             where_clause += ` AND week=${this.date.week}`;
         }
-        if (this.date.day)
+        if (this.date.day != null)
         {
             where_clause += ` AND day=${this.date.day}`;
         }
@@ -128,15 +128,15 @@ export class DateCompletedContainsFilter implements QueryFilter
     {
         let where_clause = "";
 
-        if (this.date.year)
+        if (this.date.year != null)
         {
             where_clause += `year_completed=${this.date.year}`;
         }
-        if (this.date.week)
+        if (this.date.week != null)
         {
             where_clause += ` AND week_completed=${this.date.week}`;
         }
-        if (this.date.day)
+        if (this.date.day != null)
         {
             where_clause += ` AND day_completed=${this.date.day}`;
         }
@@ -155,15 +155,15 @@ export class DatePriorFilter implements QueryFilter
     {
         let where_clause = "";
 
-        if (this.date.year)
+        if (this.date.year != null)
         {
             where_clause += `year<${this.date.year}`;
         }
-        if (this.date.week)
+        if (this.date.week != null)
         {
             where_clause += ` OR year=${this.date.year} AND week<${this.date.week}`;
         }
-        if (this.date.day)
+        if (this.date.day != null)
         {
             where_clause += ` OR year=${this.date.year} AND week=${this.date.week} AND day<${this.date.day}`;
         }

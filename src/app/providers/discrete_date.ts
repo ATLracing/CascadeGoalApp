@@ -92,15 +92,15 @@ export function contains(containee: DiscreteDate, container: DiscreteDate)
     if (!containee)
         return false
 
-    if (container.year && containee.year != container.year)
+    if (container.year != null && containee.year != container.year)
     {
         return false;
     }
-    if (container.week && containee.week != container.week)
+    if (container.week != null && containee.week != container.week)
     {
         return false;
     }
-    if (container.day && containee.day != container.day)
+    if (container.day != null && containee.day != container.day)
     {
         return false;
     }
@@ -114,23 +114,23 @@ export function prior_to(date: DiscreteDate, spec: DiscreteDate)
     if (!date)
         return false
 
-    if (spec.year && date.year != spec.year)
+    if (spec.year != null && date.year != spec.year)
     {
-        if (!date.year)
+        if (date.year == null)
             return false;
         
         return date.year < spec.year;
     }
-    if (spec.week && date.week != spec.week)
+    if (spec.week != null && date.week != spec.week)
     {
-        if (!date.week)
+        if (date.week == null)
             return false;
 
         return date.week < spec.week;
     }
-    if (spec.day)
+    if (spec.day != null)
     {
-        if (!date.day)
+        if (date.day == null)
             return false;
 
         return date.day < spec.day;
@@ -141,11 +141,11 @@ export function prior_to(date: DiscreteDate, spec: DiscreteDate)
 
 export function get_level(date: DiscreteDate)
 {
-    if (date.day)
+    if (date.day != null)
         return DiscreteDateLevel.DAY;
-    if (date.week)
+    if (date.week != null)
         return DiscreteDateLevel.WEEK;
-    if (date.year)
+    if (date.year != null)
         return DiscreteDateLevel.YEAR;
 
     return DiscreteDateLevel.NULL;
