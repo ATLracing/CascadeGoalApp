@@ -86,7 +86,29 @@ export function get_null_date(): DiscreteDate
     return {day: null, week: null, year: null};
 }
 
-function compare_spec(date: DiscreteDate, spec: DiscreteDate, operator: (lhs: number, rhs: number) => boolean) : boolean
+export function contains(containee: DiscreteDate, container: DiscreteDate)
+{
+    // TODO(ABurroughs): assert(spec != undefined)
+    if (!containee)
+        return false
+
+    if (container.year && containee.year != container.year)
+    {
+        return false;
+    }
+    if (container.week && containee.week != container.week)
+    {
+        return false;
+    }
+    if (container.day && containee.day != container.day)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+export function prior_to(date: DiscreteDate, spec: DiscreteDate)
 {
     // TODO(ABurroughs): assert(spec != undefined)
     if (!date)
@@ -97,39 +119,24 @@ function compare_spec(date: DiscreteDate, spec: DiscreteDate, operator: (lhs: nu
         if (!date.year)
             return false;
         
-        return operator(date.year, spec.year);
+        return date.year < spec.year;
     }
     if (spec.week && date.week != spec.week)
     {
         if (!date.week)
             return false;
 
-        return operator(date.week, spec.week);
+        return date.week < spec.week;
     }
     if (spec.day)
     {
         if (!date.day)
             return false;
 
-        return operator(date.day, spec.day);
+        return date.day < spec.day;
     }
 
-    return true;
-}
-
-export function contains(containee: DiscreteDate, container: DiscreteDate)
-{
-    return compare_spec(containee, container, (a, b) => { return a == b; });
-}
-
-export function prior_to(date: DiscreteDate, spec: DiscreteDate)
-{
-    return compare_spec(date, spec, (a, b) => { return a < b; });
-}
-
-export function following(date: DiscreteDate, spec: DiscreteDate)
-{
-    return compare_spec(date, spec, (a, b) => { return a > b; });
+    return false;
 }
 
 export function get_level(date: DiscreteDate)

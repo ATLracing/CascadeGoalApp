@@ -127,13 +127,26 @@ export function construct_empty_node(type: Type) : TgvNode
 
 export function copy_node(node: TgvNode) : TgvNode
 {
-    // TODO
-    node.parent = null;
+    // Save parent/children
+    let parent = node.parent;
+    let children = node.children;
+
+    // Clear parent/children
+    node.parent = null
     node.children = [];
 
+    // Copy
     let copy = JSON.parse(JSON.stringify(node));
     
+    // Restore parent/children
+    node.parent = parent;
+    node.children = children;
+
+    // Add parent/children to copy (these are not copied)
     copy.parent = parent;
+    copy.children = children;
+
+    // TODO: Redundant with null?
     copy.date_closed  = node.date_closed ? new Date(copy.date_closed) : null;
     copy.date_created = new Date(copy.date_created);
     
@@ -203,14 +216,14 @@ export function set_date(date: DiscreteDate, /*out*/ node: TgvNode)
     
     if (is_active(node))  // TODO(ABurroughs): Completed tasks shouldn't be moved anyway
     {
-        if (prior_to(node.discrete_date, this_week))
+        if (prior_to(node.discrete_date, this_week) && get_level(node.discrete_date) == DiscreteDateLevel.WEEK)
         {
             node.abandoned_week_count++;
 
             if (get_level(node.discrete_date) == DiscreteDateLevel.DAY)
                 node.abandoned_day_count++;
         }
-        else if (prior_to(node.discrete_date, today))
+        else if (prior_to(node.discrete_date, today) && get_level(node.discrete_date) == DiscreteDateLevel.DAY)
         {
             node.abandoned_day_count++;
         }
