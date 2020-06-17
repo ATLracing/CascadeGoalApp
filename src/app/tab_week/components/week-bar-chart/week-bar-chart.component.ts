@@ -115,6 +115,8 @@ export class WeekBarChartComponent implements AfterViewInit, OnChanges {
 
     // Obtain # completed tasks for each day of the week
     let today = get_today();
+    let today_index = today.day;
+
     for (let task of this.tasks)
     {
       // All completed tasks are marked in the first dataset
@@ -122,24 +124,32 @@ export class WeekBarChartComponent implements AfterViewInit, OnChanges {
       {
         let index = task.discrete_date_completed.day;
         chart_data.data.datasets[0].data[index]++;
-        
-        if (task.discrete_date.day != task.discrete_date_completed.day)
+      }
+      // Add late and remaining tasks
+      else if (get_level(task.discrete_date) == DiscreteDateLevel.DAY)
+      {
+        // If the due date is this week, add it
+        if (contains(task.discrete_date, get_this_week()))
         {
+          let index = task.discrete_date.day;
           chart_data.data.datasets[1].data[index]++;
         }
-      }
-      
-      // If a task is late, it's added (completed or not)
-      // Otherwise, it's added for a day only if it's incomplete
-      if (get_level(task.discrete_date) == DiscreteDateLevel.DAY)
-      {
-        let index = task.discrete_date.day;
-        chart_data.data.datasets[1].data[index]++;
+
+        // If overdue, add to today
+        if (prior_to(task.discrete_date, today))
+        {
+          chart_data.data.datasets[1].data[today_index]++;
+        }
       }
     }
 
+    // Stack datasets
+    for (let i = 0; i < 7; i++)
+    {
+      chart_data.data.datasets[1].data[i] += chart_data.data.datasets[0].data[i];
+    }
+
     // Set today's color
-    let today_index = get_today().day;
     chart_data.data.datasets[0].backgroundColor[today_index] = BACKGROUND_COLOR_TODAY;
     chart_data.data.datasets[0].borderColor[today_index] = BORDER_COLOR_TODAY;
     
