@@ -15,6 +15,7 @@ export class GoalListItemComponent implements OnInit {
   @Input() add_mode: boolean;
   expanded_: boolean;
   show_list_: boolean;
+  text_style_ : {[key:string] : string};
 
   // TODO..
   static goal_id_map;
@@ -26,6 +27,8 @@ export class GoalListItemComponent implements OnInit {
   {
     if (!GoalListItemComponent.goal_id_map)
       GoalListItemComponent.goal_id_map = new Map<InflatedRecord.ID, boolean>();
+
+    this.text_style_ = {};
   }
 
   expand_collapse()
@@ -108,5 +111,10 @@ export class GoalListItemComponent implements OnInit {
   ngOnChanges()
   {
     this.show_list_ = this.expanded_ && this.goal.children.length > 0;
+
+    if (!InflatedRecord.is_active(this.goal))
+      this.text_style_['text-decoration'] = "line-through"; 
+    else
+      this.text_style_ = {};
   }
 }

@@ -3,7 +3,7 @@
   <ion-col>
     <ion-item>
       <ion-label (click)="expand_collapse()">
-        <h2>{{goal.name}}</h2>
+        <h2 [ngStyle]="text_style_">{{goal.name}}</h2>
         <ion-note>{{goal.children.length}} Tasks</ion-note>
       </ion-label>
       <ion-icon slot="start" name="flag"></ion-icon>
