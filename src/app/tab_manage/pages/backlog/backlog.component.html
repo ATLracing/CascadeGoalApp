@@ -1,0 +1,11 @@
+<ion-list>
+  <ion-item-divider>
+    <ion-label>Active ({{active_tasks_.length}})</ion-label>
+  </ion-item-divider>
+  <task-list-item *ngFor="let task of active_tasks_" [task]="task" [add_mode]="send_to_week_mode" [show_parent]="true"></task-list-item>
+
+  <ion-item-divider>
+    <ion-label>Recently Completed ({{complete_tasks_.length}})</ion-label>
+  </ion-item-divider>
+  <task-list-item *ngFor="let task of complete_tasks_" [task]="task" [add_mode]="send_to_week_mode" [show_parent]="true"></task-list-item>
+</ion-list>

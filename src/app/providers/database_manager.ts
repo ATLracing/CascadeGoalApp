@@ -1,13 +1,10 @@
-import { Injectable, Query } from '@angular/core';
-import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { Injectable } from '@angular/core';
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Platform } from '@ionic/angular';
 import { SQLitePorter } from '@ionic-native/sqlite-porter/ngx';
 import { SQLite, SQLiteObject } from '@ionic-native/sqlite/ngx';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject } from 'rxjs';
-import { inflate } from 'zlib';
 import { DiscreteDate, DiscreteDateLevel } from './discrete_date';
 
 // ============================================================================== Filter Abstraction
@@ -172,6 +169,33 @@ export class DatePriorFilter implements QueryFilter
     }
 };
 
+export class DateCompletedPriorFilter implements QueryFilter
+{
+    constructor(private date: DiscreteDate) 
+    {
+    }
+
+    get_where_clause()
+    {
+        let where_clause = "";
+
+        if (this.date.year != null)
+        {
+            where_clause += `year_completed<${this.date.year}`;
+        }
+        if (this.date.week != null)
+        {
+            where_clause += ` OR year_completed=${this.date.year} AND week_completed<${this.date.week}`;
+        }
+        if (this.date.day != null)
+        {
+            where_clause += ` OR year_completed=${this.date.year} AND week_completed=${this.date.week} AND day_completed<${this.date.day}`;
+        }
+
+        return where_clause;
+    }
+};
+
 export class DateLevelFilter implements QueryFilter
 {
     constructor(private level_: DiscreteDateLevel) 
@@ -221,12 +245,32 @@ export function join_where_clauses_and(filters : QueryFilter[])
     return where_clause;
 }
 
+export function join_or(filters : QueryFilter[]) : QueryFilter{
+    let where_clause = "";
+    
+    for (let i = 0; i < filters.length; i++)
+    {
+        if (filters[i].get_where_clause() === "")
+            continue;
+
+        if (i > 0)
+        {
+            where_clause += " OR "
+        }
+
+        where_clause += `(${filters[i].get_where_clause()})`
+    }
+
+    return new CustomFilter(where_clause);
+}
+
 // Full read/write strategy
 @Injectable()
 export class DatabaseManager
 {
     private static database_: SQLiteObject;
     private static initialized: boolean;
+    private static initialization_pending_: boolean;
 
     private static data_updated_callbacks: Map<string, any>;
 
@@ -238,8 +282,10 @@ export class DatabaseManager
         if (!DatabaseManager.data_updated_callbacks)
             DatabaseManager.data_updated_callbacks = new Map<string, any>();
 
-        if (DatabaseManager.initialized)
+        if (DatabaseManager.initialized || DatabaseManager.initialization_pending_)
             return;
+
+        DatabaseManager.initialization_pending_ = true;
 
         this.platform_.ready().then(() => {
             this.sqlite_.create({
@@ -249,7 +295,6 @@ export class DatabaseManager
             .then((db: SQLiteObject) => {
                 DatabaseManager.database_ = db;
                 this.seed_database();
-                DatabaseManager.initialized = true;
             });
         });
     }
@@ -259,6 +304,8 @@ export class DatabaseManager
         .subscribe(sql => {
         this.sqlite_porter_.importSqlToDb(DatabaseManager.database_, sql)
             .then(_ => {
+                console.log("Database Initialized!");
+                DatabaseManager.initialized = true;
                 DatabaseManager.execute_data_updated_callbacks();
             })
             .catch(e => console.error(e));
@@ -287,6 +334,9 @@ export class DatabaseManager
     // Query for list of TVG nodes
     query_packed_tvg_nodes(filters ?: QueryFilter[]) : Promise<PackedRecord.TgvNode[]>
     {
+        if (!DatabaseManager.database_)
+            return new Promise<PackedRecord.TgvNode[]>(() => { return []});
+
         let where_clause = "";
         
         if (filters)
@@ -297,7 +347,7 @@ export class DatabaseManager
         {
             query_str = `SELECT * from ${PackedRecord.TGV_TABLE}`;
         }
-
+        
         return DatabaseManager.database_.executeSql(query_str, []).then(result => {
             let child_rows : PackedRecord.TgvNode[] = [];
             

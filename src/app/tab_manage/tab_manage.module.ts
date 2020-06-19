@@ -2,12 +2,14 @@ import { IonicModule } from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ManagePage } from './pages/manage/manage.page';
-import { TabManageRoutingModule } from './tab_visions-router.module';
+import { VisionsPage } from './pages/visions/visions.page';
+import { TabManageRoutingModule } from './tab_manage-router.module';
 import { TabTasksModule } from '../tab_day/tab_day.module';
 import { GoalListItemComponent } from './components/goal-list-item/goal-list-item.component';
 import { TaskListItemComponent } from './components/task-list-item/task-list-item.component';
 import { SettingsComponent } from './components/settings/settings';
+import { ManagePage } from './pages/manage/manage.component';
+import { BacklogPage } from './pages/backlog/backlog.component';
 
 @NgModule({
   imports: [
@@ -18,6 +20,6 @@ import { SettingsComponent } from './components/settings/settings';
     TabTasksModule,
   ],
   entryComponents: [SettingsComponent],
-  declarations: [ManagePage, GoalListItemComponent, TaskListItemComponent, SettingsComponent ]
+  declarations: [ManagePage, VisionsPage, BacklogPage, GoalListItemComponent, TaskListItemComponent, SettingsComponent ]
 })
 export class Tab3PageModule {}

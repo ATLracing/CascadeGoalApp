@@ -1,3 +1,26 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-menu contentId="content" side="start">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Manage</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-list>
+        <ion-item (click)="select_page(0)" [color]="page_number_ == 0 ? 'primary' : undefined"> 
+          <ion-icon slot="start" name="eye"></ion-icon>
+          <ion-label>Visions</ion-label>
+        </ion-item>
+        <ion-item (click)="select_page(1)" [color]="page_number_ == 1 ? 'primary' : undefined">
+          <ion-icon slot="start" name="list"></ion-icon>
+          <ion-label>Backlog</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-label>Show All</ion-label>
+          <ion-toggle slot="start" (ionChange)="show_completed_change($event)"></ion-toggle>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-menu>
+  <ion-router-outlet id="content"></ion-router-outlet>
 </ion-app>

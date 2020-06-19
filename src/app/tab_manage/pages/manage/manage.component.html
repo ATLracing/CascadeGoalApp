@@ -1,0 +1,34 @@
+<ion-header>
+    <ion-toolbar *ngIf="current_page_ == 0">
+      <ion-title>
+        {{toolbar_title_}}
+      </ion-title>
+      <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
+      <ion-buttons *ngIf="toolbar_display_buttons_" slot="end">
+        <ion-button (click)="toggle_send_to_week_mode()">
+          <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
+        </ion-button>
+        <ion-button (click)="edit_vision()">
+          <ion-icon slot="icon-only" name="create"></ion-icon>
+        </ion-button>
+    </ion-buttons>
+    </ion-toolbar>
+
+    <ion-toolbar *ngIf="current_page_ == 1">
+      <ion-title>Backlog</ion-title>
+      <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
+      <ion-buttons *ngIf="toolbar_display_buttons_" slot="end">
+        <ion-button (click)="toggle_send_to_week_mode()">
+          <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
+        </ion-button>
+        <ion-button (click)="add_task_backlog()">
+          <ion-icon slot="icon-only" name="add-circle"></ion-icon>
+        </ion-button>
+    </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+<ion-content>
+    <visions-page *ngIf="current_page_ == 0" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_" (vision_changed)="vision_changed($event)"></visions-page>
+    <backlog-page *ngIf="current_page_ == 1" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_"></backlog-page>
+</ion-content>

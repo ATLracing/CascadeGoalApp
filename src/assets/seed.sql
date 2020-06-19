@@ -32,6 +32,6 @@ CREATE TABLE IF NOT EXISTS tgv_nodes_tbl(id INTEGER PRIMARY KEY AUTOINCREMENT,
 --                                     task_ids TEXT);
 
 -- INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, NULL, "vision", "First Vision", "Deets", NULL, NULL, 0, 3, 24, 2020, NULL, NULL, NULL, 0, 0);
--- INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, 1, "task", "Task Today", "Deets", NULL, NULL, 0, 3, 24, 2020, NULL, NULL, NULL, 0, 0);
+-- INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, 1, "task", "Task Todayaa", "Deets", "2020-06-19T07:18:52.815Z", "2020-06-19T07:18:52.815Z", 1, 3, 24, 2020, 3, 24, 2020, 0, 0);
 -- INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, 1, "task", "Task Yesterday", "Deets", NULL, NULL, 0, 2, 24, 2020, NULL, NULL, NULL, 0, 0);
 -- INSERT into tgv_nodes_tbl VALUES (NULL, NULL, NULL, 1, "task", "Last Week", "Deets", NULL, NULL, 0, NULL, 23, 2020, NULL, NULL, NULL, 0, 0);

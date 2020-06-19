@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ManagePage } from './pages/manage/manage.page';
 import { ConfigureTgvPage } from '../tab_day/pages/configure_tgv/configure_tgv.page';
+import { ManagePage } from './pages/manage/manage.component';
 
 const routes: Routes = [
   { path: '', component: ManagePage},

@@ -14,6 +14,7 @@ import { get_this_week, contains, get_today, prior_to } from 'src/app/providers/
 export class TaskListItemComponent implements OnInit, OnChanges{
   @Input() task: InflatedRecord.Task;
   @Input() add_mode: boolean;
+  @Input() show_parent: boolean;
   add_mode_disabled_ : boolean;
   text_style_ : {[key:string] : string};
   icon_color_ : string;
