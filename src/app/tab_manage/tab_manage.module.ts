@@ -10,6 +10,7 @@ import { TaskListItemComponent } from './components/task-list-item/task-list-ite
 import { SettingsComponent } from './components/settings/settings';
 import { ManagePage } from './pages/manage/manage.component';
 import { BacklogPage } from './pages/backlog/backlog.component';
+import { GoalBacklogPage } from './pages/goal-backlog/goal-backlog.component';
 
 @NgModule({
   imports: [
@@ -20,6 +21,6 @@ import { BacklogPage } from './pages/backlog/backlog.component';
     TabTasksModule,
   ],
   entryComponents: [SettingsComponent],
-  declarations: [ManagePage, VisionsPage, BacklogPage, GoalListItemComponent, TaskListItemComponent, SettingsComponent ]
+  declarations: [ManagePage, VisionsPage, BacklogPage, GoalBacklogPage, GoalListItemComponent, TaskListItemComponent, SettingsComponent ]
 })
 export class Tab3PageModule {}

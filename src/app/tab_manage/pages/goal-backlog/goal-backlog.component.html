@@ -1,0 +1,11 @@
+<ion-list>
+  <ion-item-divider>
+    <ion-label>Active ({{active_goals_.length}})</ion-label>
+  </ion-item-divider>
+  <goal-list-item *ngFor="let goal of active_goals_" [goal]="goal" [add_mode]="send_to_week_mode"></goal-list-item>
+
+  <ion-item-divider>
+    <ion-label>Completed ({{completed_goals_.length}})</ion-label>
+  </ion-item-divider>
+  <goal-list-item *ngFor="let goal of completed_goals_" [goal]="goal" [add_mode]="send_to_week_mode"></goal-list-item>
+</ion-list>

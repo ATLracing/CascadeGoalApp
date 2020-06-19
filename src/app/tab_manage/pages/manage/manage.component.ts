@@ -134,7 +134,31 @@ export class ManagePage implements OnInit {
         enable_completion_status: false,
 
         // Callbacks
-        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.vision_add(new_task); },
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        delete_callback: null
+    };
+
+    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
+    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
+  }
+
+  
+  add_goal_backlog()
+  {
+    let new_goal = InflatedRecord.construct_empty_node(InflatedRecord.Type.GOAL);
+
+    let configure_tgv_settings : ConfigureTgvPageSettings =
+    {
+        // Node to configure (must have type field correctly set)
+        tgv_node: new_goal,
+        
+        // Display elements
+        title: "New Goal",
+        enable_associate: true,
+        enable_completion_status: false,
+
+        // Callbacks
+        save_callback: (new_goal: InflatedRecord.TgvNode) => { this.database_manager_.goal_add(new_goal); },
         delete_callback: null
     };
 

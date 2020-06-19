@@ -12,8 +12,12 @@
           <ion-label>Visions</ion-label>
         </ion-item>
         <ion-item (click)="select_page(1)" [color]="page_number_ == 1 ? 'primary' : undefined">
+          <ion-icon slot="start" name="flag"></ion-icon>
+          <ion-label>Goals</ion-label>
+        </ion-item>
+        <ion-item (click)="select_page(2)" [color]="page_number_ == 2 ? 'primary' : undefined">
           <ion-icon slot="start" name="list"></ion-icon>
-          <ion-label>Backlog</ion-label>
+          <ion-label>Tasks</ion-label>
         </ion-item>
         <ion-item>
           <ion-label>Show All</ion-label>
