@@ -84,7 +84,7 @@ export class WeekTasksPage implements OnDestroy {
         enable_completion_status: false,
 
         // Callbacks
-        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
         delete_callback: null
     };
 
@@ -106,10 +106,9 @@ export class WeekTasksPage implements OnDestroy {
 
         // Callbacks
         save_callback: (edited_task: InflatedRecord.TgvNode) => { 
-          this.database_manager_.task_set_basic_attributes(edited_task, true); 
-          this.database_manager_.task_set_parent(edited_task.id, edited_task.parent_id)
+          this.database_manager_.tgv_set_basic_attributes(edited_task); 
         },
-        delete_callback: (edited_task: InflatedRecord.TgvNode) => { this.database_manager_.task_remove(edited_task.id); }
+        delete_callback: (edited_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_remove(edited_task); }
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
@@ -129,7 +128,7 @@ export class WeekTasksPage implements OnDestroy {
       InflatedRecord.set_today(task);
     }
 
-    this.database_manager_.task_set_basic_attributes(task);
+    this.database_manager_.tgv_set_basic_attributes(task);
   }
 
   remove(index: number, is_active: boolean)
@@ -137,7 +136,7 @@ export class WeekTasksPage implements OnDestroy {
     let remove_task = is_active ? this.active_tasks_[index] : this.complete_tasks_[index];
     InflatedRecord.clear_week(remove_task);
 
-    this.database_manager_.task_set_basic_attributes(remove_task);
+    this.database_manager_.tgv_set_basic_attributes(remove_task);
   }
 
   ngOnDestroy()

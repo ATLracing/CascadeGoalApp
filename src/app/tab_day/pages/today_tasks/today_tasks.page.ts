@@ -60,7 +60,7 @@ export class TaskListPage implements OnDestroy {
         enable_completion_status: false,
 
         // Callbacks
-        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
         delete_callback: null
     };
 

@@ -21,7 +21,7 @@ export class WeekDonutChartComponent implements AfterViewInit, OnChanges, OnDest
     this.after_init_ = false;
   }
 
-  async update_chart_data()
+  update_chart_data()
   {
     // Set default
     let chart_data = {
@@ -63,7 +63,7 @@ export class WeekDonutChartComponent implements AfterViewInit, OnChanges, OnDest
     }
   
     // Inflate tasks
-    await DatabaseInflator.upward_inflate(this.tasks, this.database_manager_);
+    //await DatabaseInflator.upward_inflate(this.tasks, this.database_manager_);
     
     // Count visions
     let vision_name_map = new Map<string, number>();
@@ -78,13 +78,13 @@ export class WeekDonutChartComponent implements AfterViewInit, OnChanges, OnDest
 
     for (let task of this.tasks)
     {
-      if (task.parent)
+      if (task.parent != undefined)
       {
         if (task.parent.type == InflatedRecord.Type.VISION)
         {
           add_to_map(task.parent.name, 1);
         }
-        else if (task.parent.parent)
+        else if (task.parent.parent != undefined)
         {
           // Must be a vision
           add_to_map(task.parent.parent.name, 1);

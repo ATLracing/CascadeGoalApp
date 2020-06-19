@@ -113,7 +113,7 @@ export class VisionsPage {
         enable_completion_status: false,
 
         // Callbacks
-        save_callback: (new_vision: InflatedRecord.TgvNode) => { this.database_manager_.vision_add(new_vision); },
+        save_callback: (new_vision: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_vision); },
         delete_callback: null
     };
 
@@ -143,7 +143,7 @@ export class VisionsPage {
         enable_completion_status: false,
 
         // Callbacks
-        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.goal_add(new_task); },
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
         delete_callback: null
     };
 
@@ -173,7 +173,7 @@ export class VisionsPage {
         enable_completion_status: false,
 
         // Callbacks
-        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
         delete_callback: null
     };
 

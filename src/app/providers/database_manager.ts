@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Type } from '@angular/core';
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Platform } from '@ionic/angular';
@@ -478,8 +478,8 @@ export class DatabaseManager
 
     // ====================================================================================== Modify
     // ===== General
-    private tgv_add(inflated_node : InflatedRecord.TgvNode,
-                    no_callbacks?: boolean) : Promise<InflatedRecord.ID>
+    tgv_add(inflated_node : InflatedRecord.TgvNode,
+            no_callbacks?: boolean) : Promise<InflatedRecord.ID>
     {
         let packed_node = new PackedRecord.TgvNode(inflated_node);
 
@@ -489,30 +489,36 @@ export class DatabaseManager
         });
     }
 
-    private tgv_remove(unique_id: InflatedRecord.ID,
-                       no_callbacks?: boolean) : Promise<any>
+    async tgv_remove(inflated_node : InflatedRecord.TgvNode,
+                     no_callbacks?: boolean) : Promise<any>
     {
-        return DatabaseManager.database_.executeSql(`DELETE from ${PackedRecord.TGV_TABLE} where id=?`, [unique_id]).then(result => {
+        // TODO(ABurroughs): This should assign orphaned tasks of vision-associated goals to the
+        // associated vision.
+        // Clear parents of child nodes
+        if (inflated_node.type != InflatedRecord.Type.TASK)
+        {
+            let children = await this.query_nodes([new ParentFilter(inflated_node.id, true)]);
+            let child_ids = [];
+            for (let child of children) { child_ids.push(child.id); }
+
+            if (child_ids.length > 0)
+            {
+                let id_set_filter = new IdSetFilter(child_ids, true);
+                await DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=NULL WHERE ${id_set_filter.get_where_clause()}`, []);
+            }
+        }
+
+        return DatabaseManager.database_.executeSql(`DELETE from ${PackedRecord.TGV_TABLE} where id=?`, [inflated_node.id]).then(result => {
             DatabaseManager.execute_data_updated_callbacks(no_callbacks);
             return result;
         });
     }
     
-    private tgv_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
-                                     no_callbacks?: boolean) : Promise<any>
+    tgv_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
+                             no_callbacks?: boolean) : Promise<any>
     {
         let packed_node = new PackedRecord.TgvNode(inflated_node);
-        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET name=?, details=?, date_created=?, date_closed=?, resolution=?, day=?, week=?, year=?, day_completed=?, week_completed=?, year_completed=?, abandoned_day_count=?, abandoned_week_count=? WHERE id=?`, [packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.resolution, packed_node.day, packed_node.week, packed_node.year, packed_node.day_completed, packed_node.week_completed, packed_node.year_completed, packed_node.abandoned_day_count, packed_node.abandoned_week_count, packed_node.id]).then(result => {
-            DatabaseManager.execute_data_updated_callbacks(no_callbacks);
-            return result;
-        });
-    }
-
-    private tgv_set_parent(unique_id: InflatedRecord.ID,
-                           parent_id: InflatedRecord.ID,
-                           no_callbacks?: boolean) : Promise<any>
-    {
-        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=? WHERE id=?`, [parent_id, unique_id]).then(result => {
+        return DatabaseManager.database_.executeSql(`UPDATE ${PackedRecord.TGV_TABLE} SET parent_id=?, name=?, details=?, date_created=?, date_closed=?, resolution=?, day=?, week=?, year=?, day_completed=?, week_completed=?, year_completed=?, abandoned_day_count=?, abandoned_week_count=? WHERE id=?`, [packed_node.parent_id, packed_node.name, packed_node.details, packed_node.date_created, packed_node.date_closed, packed_node.resolution, packed_node.day, packed_node.week, packed_node.year, packed_node.day_completed, packed_node.week_completed, packed_node.year_completed, packed_node.abandoned_day_count, packed_node.abandoned_week_count, packed_node.id]).then(result => {
             DatabaseManager.execute_data_updated_callbacks(no_callbacks);
             return result;
         });
@@ -541,51 +547,4 @@ export class DatabaseManager
             })
         });
     }
-
-    // ===== Typedefs
-    // Task
-    task_add(inflated_node : InflatedRecord.TgvNode,
-             no_callbacks?: boolean) : Promise<InflatedRecord.ID> { return this.tgv_add(inflated_node, no_callbacks); }
-
-    task_remove(unique_id: InflatedRecord.ID,
-                no_callbacks?: boolean) : Promise<any> { return this.tgv_remove(unique_id, no_callbacks); }
-
-    task_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
-                              no_callbacks?: boolean) : Promise<any> { return this.tgv_set_basic_attributes(inflated_node, no_callbacks); }
-
-    task_set_parent(unique_id: InflatedRecord.ID,
-                    parent_id: InflatedRecord.ID,
-                    no_callbacks?: boolean) : Promise<any> { return this.tgv_set_parent(unique_id, parent_id, no_callbacks); }
-
-    // Goal
-    goal_add(inflated_node : InflatedRecord.TgvNode,
-             no_callbacks?: boolean) : Promise<InflatedRecord.ID> { return this.tgv_add(inflated_node, no_callbacks); }
-
-    goal_remove(unique_id: InflatedRecord.ID,
-                no_callbacks?: boolean) : Promise<any> { return this.tgv_remove(unique_id, no_callbacks); }
-
-    goal_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
-                              no_callbacks?: boolean) : Promise<any> { return this.tgv_set_basic_attributes(inflated_node, no_callbacks); }
-
-    goal_set_parent(unique_id: InflatedRecord.ID,
-                    parent_id: InflatedRecord.ID,
-                    no_callbacks?: boolean) : Promise<any> { return this.tgv_set_parent(unique_id, parent_id, no_callbacks); }
-
-    goal_set_child_ids(unique_id: number,
-                       child_ids: number[],
-                       no_callbacks?: boolean) : Promise<any> { return this.tgv_set_children(unique_id, child_ids, no_callbacks); }
-
-    // Vision
-    vision_add(inflated_node : InflatedRecord.TgvNode,
-               no_callbacks?: boolean) : Promise<InflatedRecord.ID> { return this.tgv_add(inflated_node, no_callbacks); }
-
-    vision_remove(unique_id: InflatedRecord.ID,
-                  no_callbacks?: boolean) : Promise<any> { return this.tgv_remove(unique_id, no_callbacks); }
-
-    vision_set_basic_attributes(inflated_node : InflatedRecord.TgvNode,
-                                no_callbacks?: boolean) : Promise<any> { return this.tgv_set_basic_attributes(inflated_node, no_callbacks); }
-
-    vision_set_child_ids(unique_id: number,
-                         child_ids: number[],
-                         no_callbacks?: boolean) : Promise<any> { return this.tgv_set_children(unique_id, child_ids, no_callbacks); }
 }

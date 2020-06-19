@@ -54,7 +54,7 @@ export class GoalListItemComponent implements OnInit {
         enable_completion_status: false,
 
         // Callbacks
-        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.task_add(new_task); },
+        save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
         delete_callback: null
     };
 
@@ -76,10 +76,9 @@ export class GoalListItemComponent implements OnInit {
 
         // Callbacks
         save_callback: (edited_goal: InflatedRecord.TgvNode) => { 
-          this.database_manager_.task_set_basic_attributes(edited_goal, true); 
-          this.database_manager_.task_set_parent(edited_goal.id, edited_goal.parent_id);
+          this.database_manager_.tgv_set_basic_attributes(edited_goal); 
         },
-        delete_callback: (edited_goal: InflatedRecord.TgvNode) => { this.database_manager_.goal_remove(edited_goal.id); }
+        delete_callback: (edited_goal: InflatedRecord.TgvNode) => { this.database_manager_.tgv_remove(edited_goal); }
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);

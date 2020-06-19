@@ -40,10 +40,9 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges {
 
         // Callbacks
         save_callback: (edited_task: InflatedRecord.TgvNode) => { 
-          this.database_manager_.task_set_basic_attributes(edited_task, true); 
-          this.database_manager_.task_set_parent(edited_task.id, edited_task.parent_id)
+          this.database_manager_.tgv_set_basic_attributes(edited_task); 
         },
-        delete_callback: (edited_task: InflatedRecord.TgvNode) => { this.database_manager_.task_remove(edited_task.id); }
+        delete_callback: (edited_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_remove(edited_task); }
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
@@ -61,13 +60,13 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges {
       InflatedRecord.set_today(this.task);
     }
 
-    this.database_manager_.task_set_basic_attributes(this.task);
+    this.database_manager_.tgv_set_basic_attributes(this.task);
   }
 
   remove()
   {
     InflatedRecord.clear_week(this.task);
-    this.database_manager_.task_set_basic_attributes(this.task);
+    this.database_manager_.tgv_set_basic_attributes(this.task);
   }
 
   ngOnInit() 
