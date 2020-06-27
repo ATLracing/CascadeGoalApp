@@ -115,6 +115,18 @@ export class DateContainsFilter implements QueryFilter
     }
 };
 
+export class ScheduledFilter implements QueryFilter
+{
+    constructor() 
+    {
+    }
+
+    get_where_clause()
+    {
+        return "year IS NOT NULL OR week IS NOT NULL OR day IS NOT NULL";
+    }
+}
+
 export class DateCompletedContainsFilter implements QueryFilter
 {
     constructor(private date: DiscreteDate) 
