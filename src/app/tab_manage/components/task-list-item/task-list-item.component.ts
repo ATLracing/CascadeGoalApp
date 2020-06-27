@@ -72,7 +72,7 @@ export class TaskListItemComponent implements OnInit, OnChanges{
 
     let is_active = InflatedRecord.is_active(this.task);
     let due_this_week = contains(this.task.discrete_date, this_week);
-    let overdue = prior_to(this.task.discrete_date, today);
+    let overdue = prior_to(this.task.discrete_date, today) && is_active;
     let completed_this_week = contains(this.task.discrete_date_completed, this_week);
 
     // Set UI parameters
