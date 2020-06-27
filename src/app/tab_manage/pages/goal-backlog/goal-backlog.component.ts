@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
-import { DatabaseManager, ActiveFilter, DateCompletedContainsFilter, QueryFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ActiveFilter, DateCompletedContainsFilter, QueryFilter, join_and } from 'src/app/providers/database_manager';
 import { ManageSettings } from '../../components/settings/settings';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { get_this_week } from 'src/app/providers/discrete_date';
@@ -32,19 +32,19 @@ export class GoalBacklogPage implements OnInit, OnDestroy {
 
   async get_expanded_goals()
   {
-    let completed_filters : QueryFilter[] = [ new ActiveFilter(false) ];
+    let completed_filter : QueryFilter = new ActiveFilter(false);
 
     if (!this.settings_.show_completed)
-      completed_filters.push(new DateCompletedContainsFilter(get_this_week()) );
+      completed_filter = join_and(completed_filter, new DateCompletedContainsFilter(get_this_week()));
 
-    let active_goals = await this.database_manager_.query_goals([new ActiveFilter(true)]);
-    let completed_goals = await this.database_manager_.query_goals(completed_filters);
+    let active_goals = await this.database_manager_.query_goals(new ActiveFilter(true));
+    let completed_goals = await this.database_manager_.query_goals(completed_filter);
   
     let all_goals = active_goals.concat(completed_goals);
     // Inflate the active goals
     for (let goal of all_goals)
     {
-      await DatabaseInflator.inflate_goal(goal, this.database_manager_, false, []);
+      await DatabaseInflator.inflate_goal(goal, this.database_manager_, false);
     }
 
     this.active_goals_ = active_goals;

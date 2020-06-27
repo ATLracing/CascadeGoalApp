@@ -3,7 +3,7 @@ import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatabaseManager, ParentFilter, ActiveFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ParentFilter, ActiveFilter, join_and } from 'src/app/providers/database_manager';
 
 @Component({
   selector: 'goal-list-item',
@@ -81,7 +81,7 @@ export class GoalListItemComponent implements OnInit {
         save_callback: async (edited_goal: InflatedRecord.TgvNode) => { 
           if (edited_goal.resolution != this.goal.resolution && edited_goal.resolution != InflatedRecord.Resolution.ACTIVE)
           {
-            let active_child_tasks = await this.database_manager_.query_tasks([new ParentFilter(edited_goal.id, true), new ActiveFilter(true)]);
+            let active_child_tasks = await this.database_manager_.query_tasks(join_and(new ParentFilter(edited_goal.id, true), new ActiveFilter(true)));
 
             for (let child of active_child_tasks)
             {

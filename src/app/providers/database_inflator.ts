@@ -1,15 +1,14 @@
-import { DatabaseManager, ParentFilter, QueryFilter, IdSetFilter, TypeFilter } from './database_manager'
+import { DatabaseManager, ParentFilter, QueryFilter, IdSetFilter, TypeFilter, join_and } from './database_manager'
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
-import { notEqual } from 'assert';
 
 export class DatabaseInflator
 {
     private static async inflate_tgv_node_down(current_node : InflatedRecord.TgvNode,
                                                database_manager: DatabaseManager,
                                                prune_empty_goals: boolean,
-                                               task_filters?: QueryFilter[],
-                                               goal_filters?: QueryFilter[]) : Promise<InflatedRecord.TgvNode>
+                                               task_filter?: QueryFilter,
+                                               goal_filter?: QueryFilter) : Promise<InflatedRecord.TgvNode>
     {
         // Tasks cannot be inflated downward
         if (current_node.type == InflatedRecord.Type.TASK)
@@ -17,22 +16,19 @@ export class DatabaseInflator
             return current_node;
         }
 
-        // Find child nodes
-        let all_filters : QueryFilter[] = [new ParentFilter(current_node.id, true)];
+        // Find child nodes (only search layer directly beneath)
+        let child_filter : QueryFilter = join_and(new ParentFilter(current_node.id, true), new TypeFilter(current_node.type - 1, true));
 
-        if (current_node.type == InflatedRecord.Type.GOAL && task_filters)
+        if (current_node.type == InflatedRecord.Type.GOAL && task_filter)
         {
-            all_filters = all_filters.concat(task_filters);
+            child_filter = join_and(child_filter, task_filter);
         }
-        else if (current_node.type == InflatedRecord.Type.VISION && goal_filters)
+        else if (current_node.type == InflatedRecord.Type.VISION && goal_filter)
         {
-            all_filters = all_filters.concat(goal_filters);
+            child_filter = join_and(child_filter, goal_filter);
         }
 
-        // Only search layer directly beneath
-        all_filters = all_filters.concat(new TypeFilter(current_node.type - 1, true));
-
-        let child_nodes = await database_manager.query_nodes(all_filters);
+        let child_nodes = await database_manager.query_nodes(child_filter);
 
         if (prune_empty_goals && 
             current_node.type == InflatedRecord.Type.GOAL && 
@@ -47,7 +43,7 @@ export class DatabaseInflator
 
         for (let child of child_nodes)
         {
-            let inflated_child = await this.inflate_tgv_node_down(child, database_manager, prune_empty_goals, task_filters, goal_filters);
+            let inflated_child = await this.inflate_tgv_node_down(child, database_manager, prune_empty_goals, task_filter, goal_filter);
             
             if (!inflated_child)
                 continue;
@@ -64,7 +60,7 @@ export class DatabaseInflator
                                                  database_manager: DatabaseManager) : Promise<InflatedRecord.TgvNode>
     {
         // Search for parent
-        let parent_node_query_res = await database_manager.query_nodes([new IdSetFilter([child_node.parent_id], true)]);
+        let parent_node_query_res = await database_manager.query_nodes(new IdSetFilter([child_node.parent_id], true));
 
         if (parent_node_query_res.length == 0)
         {
@@ -104,7 +100,7 @@ export class DatabaseInflator
         // Query for packed parent nodes
         let id_set_filter = new IdSetFilter(Array.from(parent_id_set), true);
 
-        let parent_nodes = await database_manager.query_nodes([id_set_filter])
+        let parent_nodes = await database_manager.query_nodes(id_set_filter)
 
         // Add to map and initialize children arrays
         let parent_nodes_map = new Map<InflatedRecord.ID, InflatedRecord.TgvNode>(); // ID -> record
@@ -135,9 +131,9 @@ export class DatabaseInflator
         return inflated_task;
     }
 
-    static async inflate_goal(goal : InflatedRecord.Goal, database_manager: DatabaseManager, prune_empty_goals: boolean, task_filters?: QueryFilter[]) : Promise<InflatedRecord.TgvNode>
+    static async inflate_goal(goal : InflatedRecord.Goal, database_manager: DatabaseManager, prune_empty_goals: boolean, task_filter?: QueryFilter) : Promise<InflatedRecord.TgvNode>
     {
-        let inflated_goal = await DatabaseInflator.inflate_tgv_node_down(goal, database_manager, prune_empty_goals, task_filters);
+        let inflated_goal = await DatabaseInflator.inflate_tgv_node_down(goal, database_manager, prune_empty_goals, task_filter);
         if (!inflated_goal)
             return undefined;
         
@@ -146,9 +142,9 @@ export class DatabaseInflator
         return inflated_goal;
     }
 
-    static async inflate_vision(vision : InflatedRecord.Vision, database_manager: DatabaseManager, prune_empty_goals: boolean, task_filters?: QueryFilter[], goal_filters?:QueryFilter[]) : Promise<InflatedRecord.TgvNode>
+    static async inflate_vision(vision : InflatedRecord.Vision, database_manager: DatabaseManager, prune_empty_goals: boolean, task_filter?: QueryFilter, goal_filter?: QueryFilter) : Promise<InflatedRecord.TgvNode>
     {
-        let inflated_vision = await DatabaseInflator.inflate_tgv_node_down(vision, database_manager, prune_empty_goals, task_filters, goal_filters);
+        let inflated_vision = await DatabaseInflator.inflate_tgv_node_down(vision, database_manager, prune_empty_goals, task_filter, goal_filter);
         return inflated_vision;
     }
 
@@ -178,7 +174,7 @@ export class DatabaseInflator
 
         if (query_ids.length > 0)
         {
-            let parent_nodes = await database_manager.query_nodes([new IdSetFilter(query_ids, true)]);
+            let parent_nodes = await database_manager.query_nodes(new IdSetFilter(query_ids, true));
             this.upward_inflate(parent_nodes, database_manager);
 
             for (let parent of parent_nodes)

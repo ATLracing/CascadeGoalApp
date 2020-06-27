@@ -1,5 +1,5 @@
 import { Component, ViewChild, Input, Output, EventEmitter } from '@angular/core';
-import { DatabaseManager, ParentFilter, DateCompletedContainsFilter, join_or, ActiveFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ParentFilter, DateCompletedContainsFilter, join_or, ActiveFilter, join_and, QueryFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
@@ -64,29 +64,27 @@ export class VisionsPage {
   {
     let expanded_visions = await database_manager.query_visions();
         
-    let task_filters = [];
-    let goal_filters = [];
-
+    let settings_filter = undefined;
     if (!settings.show_completed)
     {
-      let this_week = get_this_week();
-
-      let exclude_completed_prior_weeks_filter = join_or([new DateCompletedContainsFilter(this_week), new ActiveFilter(true)]);
-
-      task_filters.push(exclude_completed_prior_weeks_filter);
-      goal_filters.push(exclude_completed_prior_weeks_filter);
+      settings_filter = join_or(new DateCompletedContainsFilter(get_this_week()), new ActiveFilter(true));
     }
 
     for (let vision of expanded_visions)
     {
-      await DatabaseInflator.inflate_vision(vision, database_manager, false, task_filters, goal_filters);
+      await DatabaseInflator.inflate_vision(vision, database_manager, false, settings_filter, settings_filter);
     }
 
     // Get directly-associated tasks
     // TODO: This is lame..
     for (let expanded_vision of expanded_visions)
-    {        
-      expanded_vision.extra.freestanding_tasks= await database_manager.query_tasks(task_filters.concat(new ParentFilter(expanded_vision.id, true)));
+    { 
+      let vision_parent_filter : QueryFilter = new ParentFilter(expanded_vision.id, true);
+
+      if (settings_filter)
+        vision_parent_filter = join_and(vision_parent_filter, settings_filter);
+
+      expanded_vision.extra.freestanding_tasks= await database_manager.query_tasks(vision_parent_filter);
     }
 
     if (this.expanded_visions_.length > 0)

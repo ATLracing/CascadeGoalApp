@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
-import { DatabaseManager, ActiveFilter, DateCompletedContainsFilter, QueryFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ActiveFilter, DateCompletedContainsFilter, QueryFilter, join_and } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { SettingsComponent, ManageSettings } from '../../components/settings/settings';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
@@ -36,14 +36,14 @@ export class BacklogPage implements OnInit, OnDestroy {
 
   async get_expanded_tasks(settings: ManageSettings, database_manager: DatabaseManager)
   {
-    let active_tasks = await this.database_manager_.query_tasks([new ActiveFilter(true)]);
+    let active_tasks = await this.database_manager_.query_tasks(new ActiveFilter(true));
     
-    let completed_filters : QueryFilter[] = [ new ActiveFilter(false) ];
+    let completed_filter : QueryFilter = new ActiveFilter(false);
 
     if (!this.settings_.show_completed)
-      completed_filters.push(new DateCompletedContainsFilter(get_this_week()) );
+      completed_filter = join_and(completed_filter, new DateCompletedContainsFilter(get_this_week()));
       
-    let complete_tasks = await this.database_manager_.query_tasks(completed_filters);
+    let complete_tasks = await this.database_manager_.query_tasks(completed_filter);
     
     let all_tasks = active_tasks.concat(complete_tasks);
 

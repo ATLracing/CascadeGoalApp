@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, ActiveFilter, DatePriorFilter, DateContainsFilter, DateCompletedContainsFilter, DateLevelFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ActiveFilter, DatePriorFilter, DateContainsFilter, DateCompletedContainsFilter, DateLevelFilter, join_and } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
@@ -40,9 +40,9 @@ export class WeekTasksPage implements OnDestroy {
 
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {                  
       // Query all tasks for the week
-      let overdue_tasks = await database_manager_.query_tasks([new DatePriorFilter(get_this_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true) ]);
-      let active_tasks = await database_manager_.query_tasks([new DateContainsFilter(get_this_week()), new ActiveFilter(true)]);
-      let complete_tasks = await database_manager_.query_tasks([new DateCompletedContainsFilter(get_this_week())]);
+      let overdue_tasks = await database_manager_.query_tasks(join_and(new DatePriorFilter(get_this_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true)));
+      let active_tasks = await database_manager_.query_tasks(join_and(new DateContainsFilter(get_this_week()), new ActiveFilter(true)));
+      let complete_tasks = await database_manager_.query_tasks(new DateCompletedContainsFilter(get_this_week()));
       let all_tasks = overdue_tasks.concat(active_tasks).concat(complete_tasks);
 
       // Inflate tasks

@@ -1,4 +1,4 @@
-import { Injectable, Type } from '@angular/core';
+import { Injectable } from '@angular/core';
 import * as PackedRecord from 'src/app/providers/packed_record';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Platform } from '@ionic/angular';
@@ -225,43 +225,70 @@ export class CustomFilter implements QueryFilter
     }
 };
 
-export function join_where_clauses_and(filters : QueryFilter[])
+export class OrFilter implements QueryFilter
 {
-    let where_clause = "";
-
-    for (let i = 0; i < filters.length; i++)
+    constructor(private lhs_: QueryFilter, private rhs_: QueryFilter)
     {
-        if (filters[i].get_where_clause() === "")
-            continue;
-
-        if (i > 0)
-        {
-            where_clause += " AND "
-        }
-
-        where_clause += `(${filters[i].get_where_clause()})`
     }
 
-    return where_clause;
+    get_where_clause()
+    {
+        return `(${this.lhs_.get_where_clause()}) OR (${this.rhs_.get_where_clause()})`;
+    }
+};
+
+export class AndFilter implements QueryFilter
+{
+    constructor(private lhs_: QueryFilter, private rhs_: QueryFilter)
+    {
+    }
+
+    get_where_clause()
+    {
+        return `(${this.lhs_.get_where_clause()}) AND (${this.rhs_.get_where_clause()})`;
+    }
+};
+
+export class NotFilter implements QueryFilter
+{
+    constructor(private filter_: QueryFilter)
+    {
+    }
+
+    get_where_clause()
+    {
+        return `NOT (${this.filter_.get_where_clause()})`;
+    }
+};
+
+export function join_and(...filters: QueryFilter[])
+{
+    if (filters.length == 1)
+        return filters[0];
+
+    let root_filter = new AndFilter(filters[0], filters[1]);
+
+    for (let i = 2; i < filters.length; i++)
+    {
+        root_filter = new AndFilter(filters[i], root_filter);
+    }
+
+    return root_filter;
 }
 
-export function join_or(filters : QueryFilter[]) : QueryFilter{
-    let where_clause = "";
-    
-    for (let i = 0; i < filters.length; i++)
+export function join_or(...filters: QueryFilter[])
+{
+    if (filters.length == 1)
+        return filters[0];
+
+    let root_filter = new OrFilter(filters[0], filters[1]);
+
+    for (let i = 2; i < filters.length; i++)
     {
-        if (filters[i].get_where_clause() === "")
-            continue;
-
-        if (i > 0)
-        {
-            where_clause += " OR "
-        }
-
-        where_clause += `(${filters[i].get_where_clause()})`
+        root_filter = new OrFilter(filters[i], root_filter);
     }
 
-    return new CustomFilter(where_clause);
+    return root_filter;
 }
 
 // Full read/write strategy
@@ -332,21 +359,15 @@ export class DatabaseManager
 
     // ========================================================================== TGV Packed Helpers
     // Query for list of TVG nodes
-    query_packed_tvg_nodes(filters ?: QueryFilter[]) : Promise<PackedRecord.TgvNode[]>
+    query_packed_tvg_nodes(filter ?: QueryFilter) : Promise<PackedRecord.TgvNode[]>
     {
         if (!DatabaseManager.database_)
             return new Promise<PackedRecord.TgvNode[]>(() => { return []});
-
-        let where_clause = "";
         
-        if (filters)
-            where_clause = join_where_clauses_and(filters)
-
-        let query_str = `SELECT * from ${PackedRecord.TGV_TABLE} WHERE ${where_clause}`;
-        if (where_clause === "")
-        {
-            query_str = `SELECT * from ${PackedRecord.TGV_TABLE}`;
-        }
+        let query_str = `SELECT * from ${PackedRecord.TGV_TABLE}`;
+        
+        if (filter)
+            query_str = `${query_str} WHERE ${filter.get_where_clause()}`;
         
         return DatabaseManager.database_.executeSql(query_str, []).then(result => {
             let child_rows : PackedRecord.TgvNode[] = [];
@@ -415,15 +436,15 @@ export class DatabaseManager
 
     // ======================================================================================= QUERY
     // ===== General
-    query_nodes(filters ?: QueryFilter[]): Promise<InflatedRecord.TgvNode[]>
+    query_nodes(filter ?: QueryFilter): Promise<InflatedRecord.TgvNode[]>
     {
-        return this.query_packed_tvg_nodes(filters).then(InflatedRecord.build_inflated_array);
+        return this.query_packed_tvg_nodes(filter).then(InflatedRecord.build_inflated_array);
     }
     
     get_nodes(unique_ids: InflatedRecord.ID[]) : Promise<InflatedRecord.TgvNode[]>
     {
         let id_filter = new IdSetFilter(unique_ids, true);
-        return this.query_nodes([id_filter]);
+        return this.query_nodes(id_filter);
     }
 
     get_node(unique_id: InflatedRecord.ID) : Promise<InflatedRecord.TgvNode>
@@ -436,44 +457,44 @@ export class DatabaseManager
     get_goals(unique_ids: InflatedRecord.ID[])   : Promise<InflatedRecord.Goal[]>   { return this.get_nodes(unique_ids); }
     get_visions(unique_ids: InflatedRecord.ID[]) : Promise<InflatedRecord.Vision[]> { return this.get_nodes(unique_ids); }
 
-    get_task(unique_id: InflatedRecord.ID)   : Promise<InflatedRecord.Task>  { return this.get_node(unique_id); }
-    get_goal(unique_id: InflatedRecord.ID)   : Promise<InflatedRecord.Goal>  { return this.get_node(unique_id); }
+    get_task(unique_id: InflatedRecord.ID)   : Promise<InflatedRecord.Task>   { return this.get_node(unique_id); }
+    get_goal(unique_id: InflatedRecord.ID)   : Promise<InflatedRecord.Goal>   { return this.get_node(unique_id); }
     get_vision(unique_id: InflatedRecord.ID) : Promise<InflatedRecord.Vision> { return this.get_node(unique_id); }
 
-    query_tasks(filters ?: QueryFilter[]): Promise<InflatedRecord.Task[]>
+    query_tasks(filter ?: QueryFilter): Promise<InflatedRecord.Task[]>
     {
-        let all_filters : QueryFilter[] = [new TypeFilter(InflatedRecord.Type.TASK, true)];
+        let type_filter : QueryFilter = new TypeFilter(InflatedRecord.Type.TASK, true);
         
-        if (filters)
+        if (filter)
         {
-            all_filters = all_filters.concat(filters);
+            type_filter = join_and(type_filter, filter)
         }
 
-        return this.query_nodes(all_filters);
+        return this.query_nodes(type_filter);
     }
     
-    query_goals(filters ?: QueryFilter[]): Promise<InflatedRecord.Goal[]>
+    query_goals(filter ?: QueryFilter): Promise<InflatedRecord.Goal[]>
     {
-        let all_filters : QueryFilter[] = [new TypeFilter(InflatedRecord.Type.GOAL, true)];
+        let type_filter : QueryFilter = new TypeFilter(InflatedRecord.Type.GOAL, true);
         
-        if (filters)
+        if (filter)
         {
-            all_filters = all_filters.concat(filters);
+            type_filter = join_and(type_filter, filter)
         }
 
-        return this.query_nodes(all_filters);
+        return this.query_nodes(type_filter);
     }
 
-    query_visions(filters ?: QueryFilter[]): Promise<InflatedRecord.Vision[]>
+    query_visions(filter ?: QueryFilter): Promise<InflatedRecord.Vision[]>
     {
-        let all_filters : QueryFilter[] = [new TypeFilter(InflatedRecord.Type.VISION, true)];
+        let type_filter : QueryFilter = new TypeFilter(InflatedRecord.Type.VISION, true);
         
-        if (filters)
+        if (filter)
         {
-            all_filters = all_filters.concat(filters);
+            type_filter = join_and(type_filter, filter)
         }
 
-        return this.query_nodes(all_filters);
+        return this.query_nodes(type_filter);
     }
 
     // ====================================================================================== Modify
@@ -497,7 +518,7 @@ export class DatabaseManager
         // Clear parents of child nodes
         if (inflated_node.type != InflatedRecord.Type.TASK)
         {
-            let children = await this.query_nodes([new ParentFilter(inflated_node.id, true)]);
+            let children = await this.query_nodes(new ParentFilter(inflated_node.id, true));
             let child_ids = [];
             for (let child of children) { child_ids.push(child.id); }
 
