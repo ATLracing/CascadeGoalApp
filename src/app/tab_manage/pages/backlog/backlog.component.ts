@@ -4,6 +4,7 @@ import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { SettingsComponent, ManageSettings } from '../../components/settings/settings';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { get_this_week } from 'src/app/providers/discrete_date';
+import { LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'backlog-page',
@@ -19,7 +20,8 @@ export class BacklogPage implements OnInit, OnDestroy {
 
   @Input() send_to_week_mode: boolean;
 
-  constructor(private database_manager_: DatabaseManager) { 
+  constructor(private database_manager_: DatabaseManager,
+              private loading_controller_: LoadingController) { 
     this.active_unscheduled_tasks_ = [];
     this.active_scheduled_tasks_ = [];
     this.complete_tasks_ = [];
@@ -38,6 +40,15 @@ export class BacklogPage implements OnInit, OnDestroy {
 
   async get_expanded_tasks(settings: ManageSettings, database_manager: DatabaseManager)
   {
+    // Loading controller
+    const loading = await this.loading_controller_.create({
+      cssClass: 'page-loading-spinner',
+      message: '',
+      duration: 0 // infinite
+    });
+
+    await loading.present();
+
     let active_unscheduled_tasks = await this.database_manager_.query_tasks(join_and(new ActiveFilter(true), new NotFilter(new ScheduledFilter())));
     let active_scheduled_tasks = await this.database_manager_.query_tasks(join_and(new ActiveFilter(true), new ScheduledFilter()));
     let completed_filter : QueryFilter = new ActiveFilter(false);
@@ -55,6 +66,8 @@ export class BacklogPage implements OnInit, OnDestroy {
     this.active_unscheduled_tasks_ = active_unscheduled_tasks;
     this.active_scheduled_tasks_ = active_scheduled_tasks;
     this.complete_tasks_ = complete_tasks;
+
+    await loading.dismiss();
   }
 
   ngOnInit() {}

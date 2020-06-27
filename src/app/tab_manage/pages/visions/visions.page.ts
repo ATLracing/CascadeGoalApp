@@ -1,9 +1,9 @@
-import { Component, ViewChild, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ViewChild, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
 import { DatabaseManager, ParentFilter, DateCompletedContainsFilter, join_or, ActiveFilter, join_and, QueryFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
-import { IonSlides } from '@ionic/angular';
+import { IonSlides, LoadingController } from '@ionic/angular';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { ManageSettings } from '../../components/settings/settings';
@@ -14,11 +14,12 @@ import { get_this_week } from 'src/app/providers/discrete_date';
   templateUrl: 'visions.page.html',
   styleUrls: ['visions.page.scss']
 })
-export class VisionsPage {
+export class VisionsPage implements OnDestroy {
   private expanded_visions_: InflatedRecord.Vision[];
   private vision_index_;
   private send_to_week_mode_: boolean;
   private settings_: ManageSettings;
+  private loaded_: boolean; // TODO: Hacky way to hide the "Add Vision" button while loading
 
   private slide_options_ = {
     initialSlide: 0,
@@ -33,7 +34,8 @@ export class VisionsPage {
   constructor(private database_manager_: DatabaseManager,
               private addressed_transfer_: AddressedTransfer,
               private router_: Router,
-              private route_: ActivatedRoute) {
+              private route_: ActivatedRoute,
+              private loading_controller_: LoadingController) {
     
       this.vision_index_ = 0;
       this.expanded_visions_ = [];
@@ -62,6 +64,16 @@ export class VisionsPage {
 
   async get_expanded_visions(settings: ManageSettings, database_manager: DatabaseManager)
   {
+    // Loading controller
+    const loading = await this.loading_controller_.create({
+      cssClass: 'page-loading-spinner',
+      message: '',
+      duration: 0 // infinite
+    });
+
+    this.loaded_ = false;
+    await loading.present();
+
     let expanded_visions = await database_manager.query_visions();
         
     let settings_filter = undefined;
@@ -94,6 +106,9 @@ export class VisionsPage {
 
     if (this.expanded_visions_.length > 0)
           this.vision_changed.emit(this.expanded_visions_[await this.slides_.getActiveIndex()]);
+
+    this.loaded_ = true;
+    await loading.dismiss();
   }
 
   add_new_vision()
@@ -183,5 +198,10 @@ export class VisionsPage {
   {
     this.vision_index_ = await this.slides_.getActiveIndex();
     this.vision_changed.emit(this.expanded_visions_[this.vision_index_]);
+  }
+
+  ngOnDestroy()
+  {
+    this.database_manager_.unregister_data_updated_callback("visions_page");
   }
 }

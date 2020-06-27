@@ -30,6 +30,6 @@
     </ion-content>
   </ion-slide>
   <ion-slide>
-    <ion-button size="full" (click)="add_new_vision()">Add Vision</ion-button>
+    <ion-button *ngIf="loaded_" size="full" (click)="add_new_vision()">Add Vision</ion-button>
   </ion-slide>
 </ion-slides>

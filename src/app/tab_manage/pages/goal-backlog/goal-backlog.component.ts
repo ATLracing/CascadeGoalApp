@@ -4,6 +4,7 @@ import { DatabaseManager, ActiveFilter, DateCompletedContainsFilter, QueryFilter
 import { ManageSettings } from '../../components/settings/settings';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { get_this_week } from 'src/app/providers/discrete_date';
+import { LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'goal-backlog-page',
@@ -25,13 +26,23 @@ export class GoalBacklogPage implements OnInit, OnDestroy {
     this.get_expanded_goals();
   }
 
-  constructor(private database_manager_: DatabaseManager) { 
+  constructor(private database_manager_: DatabaseManager,
+              private loading_controller_: LoadingController) {
     this.active_goals_ = [];
     this.completed_goals_ = [];
   }
 
   async get_expanded_goals()
   {
+    // Loading controller
+    const loading = await this.loading_controller_.create({
+      cssClass: 'page-loading-spinner',
+      message: '',
+      duration: 0 // infinite
+    });
+
+    await loading.present();
+
     let completed_filter : QueryFilter = new ActiveFilter(false);
 
     if (!this.settings_.show_completed)
@@ -49,6 +60,8 @@ export class GoalBacklogPage implements OnInit, OnDestroy {
 
     this.active_goals_ = active_goals;
     this.completed_goals_ = completed_goals;
+
+    await loading.dismiss();
   }
 
   ngOnInit() {
