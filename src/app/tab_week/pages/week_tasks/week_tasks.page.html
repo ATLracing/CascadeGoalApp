@@ -20,8 +20,11 @@
 </ion-header>
 
 <ion-content>
-  <week-bar-chart *ngIf="display_analytics_" [tasks]="all_tasks_"></week-bar-chart>
-  <week-donut-chart *ngIf="display_analytics_" [tasks]="all_tasks_"></week-donut-chart>
+  <div [@openClose]="display_analytics_ ? 'open' : 'closed'">
+    <!--TODO: Doesn't animate out with ngIf, but I want these scrubbed from the DOM..-->
+    <week-bar-chart *ngIf="display_analytics_" [tasks]="all_tasks_"></week-bar-chart>
+    <week-donut-chart *ngIf="display_analytics_" [tasks]="all_tasks_"></week-donut-chart>
+  </div>
   <ion-list>
     <ion-item-divider *ngIf="overdue_tasks_.length > 0">
       <ion-label>Overdue ({{overdue_tasks_.length}})</ion-label>

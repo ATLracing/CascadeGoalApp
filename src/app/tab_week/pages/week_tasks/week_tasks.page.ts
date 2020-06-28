@@ -7,10 +7,38 @@ import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/co
 import { DiscreteDateLevel, get_level, get_this_week } from 'src/app/providers/discrete_date';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 
+import {
+  trigger,
+  state,
+  style,
+  animate,
+  transition,
+  // ...
+} from '@angular/animations';
+
 @Component({
   selector: 'app-week-tasks',
   templateUrl: 'week_tasks.page.html',
-  styleUrls: ['week_tasks.scss']
+  styleUrls: ['week_tasks.scss'],
+  animations: [
+    trigger('openClose', [
+      // ...
+      state('open', style({
+        height: '*',
+        overflow: 'hidden'
+      })),
+      state('closed', style({
+        height: '0px',
+        overflow: 'hidden',
+      })),
+      transition('open => closed', [
+        animate('200ms 0s ease-in-out')
+      ]),
+      transition('closed => open', [
+        animate('200ms 0s ease-in-out')
+      ]),
+    ]),
+  ]
 })
 export class WeekTasksPage implements OnDestroy {
   private overdue_tasks_: InflatedRecord.Task[];
