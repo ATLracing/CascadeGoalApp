@@ -9,33 +9,15 @@ const routes: Routes = [
     children: [
       {
         path: 'tab1',
-        children: [
-          {
-            path: '',
-            loadChildren: () =>
-              import('../tab_day/tab_day.module').then(m => m.TabTasksModule)
-          }
-        ]
+        loadChildren: () => import('../tab_day/tab_day.module').then(m => m.TabTasksModule)
       },
       {
         path: 'tab2',
-        children: [
-          {
-            path: '',
-            loadChildren: () =>
-              import('../tab_week/tab_week.module').then(m => m.TabWeekModule)
-          }
-        ]
+        loadChildren: () => import('../tab_week/tab_week.module').then(m => m.TabWeekModule)
       },
       {
         path: 'tab3',
-        children: [
-          {
-            path: '',
-            loadChildren: () =>
-              import('../tab_manage/tab_manage.module').then(m => m.Tab3PageModule)
-          }
-        ]
+        loadChildren: () => import('../tab_manage/tab_manage.module').then(m => m.Tab3PageModule)
       },
       {
         path: '',
