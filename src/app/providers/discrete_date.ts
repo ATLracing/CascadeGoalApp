@@ -22,6 +22,9 @@ function get_iso_day_of_week_from_date(date: Date) : number
 
 function get_iso_week_from_date(date: Date) : number
 {
+    // Copy
+    date = new Date(date);
+    
     date.setHours(0, 0, 0, 0);
     // Thursday in current week decides the year.
     date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
@@ -35,6 +38,9 @@ function get_iso_week_from_date(date: Date) : number
 // Returns the four-digit year corresponding to the ISO week of the date.
 function get_iso_week_year_from_date(date: Date) : number
 {
+    // Copy
+    date = new Date(date);
+
     date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
     return date.getFullYear();
 }
@@ -60,26 +66,24 @@ function is_leap_year(year)
 }
 
 // Interface ======================================================================================= 
-export function get_day(day: number, week: number, year: number) : DiscreteDate
+export function get_day(date: Date) : DiscreteDate
 {
-    return {day: day, week: week, year: year};
+    return { day: get_iso_day_of_week_from_date(date), week: get_iso_week_from_date(date), year: get_iso_week_year_from_date(date) };
 }
 
-export function get_week(week: number, year: number) : DiscreteDate
+export function get_week(date: Date) : DiscreteDate
 {
-    return {day: null, week: week, year: year};
+    return { day: null, week: get_iso_week_from_date(date), year: get_iso_week_year_from_date(date) };
 }
 
 export function get_today() : DiscreteDate
 {
-    let date = new Date();
-    return { day: get_iso_day_of_week_from_date(date), week: get_iso_week_from_date(date), year: get_iso_week_year_from_date(date) };
+    return get_day(new Date());
 }
 
 export function get_this_week() : DiscreteDate
 {
-    let date = new Date();
-    return { day: null, week: get_iso_week_from_date(date), year: get_iso_week_year_from_date(date) };
+    return get_week(new Date());
 }
 
 export function get_null_date(): DiscreteDate
