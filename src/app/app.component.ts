@@ -10,6 +10,7 @@ export class MenuEventHandlers
 {
   on_page_select: (page_number: number) => void;
   on_settings_change: (settings: ManageSettings) => void;
+  on_change_week: () => void;
 }
 
 @Component({
@@ -53,6 +54,16 @@ export class AppComponent {
     {
       let settings : ManageSettings = { show_completed: show_completed };
       event_handlers.on_settings_change(settings);
+    }
+  }
+
+  change_week()
+  {
+    let event_handlers = this.addressed_transfer_.get("menu_handlers");
+    
+    if (event_handlers)
+    {
+      event_handlers.on_change_week();
     }
   }
 

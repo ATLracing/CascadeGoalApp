@@ -7,6 +7,7 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DatabaseManager } from 'src/app/providers/database_manager';
 import { MenuEventHandlers } from 'src/app/app.component';
+import { ChangeWeekComponent } from '../../components/change-week/change-week.component';
 
 enum ManageChildPage
 {
@@ -46,6 +47,9 @@ export class ManagePage implements OnInit {
       },
       on_settings_change : (settings) => {
         this.settings_ = settings;
+      },
+      on_change_week : () => {
+        this.open_change_week();
       }
     };
 
@@ -102,6 +106,17 @@ export class ManagePage implements OnInit {
 
   //   return await modal.present();
   // }
+
+  async open_change_week()
+  {
+    const modal = await this.modal_controller_.create({component: ChangeWeekComponent, componentProps: {}});
+  
+    modal.onDidDismiss().then(async todo => {
+      // TODO
+    });
+
+    return await modal.present();
+  }
 
   vision_changed(event: InflatedRecord.Vision)
   {
