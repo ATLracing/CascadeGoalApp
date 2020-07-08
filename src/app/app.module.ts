@@ -18,6 +18,7 @@ import { SQLite } from '@ionic-native/sqlite/ngx';
  
 import { HttpClientModule } from '@angular/common/http';
 import "hammerjs"
+import { CalendarManager } from './providers/calendar_manager';
 
 @NgModule({
   declarations: [AppComponent],
@@ -34,6 +35,7 @@ import "hammerjs"
     SQLitePorter,
     SQLite,
     DatabaseManager,
+    CalendarManager,
     AddressedTransfer,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],

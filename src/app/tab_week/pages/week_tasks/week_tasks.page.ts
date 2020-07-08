@@ -4,7 +4,7 @@ import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
-import { DiscreteDateLevel, get_level, get_this_week } from 'src/app/providers/discrete_date';
+import { DiscreteDateLevel, get_level, get_this_week, equals } from 'src/app/providers/discrete_date';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 
 import {
@@ -15,6 +15,7 @@ import {
   transition,
   // ...
 } from '@angular/animations';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 @Component({
   selector: 'app-week-tasks',
@@ -49,8 +50,11 @@ export class WeekTasksPage implements OnDestroy {
   private editing_unlocked_color_: string;
   private display_analytics_: boolean;
   private toggle_analytics_color_: string;
+  private current_week_active_: boolean;
+  private page_title_: string;
 
   constructor(private database_manager_: DatabaseManager,
+              private calendar_manager_: CalendarManager,
               private router_: Router,
               private route_: ActivatedRoute,
               private addressed_transfer_: AddressedTransfer) {
@@ -65,12 +69,26 @@ export class WeekTasksPage implements OnDestroy {
 
     this.toggle_analytics_color_ = "black";
     this.display_analytics_ = false;
+    
+    this.page_title_ = "This Week";
 
     database_manager_.register_data_updated_callback("this_week_tasks_page", async () => {                  
+      // Determine if past or future week
+      this.current_week_active_ = equals(calendar_manager_.get_active_week(), get_this_week());
+
+      // Set page title (TODO: Display offset; "Next Week" for +1)
+      if (this.current_week_active_)
+        this.page_title_ = "This Week";
+      else
+        this.page_title_ = `Week ${calendar_manager_.get_active_week().week}`;
+      
       // Query all tasks for the week
-      let overdue_tasks = await database_manager_.query_tasks(join_and(new DatePriorFilter(get_this_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true)));
-      let active_tasks = await database_manager_.query_tasks(join_and(new DateContainsFilter(get_this_week()), new ActiveFilter(true)));
-      let complete_tasks = await database_manager_.query_tasks(new DateCompletedContainsFilter(get_this_week()));
+      let overdue_tasks = [];
+      if (this.current_week_active_)
+        overdue_tasks = await database_manager_.query_tasks(join_and(new DatePriorFilter(this.calendar_manager_.get_active_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true)));
+
+      let active_tasks = await database_manager_.query_tasks(join_and(new DateContainsFilter(this.calendar_manager_.get_active_week()), new ActiveFilter(true)));
+      let complete_tasks = await database_manager_.query_tasks(new DateCompletedContainsFilter(this.calendar_manager_.get_active_week()));
       let all_tasks = overdue_tasks.concat(active_tasks).concat(complete_tasks);
 
       // Inflate tasks
@@ -99,7 +117,7 @@ export class WeekTasksPage implements OnDestroy {
   add_new_task()
   {
     let new_task = InflatedRecord.construct_empty_node(InflatedRecord.Type.TASK);
-    InflatedRecord.set_this_week(new_task);
+    InflatedRecord.set_date(this.calendar_manager_.get_active_week(), new_task);
 
     let configure_tgv_settings : ConfigureTgvPageSettings =
     {

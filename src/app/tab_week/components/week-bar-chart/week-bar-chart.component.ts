@@ -1,9 +1,8 @@
 import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, Input, OnChanges } from '@angular/core';
 import { Chart } from 'chart.js';
-import { DatabaseManager, DateContainsFilter } from 'src/app/providers/database_manager';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
-import { get_this_week, get_today, contains, prior_to, get_level, DiscreteDateLevel } from 'src/app/providers/discrete_date';
+import { get_today, contains, prior_to, get_level, DiscreteDateLevel } from 'src/app/providers/discrete_date';
 
 @Component({
   selector: 'week-bar-chart',
@@ -16,7 +15,7 @@ export class WeekBarChartComponent implements AfterViewInit, OnChanges {
   private bar_chart_: Chart;
   private after_init_: boolean;
   
-  constructor() {
+  constructor(private calendar_manager_: CalendarManager) {
     this.after_init_ = false;
   }
 
@@ -129,7 +128,7 @@ export class WeekBarChartComponent implements AfterViewInit, OnChanges {
       else if (get_level(task.discrete_date) == DiscreteDateLevel.DAY)
       {
         // If the due date is this week, add it
-        if (contains(task.discrete_date, get_this_week()))
+        if (contains(task.discrete_date, this.calendar_manager_.get_active_week()))
         {
           let index = task.discrete_date.day;
           chart_data.data.datasets[1].data[index]++;

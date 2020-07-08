@@ -204,7 +204,7 @@ export function resolve(resolution: Resolution, /*out*/ node: TgvNode)
     }
     else
     {
-        node.date_closed = CalendarManager.get_date();
+        node.date_closed = new Date();
         node.discrete_date_completed = get_today();
     }
 }
@@ -237,10 +237,10 @@ export function set_today(/*out*/ node: TgvNode)
     set_date(get_today(), node);
 }
 
-export function set_this_week(/*out*/ node: TgvNode)
-{
-    set_date(get_this_week(), node);
-}
+// export function set_this_week(/*out*/ node: TgvNode)
+// {
+//     set_date(get_this_week(), node);
+// }
 
 export function clear_day(/*out*/ node: TgvNode)
 {

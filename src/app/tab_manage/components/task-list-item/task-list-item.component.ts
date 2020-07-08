@@ -4,7 +4,8 @@ import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { get_this_week, contains, get_today, prior_to } from 'src/app/providers/discrete_date';
+import { contains, get_today, prior_to } from 'src/app/providers/discrete_date';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 @Component({
   selector: 'task-list-item',
@@ -22,18 +23,19 @@ export class TaskListItemComponent implements OnInit, OnChanges{
 
   constructor(private addressed_transfer_: AddressedTransfer,
               private database_manager_  : DatabaseManager,
+              private calendar_manager_  : CalendarManager,
               private router_            : Router,
               private route_             : ActivatedRoute) {}
 
   add_remove_this_week()
   {
-    if (contains(this.task.discrete_date, get_this_week()))
+    if (contains(this.task.discrete_date, this.calendar_manager_.get_active_week()))
     {
       InflatedRecord.clear_week(this.task);
     }
     else
     {
-      InflatedRecord.set_this_week(this.task);
+      InflatedRecord.set_date(this.calendar_manager_.get_active_week(), this.task);
     }
 
     this.database_manager_.tgv_set_basic_attributes(this.task);
@@ -68,7 +70,7 @@ export class TaskListItemComponent implements OnInit, OnChanges{
   {
     // Determine attributes
     let today = get_today();
-    let this_week = get_this_week();
+    let this_week = this.calendar_manager_.get_active_week();
 
     let is_active = InflatedRecord.is_active(this.task);
     let due_this_week = contains(this.task.discrete_date, this_week);

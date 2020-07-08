@@ -7,10 +7,10 @@
 
 <ion-content>
   <ion-list>
-    <ion-item *ngFor="let week of weeks_">
+    <ion-item *ngFor="let week of weeks_; let i = index" (click)="select_week(i)" [color]="week.active ? 'primary' : undefined">
       <ion-label>
-        <h3>{{week.monday_date}}</h3>
-        <ion-note>{{week.iso_week}}</ion-note>
+        <h3>{{week.iso_week_str}}</h3>
+        <ion-note>{{week.monday_date_str}}</ion-note>
       </ion-label>
       <ion-icon slot="start" name="calendar"></ion-icon>
     </ion-item>

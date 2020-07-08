@@ -2,16 +2,21 @@
   <ion-menu contentId="content" side="start">
     <ion-header>
       <ion-toolbar>
-        <ion-title>Manage</ion-title>
+        <ion-title>{{current_week_str_}}</ion-title>
+        
+        <ion-buttons slot="end">
+          <ion-button (click)="change_week()">
+            <ion-icon slot="icon-only" name="filing" color="{{toggle_analytics_color_}}"></ion-icon>
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
     <ion-content>
       <ion-list>
-        <ion-item (click)="change_week()">
+        <!-- <ion-item (click)="change_week()">
           <ion-icon slot="start" name="calendar"></ion-icon>
-          <!--TODO: Display currently-selected week number-->
           <ion-label>Change Week</ion-label>
-        </ion-item>
+        </ion-item> -->
         <ion-item (click)="select_page(0)" [color]="page_number_ == 0 ? 'primary' : undefined"> 
           <ion-icon slot="start" name="eye"></ion-icon>
           <ion-label>Visions</ion-label>

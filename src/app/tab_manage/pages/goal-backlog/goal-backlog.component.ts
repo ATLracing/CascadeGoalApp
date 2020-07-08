@@ -3,8 +3,8 @@ import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { DatabaseManager, ActiveFilter, DateCompletedContainsFilter, QueryFilter, join_and } from 'src/app/providers/database_manager';
 import { ManageSettings } from '../../components/settings/settings';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
-import { get_this_week } from 'src/app/providers/discrete_date';
 import { LoadingController } from '@ionic/angular';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 @Component({
   selector: 'goal-backlog-page',
@@ -27,6 +27,7 @@ export class GoalBacklogPage implements OnInit, OnDestroy {
   }
 
   constructor(private database_manager_: DatabaseManager,
+              private calendar_manager_: CalendarManager,
               private loading_controller_: LoadingController) {
     this.active_goals_ = [];
     this.completed_goals_ = [];
@@ -46,7 +47,7 @@ export class GoalBacklogPage implements OnInit, OnDestroy {
     let completed_filter : QueryFilter = new ActiveFilter(false);
 
     if (!this.settings_.show_completed)
-      completed_filter = join_and(completed_filter, new DateCompletedContainsFilter(get_this_week()));
+      completed_filter = join_and(completed_filter, new DateCompletedContainsFilter(this.calendar_manager_.get_active_week()));
 
     let active_goals = await this.database_manager_.query_goals(new ActiveFilter(true));
     let completed_goals = await this.database_manager_.query_goals(completed_filter);

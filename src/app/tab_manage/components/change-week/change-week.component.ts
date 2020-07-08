@@ -1,11 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { get_this_week, get_gregorian, get_week } from 'src/app/providers/discrete_date';
+import { get_this_week, get_gregorian, get_week, DiscreteDate, equals } from 'src/app/providers/discrete_date';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { ModalController } from '@ionic/angular';
 
 class SelectableWeek
 {
-  monday_date: string;
-  iso_week: string;
+  monday_date_str: string;
+  iso_week_str: string;
   current: boolean; // TODO
+  active: boolean; // TODO
+
+  iso_week: DiscreteDate;
 };
 
 @Component({
@@ -16,7 +21,8 @@ class SelectableWeek
 export class ChangeWeekComponent implements OnInit {
   private weeks_: SelectableWeek[];
   
-  constructor() { 
+  constructor(private calendar_manager_: CalendarManager,
+              private modal_controller_: ModalController) { 
     const kWeeksAhead = 12;
     const kWeeksBehind = 0;
     const kWeekInMs = 1000 * 60 * 60 * 24 * 7;
@@ -25,6 +31,8 @@ export class ChangeWeekComponent implements OnInit {
 
     let this_week = get_this_week();
     let this_week_date = get_gregorian(this_week);
+    
+    let active_week = calendar_manager_.get_active_week();
 
     for (let i = -kWeeksBehind; i <= kWeeksAhead; i++)
     {
@@ -43,10 +51,18 @@ export class ChangeWeekComponent implements OnInit {
       else if (i > 0)
         offset_str = `+${i}`;
 
-      let iso_week_str = `W${iso_week.week}, ${iso_week.year} (${offset_str})`;
+      let iso_week_str = `Week ${iso_week.week} (${offset_str})`;
 
-      this.weeks_.push({monday_date: monday_date_str, iso_week: iso_week_str, current: i == 0});
+      this.weeks_.push({monday_date_str: monday_date_str, iso_week_str: iso_week_str, current: i == 0, active: equals(iso_week, active_week), iso_week: iso_week});
     }
+  }
+
+  select_week(week_index)
+  {
+    let week = this.weeks_[week_index].iso_week;
+    this.calendar_manager_.set_active_week(week);
+
+    this.modal_controller_.dismiss();
   }
 
   ngOnInit() {}

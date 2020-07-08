@@ -3,8 +3,8 @@ import { DatabaseManager, ActiveFilter, DateCompletedContainsFilter, QueryFilter
 import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { SettingsComponent, ManageSettings } from '../../components/settings/settings';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
-import { get_this_week } from 'src/app/providers/discrete_date';
 import { LoadingController } from '@ionic/angular';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 @Component({
   selector: 'backlog-page',
@@ -21,6 +21,7 @@ export class BacklogPage implements OnInit, OnDestroy {
   @Input() send_to_week_mode: boolean;
 
   constructor(private database_manager_: DatabaseManager,
+              private calendar_manager_: CalendarManager,
               private loading_controller_: LoadingController) { 
     this.active_unscheduled_tasks_ = [];
     this.active_scheduled_tasks_ = [];
@@ -54,7 +55,7 @@ export class BacklogPage implements OnInit, OnDestroy {
     let completed_filter : QueryFilter = new ActiveFilter(false);
 
     if (!this.settings_.show_completed)
-      completed_filter = join_and(completed_filter, new DateCompletedContainsFilter(get_this_week()));
+      completed_filter = join_and(completed_filter, new DateCompletedContainsFilter(this.calendar_manager_.get_active_week()));
       
     let complete_tasks = await this.database_manager_.query_tasks(completed_filter);
     

@@ -91,6 +91,13 @@ export function get_null_date(): DiscreteDate
     return {day: null, week: null, year: null};
 }
 
+export function equals(date_one: DiscreteDate, date_two: DiscreteDate) : boolean
+{
+    return date_one.day  == date_two.day && 
+           date_one.week == date_two.week &&
+           date_one.year == date_two.year;
+}
+
 export function contains(containee: DiscreteDate, container: DiscreteDate)
 {
     // TODO(ABurroughs): assert(spec != undefined)

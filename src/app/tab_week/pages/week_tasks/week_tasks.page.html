@@ -1,14 +1,14 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>
-      This Week
+      {{page_title_}}
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button (click)="toggle_analytics()">
+      <ion-button *ngIf="current_week_active_" (click)="toggle_analytics()">
         <ion-icon slot="icon-only" name="analytics" color="{{toggle_analytics_color_}}"></ion-icon>
       </ion-button>
-      <ion-button (click)="lock_unlock_editing()">
+      <ion-button *ngIf="current_week_active_" (click)="lock_unlock_editing()">
         <ion-icon slot="icon-only" name="clipboard" color="{{editing_unlocked_color_}}"></ion-icon>
       </ion-button>
       <ion-button (click)="add_new_task()">
@@ -26,7 +26,7 @@
     <week-donut-chart *ngIf="display_analytics_" [tasks]="all_tasks_"></week-donut-chart>
   </div>
   <ion-list>
-    <ion-item-divider *ngIf="overdue_tasks_.length > 0">
+    <ion-item-divider *ngIf="overdue_tasks_.length > 0 && current_week_active_">
       <ion-label>Overdue ({{overdue_tasks_.length}})</ion-label>
     </ion-item-divider>
     <week-task-list-item *ngFor="let task of overdue_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>
@@ -34,7 +34,7 @@
       <ion-label>Active ({{active_tasks_.length}})</ion-label>
     </ion-item-divider>
     <week-task-list-item *ngFor="let task of active_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>
-    <ion-item-divider>
+    <ion-item-divider *ngIf="current_week_active_">
       <ion-label>Complete ({{complete_tasks_.length}})</ion-label>
     </ion-item-divider>
     <week-task-list-item *ngFor="let task of complete_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>

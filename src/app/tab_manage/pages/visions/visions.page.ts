@@ -7,7 +7,7 @@ import { IonSlides, LoadingController } from '@ionic/angular';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { ManageSettings } from '../../components/settings/settings';
-import { get_this_week } from 'src/app/providers/discrete_date';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 @Component({
   selector: 'visions-page',
@@ -32,6 +32,7 @@ export class VisionsPage implements OnDestroy {
   slides_: IonSlides;
 
   constructor(private database_manager_: DatabaseManager,
+              private calendar_manager_: CalendarManager,
               private addressed_transfer_: AddressedTransfer,
               private router_: Router,
               private route_: ActivatedRoute,
@@ -79,7 +80,7 @@ export class VisionsPage implements OnDestroy {
     let settings_filter = undefined;
     if (!settings.show_completed)
     {
-      settings_filter = join_or(new DateCompletedContainsFilter(get_this_week()), new ActiveFilter(true));
+      settings_filter = join_or(new DateCompletedContainsFilter(this.calendar_manager_.get_active_week()), new ActiveFilter(true));
     }
 
     for (let vision of expanded_visions)
