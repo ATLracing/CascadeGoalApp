@@ -1,5 +1,31 @@
 <ion-header>
-    <ion-toolbar *ngIf="current_page_ == 0">
+  <ion-toolbar *ngIf="current_page_ == 0">
+    <ion-title>Tasks</ion-title>
+    <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggle_send_to_week_mode()">
+        <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
+      </ion-button>
+      <ion-button (click)="add_task_backlog()">
+        <ion-icon slot="icon-only" name="add-circle"></ion-icon>
+      </ion-button>
+  </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar *ngIf="current_page_ == 1">
+    <ion-title>Goals</ion-title>
+    <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
+    <ion-buttons slot="end">
+      <ion-button (click)="toggle_send_to_week_mode()">
+        <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
+      </ion-button>
+      <ion-button (click)="add_goal_backlog()">
+        <ion-icon slot="icon-only" name="add-circle"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar *ngIf="current_page_ == 2">
       <ion-title>
         {{toolbar_title_}}
       </ion-title>
@@ -12,37 +38,12 @@
           <ion-icon slot="icon-only" name="create"></ion-icon>
         </ion-button>
     </ion-buttons>
-    </ion-toolbar>
+  </ion-toolbar>
 
-    <ion-toolbar *ngIf="current_page_ == 1">
-      <ion-title>Goals</ion-title>
-      <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
-      <ion-buttons slot="end">
-        <ion-button (click)="toggle_send_to_week_mode()">
-          <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
-        </ion-button>
-        <ion-button (click)="add_goal_backlog()">
-          <ion-icon slot="icon-only" name="add-circle"></ion-icon>
-        </ion-button>
-    </ion-buttons>
-    </ion-toolbar>
-
-    <ion-toolbar *ngIf="current_page_ == 2">
-      <ion-title>Tasks</ion-title>
-      <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
-      <ion-buttons slot="end">
-        <ion-button (click)="toggle_send_to_week_mode()">
-          <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
-        </ion-button>
-        <ion-button (click)="add_task_backlog()">
-          <ion-icon slot="icon-only" name="add-circle"></ion-icon>
-        </ion-button>
-    </ion-buttons>
-    </ion-toolbar>
   </ion-header>
 
 <ion-content>
-    <visions-page *ngIf="current_page_ == 0" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_" (vision_changed)="vision_changed($event)"></visions-page>
-    <goal-backlog-page *ngIf="current_page_ == 1" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_"></goal-backlog-page>
-    <backlog-page *ngIf="current_page_ == 2" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_"></backlog-page>
+  <backlog-page *ngIf="current_page_ == 0" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_"></backlog-page>
+  <goal-backlog-page *ngIf="current_page_ == 1" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_"></goal-backlog-page>
+  <visions-page *ngIf="current_page_ == 2" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_" (vision_changed)="vision_changed($event)"></visions-page>
 </ion-content>
