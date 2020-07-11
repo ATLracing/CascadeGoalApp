@@ -58,6 +58,7 @@ export class TaskListPage implements OnDestroy {
         title: "New Task",
         enable_associate: true,
         enable_completion_status: false,
+        enable_week_select: false,
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },

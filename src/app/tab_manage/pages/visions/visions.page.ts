@@ -125,6 +125,7 @@ export class VisionsPage implements OnDestroy {
         title: "New Vision",
         enable_associate: false,
         enable_completion_status: false,
+        enable_week_select: false,
 
         // Callbacks
         save_callback: (new_vision: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_vision); },
@@ -155,6 +156,7 @@ export class VisionsPage implements OnDestroy {
         title: "New Goal",
         enable_associate: false,
         enable_completion_status: false,
+        enable_week_select: false,
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
@@ -185,6 +187,7 @@ export class VisionsPage implements OnDestroy {
         title: "New Task",
         enable_associate: false,
         enable_completion_status: false,
+        enable_week_select: true,
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },

@@ -7,7 +7,8 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DatabaseManager } from 'src/app/providers/database_manager';
 import { MenuEventHandlers } from 'src/app/app.component';
-import { ChangeWeekComponent } from '../../components/change-week/change-week.component';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { ChangeWeekComponent } from 'src/app/tab_day/components/change-week/change-week.component';
 
 enum ManageChildPage
 {
@@ -35,6 +36,7 @@ export class ManagePage implements OnInit {
   // Backlog
 
   constructor(private database_manager_: DatabaseManager,
+              private calendar_manager_: CalendarManager,
               private modal_controller_: ModalController,
               private addressed_transfer_: AddressedTransfer,
               private router_: Router,
@@ -86,6 +88,7 @@ export class ManagePage implements OnInit {
         title: "Edit Vision",
         enable_associate: false,
         enable_completion_status: false,
+        enable_week_select: false,
 
         // Callbacks
         save_callback: (vision: InflatedRecord.TgvNode) => { this.database_manager_.tgv_set_basic_attributes(vision); },
@@ -109,10 +112,11 @@ export class ManagePage implements OnInit {
 
   async open_change_week()
   {
-    const modal = await this.modal_controller_.create({component: ChangeWeekComponent, componentProps: {}});
+    const modal = await this.modal_controller_.create({component: ChangeWeekComponent, componentProps: {active_discrete_date: this.calendar_manager_.get_active_week() } });
   
-    modal.onDidDismiss().then(async todo => {
-      // TODO
+    modal.onDidDismiss().then(async selected_week => {
+      if (selected_week.data)
+        this.calendar_manager_.set_active_week(selected_week.data);
     });
 
     return await modal.present();
@@ -147,6 +151,7 @@ export class ManagePage implements OnInit {
         title: "New Task",
         enable_associate: true,
         enable_completion_status: false,
+        enable_week_select: true,
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
@@ -171,6 +176,7 @@ export class ManagePage implements OnInit {
         title: "New Goal",
         enable_associate: true,
         enable_completion_status: false,
+        enable_week_select: false,
 
         // Callbacks
         save_callback: (new_goal: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_goal); },

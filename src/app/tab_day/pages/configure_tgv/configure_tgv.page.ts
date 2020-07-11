@@ -5,6 +5,11 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ModalController, AlertController } from '@ionic/angular';
 import { ComponentAssociate } from '../../components/associate/associate';
 import { DatabaseManager } from 'src/app/providers/database_manager';
+import { get_dual_week_str, DiscreteDate, equals, contains } from 'src/app/providers/discrete_date';
+import { ChangeWeekComponent } from '../../components/change-week/change-week.component';
+
+// TODO(ABurroughs): Prevent editing conflicts (extremely unlikely in practice, but potentially 
+// irritating)
 
 export class ConfigureTgvPageSettings
 {
@@ -15,6 +20,7 @@ export class ConfigureTgvPageSettings
   title: string;
   enable_associate: boolean;
   enable_completion_status: boolean;
+  enable_week_select: boolean;
 
   // Callbacks
   save_callback: (tgv_node: InflatedRecord.TgvNode) => void;
@@ -29,6 +35,8 @@ export class ConfigureTgvPage {
   private tgv_node_: InflatedRecord.TgvNode;
   private settings_: ConfigureTgvPageSettings;
   private parent_name_: string;
+  private is_to_active_: boolean; // TODO(ABurroughs): Hopefully remove
+  private week_str_: string; // TODO(ABurroughs): Definitely remove
 
   constructor(private router_: Router,
               private route_: ActivatedRoute,
@@ -44,6 +52,12 @@ export class ConfigureTgvPage {
     // Set parent string
     this.parent_name_ = "";
     this.update_parent(this.tgv_node_.parent_id);
+
+    // Determine active status
+    this.is_to_active_ = InflatedRecord.is_active(this.tgv_node_);
+
+    // Determine week string
+    this.week_str_ = get_dual_week_str(this.tgv_node_.discrete_date);
   }
 
   update_parent(parent_id: InflatedRecord.ID)
@@ -77,6 +91,28 @@ export class ConfigureTgvPage {
   {
     let resolution = event_data.detail.value;
     InflatedRecord.resolve(resolution, /*out*/this.tgv_node_);
+
+    // Update active status
+    this.is_to_active_ = InflatedRecord.is_active(this.tgv_node_);
+  }
+
+  async set_week()
+  {
+    const modal = await this.modal_controller_.create({component: ChangeWeekComponent, componentProps: { active_discrete_date: this.tgv_node_.discrete_date } });
+  
+    modal.onDidDismiss().then(async selected_week => {
+      if (selected_week.data)
+      {
+        // Avoid clearing day information if a change has not actually been made
+        if (!contains(this.tgv_node_.discrete_date, selected_week.data))
+        {
+          InflatedRecord.set_date(selected_week.data, this.tgv_node_);
+          this.week_str_ = get_dual_week_str(this.tgv_node_.discrete_date);
+        }
+      }
+    });
+
+    return await modal.present();
   }
 
   save()

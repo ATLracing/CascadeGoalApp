@@ -37,6 +37,7 @@ export class WeekTaskListItemComponent implements OnInit, OnChanges {
         title: "Edit Task",
         enable_associate: true,
         enable_completion_status: true,
+        enable_week_select: true,
 
         // Callbacks
         save_callback: (edited_task: InflatedRecord.TgvNode) => { 

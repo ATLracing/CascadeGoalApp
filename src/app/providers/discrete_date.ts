@@ -1,3 +1,5 @@
+import { Pipe, PipeTransform } from '@angular/core';
+
 // TODO(ABurroughs): Should switch to epoch days/weeks
 export class DiscreteDate
 {
@@ -188,3 +190,28 @@ export function get_gregorian(date: DiscreteDate) : Date
 
     return new Date(date_ms);
 }
+
+// TODO(ABurroughs): Switch to pipe
+// TODO(ABurroughs): More general formatting options
+export function get_dual_week_str(discrete_date: DiscreteDate) : string
+{
+    if (get_level(discrete_date) < DiscreteDateLevel.WEEK)
+    {
+        return "Unscheduled";
+    }
+
+    let gregorian_date = get_gregorian(discrete_date);
+    let month_str = gregorian_date.toLocaleString('default', { month: 'long' });
+    let day = gregorian_date.getDate();
+    
+    return `W${discrete_date.week}, ${discrete_date.year} (${month_str.slice(0, 3)} ${day})`;
+}
+
+@Pipe({ name: 'dualWeek' })
+export class DualWeekPipe implements PipeTransform 
+{
+    transform(discrete_date: DiscreteDate) : string
+    {
+        return get_dual_week_str(discrete_date);
+    }
+};

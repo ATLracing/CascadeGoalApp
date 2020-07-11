@@ -40,6 +40,7 @@ export class AppComponent implements OnDestroy{
     this.current_week_str_ = "";
 
     this.database_manager_.register_data_updated_callback("app_component", () => {
+      // TODO(ABurroughs): Use pipe
       let active_week = this.calendar_manager_.get_active_week();
       let active_week_date = get_gregorian(active_week);
       let month_str = active_week_date.toLocaleString('default', { month: 'long' });

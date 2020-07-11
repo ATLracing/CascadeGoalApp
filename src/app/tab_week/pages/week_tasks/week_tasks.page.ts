@@ -128,33 +128,11 @@ export class WeekTasksPage implements OnDestroy {
         title: "New Task",
         enable_associate: true,
         enable_completion_status: false,
+        enable_week_select: false,
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
         delete_callback: null
-    };
-
-    this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
-    this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
-  }
-
-  edit_task(index: number, is_active: boolean)
-  {
-    let configure_tgv_settings : ConfigureTgvPageSettings =
-    {
-        // Node to configure (must have type field correctly set)
-        tgv_node: is_active ? this.active_tasks_[index] : this.complete_tasks_[index],
-        
-        // Display elements
-        title: "Edit Task",
-        enable_associate: true,
-        enable_completion_status: true,
-
-        // Callbacks
-        save_callback: (edited_task: InflatedRecord.TgvNode) => { 
-          this.database_manager_.tgv_set_basic_attributes(edited_task); 
-        },
-        delete_callback: (edited_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_remove(edited_task); }
     };
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { get_this_week, get_gregorian, get_week, DiscreteDate, equals } from 'src/app/providers/discrete_date';
-import { CalendarManager } from 'src/app/providers/calendar_manager';
-import { ModalController } from '@ionic/angular';
+import { get_this_week, get_gregorian, get_week, DiscreteDate, contains } from 'src/app/providers/discrete_date';
+import { ModalController, NavParams } from '@ionic/angular';
 
 class SelectableWeek
 {
@@ -21,8 +20,8 @@ class SelectableWeek
 export class ChangeWeekComponent implements OnInit {
   private weeks_: SelectableWeek[];
   
-  constructor(private calendar_manager_: CalendarManager,
-              private modal_controller_: ModalController) { 
+  constructor(private modal_controller_: ModalController, 
+              nav_params_: NavParams) { 
     const kWeeksAhead = 12;
     const kWeeksBehind = 0;
     const kWeekInMs = 1000 * 60 * 60 * 24 * 7;
@@ -32,7 +31,7 @@ export class ChangeWeekComponent implements OnInit {
     let this_week = get_this_week();
     let this_week_date = get_gregorian(this_week);
     
-    let active_week = calendar_manager_.get_active_week();
+    let active_week = nav_params_.get('active_discrete_date');
 
     for (let i = -kWeeksBehind; i <= kWeeksAhead; i++)
     {
@@ -53,16 +52,14 @@ export class ChangeWeekComponent implements OnInit {
 
       let iso_week_str = `Week ${iso_week.week} (${offset_str})`;
 
-      this.weeks_.push({monday_date_str: monday_date_str, iso_week_str: iso_week_str, current: i == 0, active: equals(iso_week, active_week), iso_week: iso_week});
+      this.weeks_.push({monday_date_str: monday_date_str, iso_week_str: iso_week_str, current: i == 0, active: contains(active_week, iso_week), iso_week: iso_week});
     }
   }
 
   select_week(week_index)
   {
     let week = this.weeks_[week_index].iso_week;
-    this.calendar_manager_.set_active_week(week);
-
-    this.modal_controller_.dismiss();
+    this.modal_controller_.dismiss(week);
   }
 
   ngOnInit() {}

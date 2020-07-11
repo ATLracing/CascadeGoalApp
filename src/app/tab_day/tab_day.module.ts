@@ -8,6 +8,7 @@ import { TabDayRoutingModule } from './tab_day-routing.module';
 import { ComponentAssociate } from './components/associate/associate';
 import { ConfigureTgvPage } from './pages/configure_tgv/configure_tgv.page';
 import { DayTaskListItemComponent } from './components/day-task-list-item/day-task-list-item.component';
+import { ChangeWeekComponent } from './components/change-week/change-week.component';
 
 @NgModule({
   imports: [
@@ -16,7 +17,7 @@ import { DayTaskListItemComponent } from './components/day-task-list-item/day-ta
     FormsModule,
     TabDayRoutingModule
   ],
-  entryComponents: [ComponentAssociate],
-  declarations: [TaskListPage, ConfigureTgvPage, TaskListComponent, ComponentAssociate, DayTaskListItemComponent]
+  entryComponents: [ComponentAssociate, ChangeWeekComponent],
+  declarations: [TaskListPage, ConfigureTgvPage, TaskListComponent, ComponentAssociate, DayTaskListItemComponent, ChangeWeekComponent]
 })
 export class TabTasksModule {}

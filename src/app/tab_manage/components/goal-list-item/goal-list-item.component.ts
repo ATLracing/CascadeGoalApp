@@ -55,6 +55,7 @@ export class GoalListItemComponent implements OnInit {
         title: "New Task",
         enable_associate: false,
         enable_completion_status: false,
+        enable_week_select: false,
 
         // Callbacks
         save_callback: (new_task: InflatedRecord.TgvNode) => { this.database_manager_.tgv_add(new_task); },
@@ -76,6 +77,7 @@ export class GoalListItemComponent implements OnInit {
         title: "Edit Goal",
         enable_associate: true,
         enable_completion_status: true,
+        enable_week_select: false,
 
         // Callbacks
         save_callback: async (edited_goal: InflatedRecord.TgvNode) => { 
