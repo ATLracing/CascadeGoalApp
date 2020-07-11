@@ -4,7 +4,7 @@ import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { contains, get_today, prior_to } from 'src/app/providers/discrete_date';
+import { contains, get_today, prior_to, DiscreteDateLevel, get_level } from 'src/app/providers/discrete_date';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 @Component({
@@ -27,9 +27,9 @@ export class TaskListItemComponent implements OnInit, OnChanges{
               private router_            : Router,
               private route_             : ActivatedRoute) {}
 
-  add_remove_this_week()
+  add_remove_week()
   {
-    if (contains(this.task.discrete_date, this.calendar_manager_.get_active_week()))
+    if (get_level(this.task.discrete_date) >= DiscreteDateLevel.WEEK)
     {
       InflatedRecord.clear_week(this.task);
     }

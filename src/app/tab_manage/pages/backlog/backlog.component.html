@@ -4,10 +4,12 @@
   </ion-item-divider>
   <task-list-item *ngFor="let task of active_unscheduled_tasks_" [task]="task" [add_mode]="send_to_week_mode" [show_parent]="true"></task-list-item>
 
+  <div *ngFor="let week_tasks of active_scheduled_week_tasks_">
   <ion-item-divider>
-    <ion-label>Scheduled ({{active_scheduled_tasks_.length}})</ion-label>
+    <ion-label>Week: {{week_tasks.date.week}} ({{week_tasks.tasks.length}})</ion-label>
   </ion-item-divider>
-  <task-list-item *ngFor="let task of active_scheduled_tasks_" [task]="task" [add_mode]="send_to_week_mode" [show_parent]="true"></task-list-item>
+  <task-list-item *ngFor="let task of week_tasks.tasks" [task]="task" [add_mode]="send_to_week_mode" [show_parent]="true"></task-list-item>
+  </div>
 
   <ion-item-divider>
     <ion-label>Completed ({{complete_tasks_.length}})</ion-label>

@@ -8,10 +8,10 @@ export class DiscreteDate
 
 export enum DiscreteDateLevel
 {
-    DAY,
-    WEEK,
+    NULL,
     YEAR,
-    NULL
+    WEEK,
+    DAY
 }
 
 // ISO 8601 week date system ======================================================================= 
