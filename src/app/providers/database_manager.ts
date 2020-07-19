@@ -23,22 +23,17 @@ export class IdSetFilter implements QueryFilter
 
     get_where_clause()
     {
-        let where_clause = ""
+        let where_clause = (this.including_ ? "" : "NOT ") + "id IN (";
         
         for (let i = 0; i < this.ids_.length; i++)
         {
-            if (this.including_)
-                where_clause += `id=${this.ids_[i]}`;
-            else
-                where_clause += `id!=${this.ids_[i]}`
+            where_clause += this.ids_[i];
 
-            if (i + 1 < this.ids_.length)
-            {
-                where_clause += this.including_ ? " OR " : " AND ";
-            }
+            if (i + 1 < this.ids_.length) 
+                where_clause += ", ";
         }
         
-        return where_clause;
+        return where_clause + ")";
     }
 };
 
