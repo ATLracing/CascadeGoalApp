@@ -4,6 +4,9 @@ import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/co
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DatabaseManager, ParentFilter, ActiveFilter, join_and } from 'src/app/providers/database_manager';
+import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { get_manage_attributes, manage_add_remove_week } from 'src/app/tab_manage/pages/common/context_dependent_attributes';
+import { ContextDependentTaskAttributes } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
 
 @Component({
   selector: 'goal-list-item',
@@ -22,6 +25,7 @@ export class GoalListItemComponent implements OnInit {
 
   constructor(private addressed_transfer_: AddressedTransfer,
               private database_manager_  : DatabaseManager,
+              private calendar_manager_  : CalendarManager,
               private router_            : Router,
               private route_             : ActivatedRoute) 
   {
@@ -99,6 +103,17 @@ export class GoalListItemComponent implements OnInit {
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
     this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
+  }
+
+  // Task list child
+  get_attributes(node: InflatedRecord.TgvNode) : ContextDependentTaskAttributes
+  {
+    return get_manage_attributes(node, this.calendar_manager_);
+  }
+
+  add_remove_week(node: InflatedRecord.TgvNode)
+  {
+    manage_add_remove_week(node, this.database_manager_, this.calendar_manager_);
   }
 
   ngOnInit() {

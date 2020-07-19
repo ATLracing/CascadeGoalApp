@@ -9,6 +9,7 @@ import { ComponentAssociate } from './components/associate/associate';
 import { ConfigureTgvPage } from './pages/configure_tgv/configure_tgv.page';
 import { DayTaskListItemComponent } from './components/day-task-list-item/day-task-list-item.component';
 import { ChangeWeekComponent } from './components/change-week/change-week.component';
+import { TaskListItemComponent } from './components/task-list-item/task-list-item.component';
 
 @NgModule({
   imports: [
@@ -17,7 +18,14 @@ import { ChangeWeekComponent } from './components/change-week/change-week.compon
     FormsModule,
     TabDayRoutingModule
   ],
+  exports: [TaskListItemComponent],
   entryComponents: [ComponentAssociate, ChangeWeekComponent],
-  declarations: [TaskListPage, ConfigureTgvPage, TaskListComponent, ComponentAssociate, DayTaskListItemComponent, ChangeWeekComponent]
+  declarations: [TaskListPage, 
+                 ConfigureTgvPage, 
+                 TaskListComponent, 
+                 ComponentAssociate, 
+                 DayTaskListItemComponent, 
+                 ChangeWeekComponent, 
+                 TaskListItemComponent]
 })
 export class TabTasksModule {}

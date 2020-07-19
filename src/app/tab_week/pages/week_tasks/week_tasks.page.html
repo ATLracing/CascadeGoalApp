@@ -29,14 +29,40 @@
     <ion-item-divider *ngIf="overdue_tasks_.length > 0 && current_week_active_">
       <ion-label>Overdue ({{overdue_tasks_.length}})</ion-label>
     </ion-item-divider>
-    <week-task-list-item *ngFor="let task of overdue_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>
+    
+    <task-list-item *ngFor="let task of overdue_tasks_" 
+                    [task]="task" 
+                    [sched_add_remove_lhs]="add_remove_today"
+                    [sched_remove_current]="remove_from_week"
+                    [get_context_dependent_attributes]="get_attributes"
+                    [add_mode]="editing_unlocked_" 
+                    [show_parent]="true"
+                    [slide_to_remove]="true">
+    </task-list-item>
+
     <ion-item-divider>
       <ion-label>Active ({{active_tasks_.length}})</ion-label>
     </ion-item-divider>
-    <week-task-list-item *ngFor="let task of active_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>
+    <task-list-item *ngFor="let task of active_tasks_" 
+                    [task]="task" 
+                    [sched_add_remove_lhs]="add_remove_today"
+                    [sched_remove_current]="remove_from_week"
+                    [get_context_dependent_attributes]="get_attributes"
+                    [add_mode]="editing_unlocked_" 
+                    [show_parent]="true"
+                    [slide_to_remove]="true">
+    </task-list-item>
     <ion-item-divider *ngIf="current_week_active_">
       <ion-label>Complete ({{complete_tasks_.length}})</ion-label>
     </ion-item-divider>
-    <week-task-list-item *ngFor="let task of complete_tasks_" [task]="task" [add_mode]="editing_unlocked_"></week-task-list-item>
+    <task-list-item *ngFor="let task of complete_tasks_" 
+                    [task]="task" 
+                    [sched_add_remove_lhs]="add_remove_today"
+                    [sched_remove_current]="remove_from_week"
+                    [get_context_dependent_attributes]="get_attributes"
+                    [add_mode]="editing_unlocked_" 
+                    [show_parent]="true"
+                    [slide_to_remove]="true">
+    </task-list-item>
   </ion-list>
 </ion-content>

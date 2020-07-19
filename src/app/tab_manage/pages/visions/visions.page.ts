@@ -8,6 +8,8 @@ import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { ManageSettings } from '../../components/settings/settings';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { get_manage_attributes, manage_add_remove_week } from '../common/context_dependent_attributes';
+import { ContextDependentTaskAttributes } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
 
 @Component({
   selector: 'visions-page',
@@ -202,6 +204,17 @@ export class VisionsPage implements OnDestroy {
   {
     this.vision_index_ = await this.slides_.getActiveIndex();
     this.vision_changed.emit(this.expanded_visions_[this.vision_index_]);
+  }
+
+  // Task list child
+  get_attributes(node: InflatedRecord.TgvNode) : ContextDependentTaskAttributes
+  {
+      return get_manage_attributes(node, this.calendar_manager_);
+  }
+
+  add_remove_week(node: InflatedRecord.TgvNode)
+  {
+    manage_add_remove_week(node, this.database_manager_, this.calendar_manager_);
   }
 
   ngOnDestroy()

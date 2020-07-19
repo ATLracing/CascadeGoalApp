@@ -25,7 +25,13 @@
             <ion-button (click)="add_task_to_vision(vision_index)">New Task</ion-button>
           </ion-buttons>
         </ion-item-divider>
-        <task-list-item *ngFor="let free_task of expanded_vision.extra.freestanding_tasks" [task]="free_task" [add_mode]="send_to_week_mode_"></task-list-item>
+        <task-list-item *ngFor="let free_task of expanded_vision.extra.freestanding_tasks" 
+        [task]="free_task" 
+        [sched_add_remove_lhs]="add_remove_week"
+        [get_context_dependent_attributes]="get_attributes"
+        [add_mode]="send_to_week_mode_" 
+        [show_parent]="true"
+        [slide_to_remove]="false"></task-list-item>
       </ion-list>
     </ion-content>
   </ion-slide>

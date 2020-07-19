@@ -5,7 +5,9 @@ import { SettingsComponent, ManageSettings } from '../../components/settings/set
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { LoadingController } from '@ionic/angular';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
-import { DiscreteDate, prior_to } from 'src/app/providers/discrete_date';
+import { DiscreteDate, prior_to, DiscreteDateLevel, get_level, get_today, contains } from 'src/app/providers/discrete_date';
+import { ContextDependentTaskAttributes } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
+import { get_manage_attributes, manage_add_remove_week } from '../common/context_dependent_attributes';
 
 class CalendarWeekTasks
 {
@@ -93,6 +95,17 @@ export class BacklogPage implements OnInit, OnDestroy {
     this.complete_tasks_ = complete_tasks;
 
     await loading.dismiss();
+  }
+
+  // Task list child
+  get_attributes(node: InflatedRecord.TgvNode) : ContextDependentTaskAttributes
+  {
+      return get_manage_attributes(node, this.calendar_manager_);
+  }
+
+  add_remove_week(node: InflatedRecord.TgvNode)
+  {
+    manage_add_remove_week(node, this.database_manager_, this.calendar_manager_);
   }
 
   ngOnInit() {}

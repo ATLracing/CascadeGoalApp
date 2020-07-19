@@ -22,7 +22,14 @@
 <ion-row *ngIf="show_list_">
   <ion-col>
     <ion-list lines="none">
-      <task-list-item *ngFor="let task of goal.children" [task]="task" [add_mode]="add_mode"></task-list-item>
+      <task-list-item *ngFor="let task of goal.children" 
+                      [task]="task" 
+                      [sched_add_remove_lhs]="add_remove_week"
+                      [get_context_dependent_attributes]="get_attributes"
+                      [add_mode]="add_mode" 
+                      [show_parent]="false"
+                      [slide_to_remove]="false">
+      </task-list-item>
     </ion-list>
   </ion-col>
 </ion-row>

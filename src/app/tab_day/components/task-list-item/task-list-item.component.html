@@ -1,0 +1,27 @@
+<ion-item-sliding>
+  <ion-item-options side="end" *ngIf="!(add_mode_disabled_ || !this.slide_to_remove)">
+    <ion-item-option color="danger" (click)="sched_remove_current(task)">Remove</ion-item-option>
+  </ion-item-options>
+  
+  <ion-item class="tgvItem">
+    <ion-label>
+      <h3 [ngStyle]="text_style_">{{task.name}}</h3>
+      <ion-note *ngIf="show_parent && task.parent">{{task.parent.name}}</ion-note>
+    </ion-label>
+    <ion-icon id="primaryIcon" *ngIf="!add_mode" color="{{icon_color_}}" slot="start" name="git-commit"></ion-icon>
+
+    <ion-buttons id="addRemoveIcon" *ngIf="add_mode" slot="start">
+      <ion-button *ngIf="!assigned_lhs_" disabled="{{add_mode_disabled_}}" (click)="sched_add_remove_lhs(task)">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="assigned_lhs_" disabled="{{add_mode_disabled_}}" (click)="sched_add_remove_lhs(task)">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons id="editIcon" slot="end">
+      <ion-button (click)="edit()">
+        <ion-icon slot="icon-only" name="create"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-item>
+</ion-item-sliding>

@@ -4,7 +4,7 @@ import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
-import { DiscreteDateLevel, get_level, get_this_week, equals } from 'src/app/providers/discrete_date';
+import { DiscreteDateLevel, get_level, get_this_week, equals, get_today, contains, prior_to } from 'src/app/providers/discrete_date';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 
 import {
@@ -16,6 +16,7 @@ import {
   // ...
 } from '@angular/animations';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { ContextDependentTaskAttributes } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
 
 @Component({
   selector: 'app-week-tasks',
@@ -139,10 +140,29 @@ export class WeekTasksPage implements OnDestroy {
     this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
   }
 
-  add_remove_today(index: number, is_active: boolean)
+  // Task list item properties
+  get_attributes(task: InflatedRecord.Task) : ContextDependentTaskAttributes
   {
-    let task = is_active ? this.active_tasks_[index] : this.complete_tasks_[index];
+    let today = get_today();
 
+    let is_active = InflatedRecord.is_active(task);
+    let due_today = contains(task.discrete_date, today);
+    let overdue_day = is_active && get_level(task.discrete_date) == DiscreteDateLevel.DAY && prior_to(task.discrete_date, today);
+    let completed_today = contains(task.discrete_date_completed, today);
+    
+    // Set UI parameters
+    let is_today = due_today || overdue_day || completed_today;
+
+    return {
+      active: is_active,
+      overdue : overdue_day,
+      assigned_lhs : is_today,
+      assigned_active_lhs: is_today
+    };
+  }
+
+  add_remove_today(task: InflatedRecord.TgvNode)
+  {
     if (get_level(task.discrete_date) == DiscreteDateLevel.DAY)
     {
       InflatedRecord.clear_day(task);
@@ -155,12 +175,10 @@ export class WeekTasksPage implements OnDestroy {
     this.database_manager_.tgv_set_basic_attributes(task);
   }
 
-  remove(index: number, is_active: boolean)
+  remove_from_week(task: InflatedRecord.TgvNode)
   {
-    let remove_task = is_active ? this.active_tasks_[index] : this.complete_tasks_[index];
-    InflatedRecord.clear_week(remove_task);
-
-    this.database_manager_.tgv_set_basic_attributes(remove_task);
+    InflatedRecord.clear_week(task);
+    this.database_manager_.tgv_set_basic_attributes(task);
   }
 
   ngOnDestroy()
