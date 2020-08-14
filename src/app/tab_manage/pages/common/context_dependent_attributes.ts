@@ -18,10 +18,9 @@ export function get_manage_attributes(node: InflatedRecord.TgvNode, calendar_man
   let assigned_to_week = get_level(node.discrete_date) >= DiscreteDateLevel.WEEK || !is_active;
   let assigned_to_active_week = due_this_week || overdue || completed_this_week;
 
-  return { active: is_active,
-              assigned_lhs: assigned_to_week,
-              assigned_active_lhs: assigned_to_active_week,
-              overdue: overdue };
+  return { assigned_lhs: assigned_to_week,
+           assigned_active_lhs: assigned_to_active_week,
+           overdue: overdue };
 }
 
 export function manage_add_remove_week(node: InflatedRecord.TgvNode, 

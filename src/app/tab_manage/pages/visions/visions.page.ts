@@ -1,5 +1,5 @@
 import { Component, ViewChild, Input, Output, EventEmitter, OnDestroy } from '@angular/core';
-import { DatabaseManager, ParentFilter, DateCompletedContainsFilter, join_or, ActiveFilter, join_and, QueryFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ParentFilter, join_or, ActiveFilter, join_and, QueryFilter, CompleteFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
@@ -82,7 +82,7 @@ export class VisionsPage implements OnDestroy {
     let settings_filter = undefined;
     if (!settings.show_completed)
     {
-      settings_filter = join_or(new DateCompletedContainsFilter(this.calendar_manager_.get_active_week()), new ActiveFilter(true));
+      settings_filter = join_or(new CompleteFilter(this.calendar_manager_.get_active_week()), new ActiveFilter());
     }
 
     for (let vision of expanded_visions)

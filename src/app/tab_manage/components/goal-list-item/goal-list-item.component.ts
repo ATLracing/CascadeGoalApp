@@ -84,18 +84,7 @@ export class GoalListItemComponent implements OnInit {
         enable_week_select: false,
 
         // Callbacks
-        save_callback: async (edited_goal: InflatedRecord.TgvNode) => { 
-          if (edited_goal.resolution != this.goal.resolution && edited_goal.resolution != InflatedRecord.Resolution.ACTIVE)
-          {
-            let active_child_tasks = await this.database_manager_.query_tasks(join_and(new ParentFilter(edited_goal.id, true), new ActiveFilter(true)));
-
-            for (let child of active_child_tasks)
-            {
-              InflatedRecord.resolve(edited_goal.resolution, child);
-              await this.database_manager_.tgv_set_basic_attributes(child, true); // TODO: Super inefficient, but..
-            }
-          }
-
+        save_callback: (edited_goal: InflatedRecord.TgvNode) => {
           this.database_manager_.tgv_set_basic_attributes(edited_goal); 
         },
         delete_callback: (edited_goal: InflatedRecord.TgvNode) => { this.database_manager_.tgv_remove(edited_goal); }
@@ -129,7 +118,7 @@ export class GoalListItemComponent implements OnInit {
   {
     this.show_list_ = this.expanded_ && this.goal.children.length > 0;
 
-    if (!InflatedRecord.is_active(this.goal))
+    if (InflatedRecord.is_complete(this.goal))
       this.text_style_['text-decoration'] = "line-through"; 
     else
       this.text_style_ = {};

@@ -9,7 +9,6 @@ import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 export class ContextDependentTaskAttributes
 {
-  active: boolean;
   overdue : boolean;
   assigned_lhs : boolean;
   assigned_active_lhs: boolean;
@@ -71,17 +70,19 @@ export class TaskListItemComponent implements OnInit, OnChanges{
   ngOnChanges()
   {
     let attributes = this.get_context_dependent_attributes(this.task);
-
+    let complete = InflatedRecord.is_complete(this.task);
+    let dormant = InflatedRecord.is_dormant(this.task);
+    
     this.assigned_lhs_ = attributes.assigned_lhs;
-    this.add_mode_disabled_ = !attributes.active;
+    this.add_mode_disabled_ = complete || dormant;
 
     // Configure text style
     this.text_style_ = {};
 
-    if (!attributes.active)
+    if (complete)
       this.text_style_['text-decoration'] = "line-through"; 
     
-    if (attributes.assigned_active_lhs)
+    if (attributes.assigned_active_lhs && !dormant)
       this.text_style_['font-weight'] = "bold";
     
     // Configure icon style

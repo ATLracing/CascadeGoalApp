@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, ActiveFilter, DatePriorFilter, DateContainsFilter, DateCompletedContainsFilter, DateLevelFilter, join_and } from 'src/app/providers/database_manager';
+import { DatabaseManager, ActiveFilter, DatePriorFilter, DateContainsFilter, DateLevelFilter, join_and, CompleteFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
@@ -86,10 +86,10 @@ export class WeekTasksPage implements OnDestroy {
       // Query all tasks for the week
       let overdue_tasks = [];
       if (this.current_week_active_)
-        overdue_tasks = await database_manager_.query_tasks(join_and(new DatePriorFilter(this.calendar_manager_.get_active_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter(true)));
+        overdue_tasks = await database_manager_.query_tasks(join_and(new DatePriorFilter(this.calendar_manager_.get_active_week()), new DateLevelFilter(DiscreteDateLevel.WEEK), new ActiveFilter()));
 
-      let active_tasks = await database_manager_.query_tasks(join_and(new DateContainsFilter(this.calendar_manager_.get_active_week()), new ActiveFilter(true)));
-      let complete_tasks = await database_manager_.query_tasks(new DateCompletedContainsFilter(this.calendar_manager_.get_active_week()));
+      let active_tasks = await database_manager_.query_tasks(join_and(new DateContainsFilter(this.calendar_manager_.get_active_week()), new ActiveFilter()));
+      let complete_tasks = await database_manager_.query_tasks(new CompleteFilter(this.calendar_manager_.get_active_week()));
       let all_tasks = overdue_tasks.concat(active_tasks).concat(complete_tasks);
 
       // Inflate tasks
@@ -154,7 +154,6 @@ export class WeekTasksPage implements OnDestroy {
     let is_today = due_today || overdue_day || completed_today;
 
     return {
-      active: is_active,
       overdue : overdue_day,
       assigned_lhs : is_today,
       assigned_active_lhs: is_today

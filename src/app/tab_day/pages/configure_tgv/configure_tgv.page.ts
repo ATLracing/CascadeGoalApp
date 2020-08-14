@@ -37,6 +37,8 @@ export class ConfigureTgvPage {
   private parent_name_: string;
   private is_to_active_: boolean; // TODO(ABurroughs): Hopefully remove
   private week_str_: string; // TODO(ABurroughs): Definitely remove
+  private is_inherited_resolution_: boolean;
+  private node_resolution_: InflatedRecord.Resolution;
 
   constructor(private router_: Router,
               private route_: ActivatedRoute,
@@ -49,9 +51,11 @@ export class ConfigureTgvPage {
     this.settings_ = this.addressed_transfer_.get_for_route(router_, "settings");
     this.tgv_node_ = InflatedRecord.copy_node(this.settings_.tgv_node);
 
-    // Set parent string
+    // Parent-dependent parameters
     this.parent_name_ = "";
-    this.update_parent(this.tgv_node_.parent_id);
+    this.is_inherited_resolution_ = InflatedRecord.is_resolution_inherited(this.tgv_node_);
+    this.node_resolution_ = InflatedRecord.get_resolution(this.tgv_node_);
+    this.update_parent(this.tgv_node_.parent_id); // TODO: Redundant?
 
     // Determine active status
     this.is_to_active_ = InflatedRecord.is_active(this.tgv_node_);
@@ -67,7 +71,13 @@ export class ConfigureTgvPage {
     if (this.tgv_node_.parent_id)
     {
       this.database_manager_.get_node(this.tgv_node_.parent_id).then(parent => {
+        this.tgv_node_.parent = parent;
+        
+        // Parent-dependent parameters
         this.parent_name_ = parent.name;
+        this.is_inherited_resolution_ = InflatedRecord.is_resolution_inherited(this.tgv_node_);
+        this.node_resolution_ = InflatedRecord.get_resolution(this.tgv_node_);
+        this.is_to_active_ = InflatedRecord.is_active(this.tgv_node_);
       });
     }
     else

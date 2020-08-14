@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { DatabaseManager, DateContainsFilter, DatePriorFilter, ActiveFilter, DateLevelFilter, DateCompletedContainsFilter, join_and } from 'src/app/providers/database_manager';
+import { DatabaseManager, DateContainsFilter, DatePriorFilter, ActiveFilter, DateLevelFilter, join_and, CompleteFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
@@ -30,9 +30,9 @@ export class TaskListPage implements OnDestroy {
     database_manager_.register_data_updated_callback("today_tasks_page", async () => {              
         let today = get_today();
       
-        let overdue_tasks = await database_manager_.query_tasks(join_and(new DatePriorFilter(today), new DateLevelFilter(DiscreteDateLevel.DAY), new ActiveFilter(true)));
-        let active_tasks = await database_manager_.query_tasks(join_and(new DateContainsFilter(today), new ActiveFilter(true)));
-        let complete_tasks = await database_manager_.query_tasks(new DateCompletedContainsFilter(today));
+        let overdue_tasks = await database_manager_.query_tasks(join_and(new DatePriorFilter(today), new DateLevelFilter(DiscreteDateLevel.DAY), new ActiveFilter()));
+        let active_tasks = await database_manager_.query_tasks(join_and(new DateContainsFilter(today), new ActiveFilter()));
+        let complete_tasks = await database_manager_.query_tasks(new CompleteFilter(today));
 
         let all_tasks = overdue_tasks.concat(active_tasks).concat(complete_tasks);
 

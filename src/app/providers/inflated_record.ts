@@ -15,9 +15,10 @@ export type ID = number;
 export enum Resolution
 {
     ACTIVE = 0,
-    COMPLETE = 1,
-    WONT_DO = 2,
-    DELETED = 3
+    COMPLETE,
+    WONT_DO,
+    DORMANT,    // TODO: Not really a resolution..
+    DELETED
 };
 
 export enum Type
@@ -177,6 +178,7 @@ export function resolution_to_string(resolution: Resolution) : string
         case Resolution.ACTIVE: return "Active";
         case Resolution.COMPLETE: return "Complete";
         case Resolution.WONT_DO: return "Won't Do";
+        case Resolution.DORMANT: return "Dormant";
         case Resolution.DELETED: return "Deleted";
     }
 }
@@ -186,9 +188,42 @@ export class Goal   extends TgvNode{};
 export class Vision extends TgvNode{};
 
 // ============================================================================ Query for Properties
+// COMPLETE == WONT_DO > DORMANT > ACTIVE, tie goes to the parent (inherited), EXCEPT when ACTIVE
+export function is_resolution_inherited(node: TgvNode)
+{
+    if (node.parent != undefined)
+    {
+        if (node.parent.resolution == Resolution.COMPLETE || node.parent.resolution == Resolution.WONT_DO)
+            return true;
+        if (node.parent.resolution == Resolution.DORMANT && !(node.resolution == Resolution.COMPLETE || node.resolution == Resolution.WONT_DO))
+            return true;
+    }
+    
+    return false;
+}
+
+export function get_resolution(node : TgvNode): Resolution
+{
+    if (is_resolution_inherited(node))
+        return node.parent.resolution;
+    
+    return node.resolution;
+}
+
 export function is_active(node : TgvNode) : boolean
 {
-    return node.date_closed == null;
+    return get_resolution(node) == Resolution.ACTIVE;
+}
+
+export function is_complete(node : TgvNode) : boolean
+{
+    let resolution = get_resolution(node);
+    return resolution == Resolution.COMPLETE || resolution == Resolution.WONT_DO;
+}
+
+export function is_dormant(node : TgvNode) : boolean
+{
+    return get_resolution(node) == Resolution.DORMANT;
 }
 
 // ========================================================================================= Actions
@@ -197,7 +232,7 @@ export function resolve(resolution: Resolution, /*out*/ node: TgvNode)
 {
     node.resolution = resolution;
 
-    if (resolution == Resolution.ACTIVE)
+    if (resolution == Resolution.ACTIVE || resolution == Resolution.DORMANT)
     {
         node.date_closed = null;
         node.discrete_date_completed = get_null_date();

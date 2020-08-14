@@ -26,7 +26,7 @@
   </div>
 
   <ion-item-divider>
-    <ion-label>Completed ({{complete_tasks_.length}})</ion-label>
+    <ion-label>Complete ({{complete_tasks_.length}})</ion-label>
   </ion-item-divider>
   <task-list-item *ngFor="let task of complete_tasks_" 
                   [task]="task" 
@@ -36,4 +36,16 @@
                   [show_parent]="true"
                   [slide_to_remove]="false">
     </task-list-item>
+
+    <ion-item-divider *ngIf="dormant_tasks_.length > 0">
+      <ion-label>Dormant ({{dormant_tasks_.length}})</ion-label>
+    </ion-item-divider>
+    <task-list-item *ngFor="let task of dormant_tasks_" 
+                    [task]="task" 
+                    [sched_add_remove_lhs]="add_remove_week"
+                    [get_context_dependent_attributes]="get_attributes"
+                    [add_mode]="send_to_week_mode" 
+                    [show_parent]="true"
+                    [slide_to_remove]="false">
+      </task-list-item>
 </ion-list>

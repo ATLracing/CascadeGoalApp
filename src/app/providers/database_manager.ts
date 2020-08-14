@@ -37,18 +37,67 @@ export class IdSetFilter implements QueryFilter
     }
 };
 
+const GOAL_MASK_INHERITED_RES = `SELECT id FROM ${PackedRecord.TGV_TABLE} WHERE type="${PackedRecord.Type.GOAL}" AND resolution!=${InflatedRecord.Resolution.ACTIVE}`;
+const GOAL_MASK_QUERY_COMPLETE = `SELECT id FROM ${PackedRecord.TGV_TABLE} WHERE type="${PackedRecord.Type.GOAL}" AND resolution IN (${InflatedRecord.Resolution.COMPLETE}, ${InflatedRecord.Resolution.WONT_DO})`;
+const GOAL_MASK_QUERY_DORMANT = `SELECT id FROM ${PackedRecord.TGV_TABLE} WHERE type="${PackedRecord.Type.GOAL}" AND resolution=${InflatedRecord.Resolution.DORMANT}`;
+
 export class ActiveFilter implements QueryFilter
 {
-    constructor(private is_active_ : boolean)
+    constructor()
     {
     }
 
     get_where_clause()
     {
-        if (this.is_active_)
-            return `date_closed IS NULL`;
-        else
-            return `date_closed IS NOT NULL`;
+        return `resolution=${InflatedRecord.Resolution.ACTIVE} AND (parent_id IS NULL OR NOT parent_id IN (${GOAL_MASK_INHERITED_RES}))`;
+    }
+};
+
+export class CompleteFilter implements QueryFilter
+{
+    constructor(private date_: DiscreteDate)
+    {
+    }
+
+    get_where_clause()
+    {
+        let date_completed_where = "";
+
+        if (this.date_)
+            date_completed_where = "AND " + new DateCompletedContainsFilter(this.date_).get_where_clause();
+        
+        let complete_subquery = `SELECT id FROM ${PackedRecord.TGV_TABLE} WHERE type="${PackedRecord.Type.GOAL}" AND resolution IN (${InflatedRecord.Resolution.COMPLETE}, ${InflatedRecord.Resolution.WONT_DO}) ${date_completed_where}`;
+
+        return `resolution in (${InflatedRecord.Resolution.COMPLETE}, ${InflatedRecord.Resolution.WONT_DO}) ${date_completed_where} OR parent_id IN (${complete_subquery})`;
+    }
+};
+
+export class CompleteGoalFilter implements QueryFilter
+{
+    constructor(private date_: DiscreteDate)
+    {
+    }
+
+    get_where_clause()
+    {
+        let date_completed_where = "";
+
+        if (this.date_)
+            date_completed_where = "AND " + new DateCompletedContainsFilter(this.date_).get_where_clause();
+
+        return `resolution in (${InflatedRecord.Resolution.COMPLETE}, ${InflatedRecord.Resolution.WONT_DO}) ${date_completed_where}`;
+    }
+};
+
+export class DormantFilter implements QueryFilter
+{
+    constructor()
+    {
+    }
+
+    get_where_clause()
+    {
+        return `resolution=${InflatedRecord.Resolution.DORMANT} AND (parent_id is NULL OR NOT parent_id IN (${GOAL_MASK_QUERY_COMPLETE})) OR parent_id IN (${GOAL_MASK_QUERY_DORMANT}) AND NOT resolution IN (${InflatedRecord.Resolution.COMPLETE}, ${InflatedRecord.Resolution.WONT_DO})`;
     }
 };
 
@@ -122,6 +171,7 @@ export class ScheduledFilter implements QueryFilter
     }
 }
 
+// WARNING: Do not use this directly on tasks
 export class DateCompletedContainsFilter implements QueryFilter
 {
     constructor(private date: DiscreteDate) 

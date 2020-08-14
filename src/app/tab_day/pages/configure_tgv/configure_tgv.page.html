@@ -25,11 +25,13 @@
   </ion-item>
   
   <ion-item *ngIf="settings_.enable_completion_status">
-    <ion-label>Status: </ion-label>
-    <ion-select slot="end" value={{tgv_node_.resolution}} (ionChange)="set_resolution($event)">
+    <!--TODO: Should only disable options with lower precedence-->
+    <ion-label>Status{{is_inherited_resolution_ ? " (Inherited)" : ""}}: </ion-label>
+    <ion-select slot="end" value="{{node_resolution_}}" (ionChange)="set_resolution($event)" disabled="{{is_inherited_resolution_}}">
       <ion-select-option value=0>Active</ion-select-option>
       <ion-select-option value=1>Complete</ion-select-option>
       <ion-select-option value=2>Won't Do</ion-select-option>
+      <ion-select-option value=3>Dormant</ion-select-option>
     </ion-select>
   </ion-item>
 

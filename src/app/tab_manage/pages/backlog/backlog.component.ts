@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
-import { DatabaseManager, ActiveFilter, DateCompletedContainsFilter, QueryFilter, join_and, NotFilter, ScheduledFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ActiveFilter, QueryFilter, join_and, NotFilter, ScheduledFilter, DormantFilter, CompleteFilter } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { SettingsComponent, ManageSettings } from '../../components/settings/settings';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
@@ -24,6 +24,7 @@ export class BacklogPage implements OnInit, OnDestroy {
   private active_unscheduled_tasks_: InflatedRecord.Task[];
   private active_scheduled_week_tasks_: CalendarWeekTasks[];
   private complete_tasks_: InflatedRecord.Task[];
+  private dormant_tasks_: InflatedRecord.Task[];
 
   private settings_: ManageSettings;
 
@@ -35,6 +36,7 @@ export class BacklogPage implements OnInit, OnDestroy {
     this.active_unscheduled_tasks_ = [];
     this.active_scheduled_week_tasks_ = [];
     this.complete_tasks_ = [];
+    this.dormant_tasks_ = [];
     
     database_manager_.register_data_updated_callback("backlog_page", async () => {
       this.get_expanded_tasks(this.settings_, database_manager_);
@@ -59,16 +61,12 @@ export class BacklogPage implements OnInit, OnDestroy {
 
     await loading.present();
 
-    let active_unscheduled_tasks = await this.database_manager_.query_tasks(join_and(new ActiveFilter(true), new NotFilter(new ScheduledFilter())));
-    let active_scheduled_tasks = await this.database_manager_.query_tasks(join_and(new ActiveFilter(true), new ScheduledFilter()));
-    let completed_filter : QueryFilter = new ActiveFilter(false);
-
-    if (!this.settings_.show_completed)
-      completed_filter = join_and(completed_filter, new DateCompletedContainsFilter(this.calendar_manager_.get_active_week()));
-      
-    let complete_tasks = await this.database_manager_.query_tasks(completed_filter);
+    let active_unscheduled_tasks = await this.database_manager_.query_tasks(join_and(new ActiveFilter(), new NotFilter(new ScheduledFilter())));
+    let active_scheduled_tasks = await this.database_manager_.query_tasks(join_and(new ActiveFilter(), new ScheduledFilter()));      
+    let complete_tasks = await this.database_manager_.query_tasks(new CompleteFilter(this.settings_.show_completed ? undefined : this.calendar_manager_.get_active_week()));
+    let dormant_tasks = await this.database_manager_.query_tasks(new DormantFilter());
     
-    let all_tasks = active_unscheduled_tasks.concat(active_scheduled_tasks.concat(complete_tasks));
+    let all_tasks = active_unscheduled_tasks.concat(active_scheduled_tasks.concat(complete_tasks.concat(dormant_tasks)));
 
     // TODO: Inflate
     await DatabaseInflator.upward_inflate(all_tasks, database_manager);
@@ -93,6 +91,7 @@ export class BacklogPage implements OnInit, OnDestroy {
     this.active_scheduled_week_tasks_ = Array.from(calendar_week_tasks_map.values());
     this.active_scheduled_week_tasks_.sort((a, b) => prior_to(a.date, b.date) ? -1 : 0)
     this.complete_tasks_ = complete_tasks;
+    this.dormant_tasks_ = dormant_tasks;
 
     await loading.dismiss();
   }
