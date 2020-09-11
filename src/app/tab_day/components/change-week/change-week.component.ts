@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { get_this_week, get_gregorian, get_week, DiscreteDate, contains } from 'src/app/providers/discrete_date';
+import { get_this_week, get_gregorian, get_week, DiscreteDate, contains, week_offset_to_str } from 'src/app/providers/discrete_date';
 import { ModalController, NavParams } from '@ionic/angular';
 
 class SelectableWeek
@@ -44,11 +44,7 @@ export class ChangeWeekComponent implements OnInit {
       let monday_date_str = week_monday_date.toDateString();
       
       // Format ISO week string
-      let offset_str = "Current";
-      if (i < 0)
-        offset_str = `${i}`;
-      else if (i > 0)
-        offset_str = `+${i}`;
+      let offset_str = week_offset_to_str(i);
 
       let iso_week_str = `Week ${iso_week.week} (${offset_str})`;
 

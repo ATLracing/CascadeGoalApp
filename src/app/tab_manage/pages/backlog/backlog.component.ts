@@ -9,12 +9,6 @@ import { DiscreteDate, prior_to, DiscreteDateLevel, get_level, get_today, contai
 import { ContextDependentTaskAttributes } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
 import { get_manage_attributes, manage_add_remove_week } from '../common/context_dependent_attributes';
 
-class CalendarWeekTasks
-{
-  date: DiscreteDate;
-  tasks: InflatedRecord.Task[];
-};
-
 @Component({
   selector: 'backlog-page',
   templateUrl: './backlog.component.html',
@@ -22,7 +16,7 @@ class CalendarWeekTasks
 })
 export class BacklogPage implements OnInit, OnDestroy {
   private active_unscheduled_tasks_: InflatedRecord.Task[];
-  private active_scheduled_week_tasks_: CalendarWeekTasks[];
+  private active_scheduled_week_tasks_: InflatedRecord.Task[];
   private complete_tasks_: InflatedRecord.Task[];
   private dormant_tasks_: InflatedRecord.Task[];
 
@@ -71,25 +65,11 @@ export class BacklogPage implements OnInit, OnDestroy {
     // TODO: Inflate
     await DatabaseInflator.upward_inflate(all_tasks, database_manager);
 
-    // Organize tasks according to week
-    let calendar_week_tasks_map = new Map<string, CalendarWeekTasks>();
-
-    for (let task of active_scheduled_tasks)
-    {
-      let date_string = JSON.stringify({ week: task.discrete_date.week, year: task.discrete_date.year });
-      if (!calendar_week_tasks_map.has(date_string))
-      {
-        calendar_week_tasks_map.set(date_string, { date: task.discrete_date , tasks: [task] });
-      }
-      else
-      {
-        calendar_week_tasks_map.get(date_string).tasks.push(task);
-      }
-    }
+    // Sort scheduled tasks by date
+    active_scheduled_tasks.sort((a, b) => prior_to(a.discrete_date, b.discrete_date) ? -1 : 0);
 
     this.active_unscheduled_tasks_ = active_unscheduled_tasks;
-    this.active_scheduled_week_tasks_ = Array.from(calendar_week_tasks_map.values());
-    this.active_scheduled_week_tasks_.sort((a, b) => prior_to(a.date, b.date) ? -1 : 0)
+    this.active_scheduled_week_tasks_ = active_scheduled_tasks;
     this.complete_tasks_ = complete_tasks;
     this.dormant_tasks_ = dormant_tasks;
 

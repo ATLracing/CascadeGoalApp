@@ -29,6 +29,10 @@
           <ion-icon slot="start" name="eye"></ion-icon>
           <ion-label>Visions</ion-label>
         </ion-item>
+        <ion-item (click)="select_page(3)" [color]="page_number_ == 3 ? 'primary' : undefined"> 
+          <ion-icon slot="start" name="calendar"></ion-icon>
+          <ion-label>Calendar</ion-label>
+        </ion-item>
         <ion-item>
           <ion-label>Show All</ion-label>
           <ion-toggle slot="start" (ionChange)="show_completed_change($event)"></ion-toggle>

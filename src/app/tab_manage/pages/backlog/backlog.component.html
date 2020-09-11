@@ -11,19 +11,29 @@
                   [slide_to_remove]="false">
   </task-list-item>
 
-  <div *ngFor="let week_tasks of active_scheduled_week_tasks_">
-    <ion-item-divider>
-      <ion-label>Week: {{week_tasks.date.week}} ({{week_tasks.tasks.length}})</ion-label>
-    </ion-item-divider>
-    <task-list-item *ngFor="let task of week_tasks.tasks" 
-                    [task]="task"
-                    [sched_add_remove_lhs]="add_remove_week"
-                    [get_context_dependent_attributes]="get_attributes"
-                    [add_mode]="send_to_week_mode" 
-                    [show_parent]="true"
-                    [slide_to_remove]="false">
-    </task-list-item>
-  </div>
+  <ion-item-divider>
+    <ion-label>Scheduled ({{active_scheduled_week_tasks_.length}})</ion-label>
+  </ion-item-divider>
+  <task-list-item *ngFor="let task of active_scheduled_week_tasks_" 
+                  [task]="task"
+                  [sched_add_remove_lhs]="add_remove_week"
+                  [get_context_dependent_attributes]="get_attributes"
+                  [add_mode]="send_to_week_mode" 
+                  [show_parent]="true"
+                  [slide_to_remove]="false">
+  </task-list-item>
+
+  <ion-item-divider *ngIf="dormant_tasks_.length > 0">
+    <ion-label>Dormant ({{dormant_tasks_.length}})</ion-label>
+  </ion-item-divider>
+  <task-list-item *ngFor="let task of dormant_tasks_" 
+                  [task]="task" 
+                  [sched_add_remove_lhs]="add_remove_week"
+                  [get_context_dependent_attributes]="get_attributes"
+                  [add_mode]="send_to_week_mode" 
+                  [show_parent]="true"
+                  [slide_to_remove]="false">
+  </task-list-item>
 
   <ion-item-divider>
     <ion-label>Complete ({{complete_tasks_.length}})</ion-label>
@@ -36,16 +46,4 @@
                   [show_parent]="true"
                   [slide_to_remove]="false">
     </task-list-item>
-
-    <ion-item-divider *ngIf="dormant_tasks_.length > 0">
-      <ion-label>Dormant ({{dormant_tasks_.length}})</ion-label>
-    </ion-item-divider>
-    <task-list-item *ngFor="let task of dormant_tasks_" 
-                    [task]="task" 
-                    [sched_add_remove_lhs]="add_remove_week"
-                    [get_context_dependent_attributes]="get_attributes"
-                    [add_mode]="send_to_week_mode" 
-                    [show_parent]="true"
-                    [slide_to_remove]="false">
-      </task-list-item>
 </ion-list>

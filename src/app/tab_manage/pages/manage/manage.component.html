@@ -40,10 +40,16 @@
     </ion-buttons>
   </ion-toolbar>
 
+  <ion-toolbar *ngIf="current_page_ == 3">
+    <ion-title>Calendar</ion-title>
+    <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
+  </ion-toolbar>
+
   </ion-header>
 
 <ion-content>
   <backlog-page *ngIf="current_page_ == 0" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_"></backlog-page>
   <goal-backlog-page *ngIf="current_page_ == 1" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_"></goal-backlog-page>
   <visions-page *ngIf="current_page_ == 2" [send_to_week_mode]="send_to_week_mode_" [settings]="settings_" (vision_changed)="vision_changed($event)"></visions-page>
+  <calendar-page *ngIf="current_page_ == 3" [settings]="settings_"></calendar-page>
 </ion-content>

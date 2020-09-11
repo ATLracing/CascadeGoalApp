@@ -215,3 +215,36 @@ export class DualWeekPipe implements PipeTransform
         return get_dual_week_str(discrete_date);
     }
 };
+
+export function week_offset(to_date: DiscreteDate, reference_date: DiscreteDate) : number
+{
+    // Year and week must be defined; day is discarded
+    let negative = prior_to(to_date, reference_date);
+    let lower = negative ? to_date : reference_date;
+    let upper = negative ? reference_date : to_date;
+
+    let week_offset = upper.week - lower.week;
+
+    while (lower.year < upper.year)
+    {
+        week_offset += (is_leap_year(lower.year) ? 53 : 52);
+    }
+
+    return negative ? -week_offset : week_offset;
+}
+
+export function week_offset_to_str(i: number) : string
+{
+    let offset_str = "Current";
+    if (i < 0)
+      offset_str = `${i}`;
+    else if (i > 0)
+      offset_str = `+${i}`;
+
+    return offset_str;
+}
+
+export function week_offset_str(to_date: DiscreteDate, reference_date: DiscreteDate) : string
+{
+    return week_offset_to_str(week_offset(to_date, reference_date));
+}
