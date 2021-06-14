@@ -31,9 +31,10 @@ export class TaskListItemComponent implements OnInit, OnChanges{
   @Input() slide_to_remove: boolean;
 
   add_mode_disabled_ : boolean;
-  text_style_ : {[key:string] : string};
-  icon_color_ : string;
+  complete_ : boolean;
   assigned_lhs_: boolean;
+
+  text_style_ : {[key:string] : string};
 
   constructor(private addressed_transfer_: AddressedTransfer,
               private database_manager_  : DatabaseManager,
@@ -65,6 +66,20 @@ export class TaskListItemComponent implements OnInit, OnChanges{
     this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
   }
 
+  checkbox_change()
+  {
+    if (InflatedRecord.is_active(this.task))
+    {
+      InflatedRecord.resolve(InflatedRecord.Resolution.COMPLETE, this.task);
+    }
+    else
+    {
+      InflatedRecord.resolve(InflatedRecord.Resolution.ACTIVE, this.task);
+    }
+
+    this.database_manager_.tgv_set_basic_attributes(this.task);
+  }
+
   ngOnInit() {}
 
   ngOnChanges()
@@ -73,24 +88,23 @@ export class TaskListItemComponent implements OnInit, OnChanges{
     let complete = InflatedRecord.is_complete(this.task);
     let dormant = InflatedRecord.is_dormant(this.task);
     
-    this.assigned_lhs_ = attributes.assigned_lhs;
     this.add_mode_disabled_ = complete || dormant;
+    this.complete_ = complete;
+    this.assigned_lhs_ = attributes.assigned_lhs;
 
     // Configure text style
     this.text_style_ = {};
 
     if (complete)
-      this.text_style_['text-decoration'] = "line-through"; 
+      this.text_style_['text-decoration'] = "line-through";
     
     if (attributes.assigned_active_lhs && !dormant)
       this.text_style_['font-weight'] = "bold";
-    
-    // Configure icon style
-    this.icon_color_ = "black";
 
     if (attributes.overdue)
     {
-      this.icon_color_ = 'warning';
+      // TODO(ABurroughs): Use Ionic color preset
+      this.text_style_['color'] = 'orange';
     }
   }
 }

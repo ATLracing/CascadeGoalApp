@@ -32,6 +32,7 @@
     }
 }
 
+/* TODO(ABurroughs): Ensure padding settings are portable */
 .tgvItem {
     --padding-start: 0px;
     --inner-padding-end: 4px;
@@ -43,8 +44,10 @@
 
     #addRemoveIcon {
         margin: 0px;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-left: 1px;
+        padding-right: 1px;
+        padding-top: 3px;
+        padding-bottom: 3px;
     }
 
     #editIcon {
