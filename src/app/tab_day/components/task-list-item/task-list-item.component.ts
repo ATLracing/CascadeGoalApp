@@ -4,12 +4,11 @@ import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DiscreteDateLevel, get_level } from 'src/app/providers/discrete_date';
+import { get_today, prior_to } from 'src/app/providers/discrete_date';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
 
 export class ContextDependentTaskAttributes
 {
-  overdue : boolean;
   assigned_lhs : boolean;
   assigned_active_lhs: boolean;
 };
@@ -87,6 +86,7 @@ export class TaskListItemComponent implements OnInit, OnChanges{
     let attributes = this.get_context_dependent_attributes(this.task);
     let complete = InflatedRecord.is_complete(this.task);
     let dormant = InflatedRecord.is_dormant(this.task);
+    let overdue = InflatedRecord.is_overdue(this.task);
     
     this.add_mode_disabled_ = complete || dormant;
     this.complete_ = complete;
@@ -101,7 +101,7 @@ export class TaskListItemComponent implements OnInit, OnChanges{
     if (attributes.assigned_active_lhs && !dormant)
       this.text_style_['font-weight'] = "bold";
 
-    if (attributes.overdue)
+    if (overdue)
     {
       // TODO(ABurroughs): Use Ionic color preset
       this.text_style_['color'] = 'orange';

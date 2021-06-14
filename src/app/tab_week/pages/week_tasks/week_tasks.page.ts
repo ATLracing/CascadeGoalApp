@@ -143,20 +143,17 @@ export class WeekTasksPage implements OnDestroy {
   // Task list item properties
   get_attributes(task: InflatedRecord.Task) : ContextDependentTaskAttributes
   {
+    let assigned_to_day = get_level(task.discrete_date) == DiscreteDateLevel.DAY;
+    
     let today = get_today();
-
-    let is_active = InflatedRecord.is_active(task);
-    let due_today = contains(task.discrete_date, today);
-    let overdue_day = is_active && get_level(task.discrete_date) == DiscreteDateLevel.DAY && prior_to(task.discrete_date, today);
     let completed_today = contains(task.discrete_date_completed, today);
     
     // Set UI parameters
-    let is_today = due_today || overdue_day || completed_today;
-
+    let assigned_lhs = assigned_to_day || completed_today;
+    
     return {
-      overdue : overdue_day,
-      assigned_lhs : is_today,
-      assigned_active_lhs: is_today
+      assigned_lhs : assigned_lhs,
+      assigned_active_lhs: assigned_lhs
     };
   }
 

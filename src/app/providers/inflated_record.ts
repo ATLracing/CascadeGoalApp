@@ -6,7 +6,6 @@
  */
 
 import * as PackedRecord from 'src/app/providers/packed_record';
-import { CalendarManager } from './calendar_manager';
 import { DiscreteDate, get_null_date, get_today, prior_to, get_this_week, get_level, DiscreteDateLevel } from './discrete_date';
 import * as _ from 'lodash';
 
@@ -224,6 +223,11 @@ export function is_complete(node : TgvNode) : boolean
 export function is_dormant(node : TgvNode) : boolean
 {
     return get_resolution(node) == Resolution.DORMANT;
+}
+
+export function is_overdue(node : TgvNode) : boolean
+{
+    return is_active(node) && prior_to(node.discrete_date, get_today());
 }
 
 // ========================================================================================= Actions

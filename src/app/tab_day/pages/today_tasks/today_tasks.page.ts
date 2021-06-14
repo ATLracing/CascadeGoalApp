@@ -72,13 +72,7 @@ export class TaskListPage implements OnDestroy {
 
   get_attributes(task: InflatedRecord.Task) : ContextDependentTaskAttributes
   {
-    let today = get_today();
-
-    let is_active = InflatedRecord.is_active(task);
-    let overdue = is_active && prior_to(task.discrete_date, today);
-
     return {
-      overdue : overdue,
       assigned_lhs : false,
       assigned_active_lhs: false
     };

@@ -12,15 +12,15 @@ export function get_manage_attributes(node: InflatedRecord.TgvNode, calendar_man
 
   let is_active = InflatedRecord.is_active(node);
   let due_this_week = contains(node.discrete_date, this_week);
-  let overdue = prior_to(node.discrete_date, today) && is_active;
+  let overdue = InflatedRecord.is_overdue(node);
   let completed_this_week = contains(node.discrete_date_completed, this_week);
 
   let assigned_to_week = get_level(node.discrete_date) >= DiscreteDateLevel.WEEK || !is_active;
   let assigned_to_active_week = due_this_week || overdue || completed_this_week;
 
   return { assigned_lhs: assigned_to_week,
-           assigned_active_lhs: assigned_to_active_week,
-           overdue: overdue };
+           assigned_active_lhs: assigned_to_active_week
+          };
 }
 
 export function manage_add_remove_week(node: InflatedRecord.TgvNode, 
