@@ -7,7 +7,6 @@ import { TaskListComponent } from './components/task/task';
 import { TabDayRoutingModule } from './tab_day-routing.module';
 import { ComponentAssociate } from './components/associate/associate';
 import { ConfigureTgvPage } from './pages/configure_tgv/configure_tgv.page';
-import { DayTaskListItemComponent } from './components/day-task-list-item/day-task-list-item.component';
 import { ChangeWeekComponent } from './components/change-week/change-week.component';
 import { TaskListItemComponent } from './components/task-list-item/task-list-item.component';
 
@@ -24,7 +23,6 @@ import { TaskListItemComponent } from './components/task-list-item/task-list-ite
                  ConfigureTgvPage, 
                  TaskListComponent, 
                  ComponentAssociate, 
-                 DayTaskListItemComponent, 
                  ChangeWeekComponent, 
                  TaskListItemComponent]
 })

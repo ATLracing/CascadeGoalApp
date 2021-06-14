@@ -4,8 +4,9 @@ import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ConfigureTgvPageSettings } from '../configure_tgv/configure_tgv.page';
-import { get_today, DiscreteDateLevel } from 'src/app/providers/discrete_date';
+import { get_today, DiscreteDateLevel, prior_to } from 'src/app/providers/discrete_date';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
+import { ContextDependentTaskAttributes } from '../../components/task-list-item/task-list-item.component';
 
 @Component({
   selector: 'app-tab1',
@@ -67,6 +68,27 @@ export class TaskListPage implements OnDestroy {
 
     this.addressed_transfer_.put_for_route(this.router_, 'configure_tgv', 'settings', configure_tgv_settings);
     this.router_.navigate(['configure_tgv'], { relativeTo: this.route_} );
+  }
+
+  get_attributes(task: InflatedRecord.Task) : ContextDependentTaskAttributes
+  {
+    let today = get_today();
+
+    let is_active = InflatedRecord.is_active(task);
+    let overdue = is_active && prior_to(task.discrete_date, today);
+
+    return {
+      overdue : overdue,
+      assigned_lhs : false,
+      assigned_active_lhs: false
+    };
+  }
+
+  remove_from_day(task: InflatedRecord.TgvNode)
+  {
+    InflatedRecord.clear_day(task);
+
+    this.database_manager_.tgv_set_basic_attributes(task);
   }
 
   ngOnDestroy()
