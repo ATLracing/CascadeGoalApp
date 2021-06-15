@@ -4,7 +4,7 @@
   </ion-item-divider>
   <goal-list-item *ngFor="let goal of active_goals_" [goal]="goal" [add_mode]="send_to_week_mode"></goal-list-item>
 
-  <ion-item-divider>
+  <ion-item-divider *ngIf="completed_goals_.length > 0">
     <ion-label>Complete ({{completed_goals_.length}})</ion-label>
   </ion-item-divider>
   <goal-list-item *ngFor="let goal of completed_goals_" [goal]="goal" [add_mode]="send_to_week_mode"></goal-list-item>

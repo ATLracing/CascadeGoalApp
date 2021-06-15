@@ -26,7 +26,7 @@
       [show_parent]="true"
       [slide_to_remove]="true">
       </task-list-item>
-    <ion-item-divider>
+    <ion-item-divider *ngIf="active_tasks_.length > 0">
       <ion-label>Active ({{active_tasks_.length}})</ion-label>
     </ion-item-divider>
     <task-list-item *ngFor="let task of active_tasks_" 
@@ -38,7 +38,7 @@
       [show_parent]="true"
       [slide_to_remove]="true">
     </task-list-item>
-    <ion-item-divider>
+    <ion-item-divider *ngIf="complete_tasks_.length > 0">
       <ion-label>Complete ({{complete_tasks_.length}})</ion-label>
     </ion-item-divider>
     <task-list-item *ngFor="let task of complete_tasks_" 

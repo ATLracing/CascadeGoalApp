@@ -4,7 +4,7 @@ import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
-import { DiscreteDateLevel, get_level, get_this_week, equals, get_today, contains, prior_to } from 'src/app/providers/discrete_date';
+import { DiscreteDateLevel, get_level, get_this_week, equals, get_today, contains } from 'src/app/providers/discrete_date';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 
 import {

@@ -35,7 +35,7 @@
                   [slide_to_remove]="false">
   </task-list-item>
 
-  <ion-item-divider>
+  <ion-item-divider *ngIf="complete_tasks_.length > 0">
     <ion-label>Complete ({{complete_tasks_.length}})</ion-label>
   </ion-item-divider>
   <task-list-item *ngFor="let task of complete_tasks_" 
