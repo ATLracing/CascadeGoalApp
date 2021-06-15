@@ -83,7 +83,7 @@ export class ConfigureTgvPage {
     }
     else
     {
-      this.parent_name_ = "Unassociated";
+      this.parent_name_ = "None";
     }
   }
 
@@ -91,8 +91,11 @@ export class ConfigureTgvPage {
   {
     const modal = await this.modal_controller_.create({component: ComponentAssociate, componentProps: { is_task: this.tgv_node_.type == InflatedRecord.Type.TASK } });
     
-    modal.onDidDismiss().then(id => {
-      this.update_parent(id.data);
+    modal.onDidDismiss().then(retval => {
+      if (retval.data)
+      {
+        this.update_parent(retval.data.parent_id);
+      }
     });
 
     return await modal.present();

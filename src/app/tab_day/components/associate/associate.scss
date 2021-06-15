@@ -1,0 +1,10 @@
+/* TODO(ABurroughs): Ensure padding settings are portable */
+ion-item {
+    --padding-start: 0px;
+    --inner-padding-end: 4px;
+
+    #primaryIcon {
+        margin-right: 16px;
+        margin-left: 16px;
+    }
+}

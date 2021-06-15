@@ -1,11 +1,17 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { DatabaseManager } from 'src/app/providers/database_manager';
+import { ActiveFilter, DatabaseManager } from 'src/app/providers/database_manager';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
 import { ModalController } from '@ionic/angular';
+
+export class AssociateReturnValue
+{
+  parent_id : InflatedRecord.ID;
+}
 
 @Component({
   selector: 'associate-component',
   templateUrl: 'associate.html',
+  styleUrls: ['associate.scss'],
 })
 export class ComponentAssociate implements OnInit {
   @Input() is_task: boolean;
@@ -18,7 +24,7 @@ export class ComponentAssociate implements OnInit {
               private database_manager_ : DatabaseManager) 
   {
     database_manager_.query_visions().then(visions => { this.visions_ = visions; });
-    database_manager_.query_goals().then(goals => { this.goals_ = goals; })
+    database_manager_.query_goals(new ActiveFilter()).then(goals => { this.goals_ = goals; })
   }
 
   segment_changed(event)
@@ -28,18 +34,27 @@ export class ComponentAssociate implements OnInit {
 
   select(i)
   {
-    if (i == -1)
-    {
-      this.modal_controller_.dismiss(null);
+    let id : InflatedRecord.ID = null;
+
+    if (i != -1)
+    {    
+      if (this.tab_ === "goals")
+      {
+        id = this.goals_[i].id;
+      }
+      else
+      {
+        id = this.visions_[i].id;
+      }
     }
-    else if (this.tab_ === "goals")
-    {
-      this.modal_controller_.dismiss(this.goals_[i].id);
-    }
-    else
-    {
-      this.modal_controller_.dismiss(this.visions_[i].id);
-    }
+
+    let retval : AssociateReturnValue = { parent_id: id };
+    this.modal_controller_.dismiss(retval);
+  }
+
+  back()
+  {
+    this.modal_controller_.dismiss(null);
   }
 
   ngOnInit()
