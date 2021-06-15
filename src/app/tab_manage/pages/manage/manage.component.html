@@ -3,7 +3,8 @@
     <ion-title>Tasks</ion-title>
     <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
     <ion-buttons slot="end">
-      <ion-button (click)="toggle_send_to_week_mode()">
+      <!--TODO(ABurroughs): This button is permanently hidden. Unhide or remove it.-->
+      <ion-button *ngIf="false" (click)="toggle_send_to_week_mode()">
         <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
       </ion-button>
       <ion-button (click)="add_task_backlog()">
@@ -16,7 +17,8 @@
     <ion-title>Goals</ion-title>
     <ion-menu-button slot="start" autoHide="false"></ion-menu-button>
     <ion-buttons slot="end">
-      <ion-button (click)="toggle_send_to_week_mode()">
+      <!--TODO(ABurroughs): This button is permanently hidden. Unhide or remove it.-->
+      <ion-button *ngIf="false" (click)="toggle_send_to_week_mode()">
         <ion-icon slot="icon-only" name="calendar" color="{{send_to_week_color_string_}}"></ion-icon>
       </ion-button>
       <ion-button (click)="add_goal_backlog()">
