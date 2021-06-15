@@ -30,6 +30,7 @@ export class ConfigureTgvPageSettings
 @Component({
   selector: 'configure-tgv-page',
   templateUrl: 'configure_tgv.page.html',
+  styleUrls: ["configure_tgv.scss"]
 })
 export class ConfigureTgvPage {
   private tgv_node_: InflatedRecord.TgvNode;
@@ -123,6 +124,11 @@ export class ConfigureTgvPage {
     });
 
     return await modal.present();
+  }
+
+  discard()
+  {
+    this.router_.navigate(['../'], { relativeTo: this.route_});
   }
 
   save()
