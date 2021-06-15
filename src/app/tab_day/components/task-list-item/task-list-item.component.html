@@ -1,5 +1,5 @@
 <ion-item-sliding>
-  <ion-item-options side="end" *ngIf="!(add_mode_disabled_ || !this.slide_to_remove)">
+  <ion-item-options side="end" *ngIf="!(add_remove_disabled_ || !this.slide_to_remove)">
     <ion-item-option color="danger" (click)="sched_remove_current(task)">Remove</ion-item-option>
   </ion-item-options>
   
@@ -11,16 +11,16 @@
     <ion-checkbox id="primaryIcon" *ngIf="!add_mode" slot="start" [(ngModel)]="complete_" (click)="checkbox_change()"></ion-checkbox>
 
     <ion-buttons id="addRemoveIcon" *ngIf="add_mode" slot="start">
-      <ion-button *ngIf="!assigned_lhs_" disabled="{{add_mode_disabled_}}" (click)="sched_add_remove_lhs(task)">
+      <ion-button *ngIf="!attributes_.assigned_lhs" disabled="{{add_remove_disabled_}}" (click)="sched_add_remove_lhs(task)">
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
-      <ion-button *ngIf="assigned_lhs_" disabled="{{add_mode_disabled_}}" (click)="sched_add_remove_lhs(task)">
+      <ion-button *ngIf="attributes_.assigned_lhs" disabled="{{add_remove_disabled_}}" (click)="sched_add_remove_lhs(task)">
         <ion-icon slot="icon-only" name="close"></ion-icon>
       </ion-button>
     </ion-buttons>
     <ion-buttons id="editIcon" slot="end">
-      <ion-button (click)="edit()">
-        <ion-icon slot="icon-only" name="create"></ion-icon>
+      <ion-button (click)="open_dropdown($event)">
+        <ion-icon slot="icon-only" name="more"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-item>

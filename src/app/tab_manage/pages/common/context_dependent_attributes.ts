@@ -1,13 +1,12 @@
-import { get_level, DiscreteDateLevel, contains, prior_to, get_today } from "src/app/providers/discrete_date";
+import { get_level, DiscreteDateLevel, contains } from "src/app/providers/discrete_date";
 import * as InflatedRecord from "src/app/providers/inflated_record" 
-import { ContextDependentTaskAttributes } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
+import { ContextDependentTaskAttributes, ContextDependentTaskAttributesLhs } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
 import { DatabaseManager } from 'src/app/providers/database_manager';
 
 export function get_manage_attributes(node: InflatedRecord.TgvNode, calendar_manager: CalendarManager) : ContextDependentTaskAttributes
 {
   // Determine attributes
-  let today = get_today();
   let this_week = calendar_manager.get_active_week();
 
   let is_active = InflatedRecord.is_active(node);
@@ -19,7 +18,8 @@ export function get_manage_attributes(node: InflatedRecord.TgvNode, calendar_man
   let assigned_to_active_week = due_this_week || overdue || completed_this_week;
 
   return { assigned_lhs: assigned_to_week,
-           assigned_active_lhs: assigned_to_active_week
+           assigned_active_lhs: assigned_to_active_week,
+           type_lhs: ContextDependentTaskAttributesLhs.WEEK
           };
 }
 

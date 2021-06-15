@@ -4,13 +4,22 @@ import { DatabaseManager } from 'src/app/providers/database_manager';
 import { ConfigureTgvPageSettings } from 'src/app/tab_day/pages/configure_tgv/configure_tgv.page';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { get_today, prior_to } from 'src/app/providers/discrete_date';
+import { PopoverController } from '@ionic/angular';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
+import { TaskListDropdownArguments, TaskListItemPopoverComponent } from '../task-list-item-popover/task-list-item-popover.component';
+
+export enum ContextDependentTaskAttributesLhs
+{
+  NONE,
+  DAY,  
+  WEEK
+}
 
 export class ContextDependentTaskAttributes
 {
   assigned_lhs : boolean;
-  assigned_active_lhs: boolean;
+  assigned_active_lhs : boolean;
+  type_lhs : ContextDependentTaskAttributesLhs;
 };
 
 @Component({
@@ -29,17 +38,18 @@ export class TaskListItemComponent implements OnInit, OnChanges{
   @Input() show_parent: boolean;
   @Input() slide_to_remove: boolean;
 
-  add_mode_disabled_ : boolean;
+  add_remove_disabled_ : boolean;
   complete_ : boolean;
-  assigned_lhs_: boolean;
+  attributes_: ContextDependentTaskAttributes;
 
   text_style_ : {[key:string] : string};
 
-  constructor(private addressed_transfer_: AddressedTransfer,
-              private database_manager_  : DatabaseManager,
-              private calendar_manager_  : CalendarManager,
-              private router_            : Router,
-              private route_             : ActivatedRoute) {}
+  constructor(private addressed_transfer_ : AddressedTransfer,
+              private database_manager_   : DatabaseManager,
+              private calendar_manager_   : CalendarManager,
+              private router_             : Router,
+              private route_              : ActivatedRoute,
+              private popover_controller_ : PopoverController) {}
 
   edit()
   {
@@ -79,18 +89,43 @@ export class TaskListItemComponent implements OnInit, OnChanges{
     this.database_manager_.tgv_set_basic_attributes(this.task);
   }
 
+  async open_dropdown(ev: any) {
+    let dropdown_args : TaskListDropdownArguments = { task_attributes : this.attributes_,
+                                                      add_remove_disabled : this.add_remove_disabled_ };
+    this.addressed_transfer_.put("task-list-item-dropdown-assigned", dropdown_args);
+    
+    const popover = await this.popover_controller_.create({
+      component: TaskListItemPopoverComponent,
+      event: ev,
+      translucent: true,
+    });
+    await popover.present();
+
+    const { role } = await popover.onWillDismiss();
+
+    if (role == "edit")
+    {
+      this.edit();
+    }
+    else if (role == "add_remove_lhs")
+    {
+      this.sched_add_remove_lhs(this.task);
+    }
+
+    console.log('onDidDismiss resolved with role', role);
+  }
+
   ngOnInit() {}
 
   ngOnChanges()
   {
-    let attributes = this.get_context_dependent_attributes(this.task);
     let complete = InflatedRecord.is_complete(this.task);
     let dormant = InflatedRecord.is_dormant(this.task);
     let overdue = InflatedRecord.is_overdue(this.task);
     
-    this.add_mode_disabled_ = complete || dormant;
+    this.add_remove_disabled_ = complete || dormant;
     this.complete_ = complete;
-    this.assigned_lhs_ = attributes.assigned_lhs;
+    this.attributes_ = this.get_context_dependent_attributes(this.task);
 
     // Configure text style
     this.text_style_ = {};
@@ -98,7 +133,7 @@ export class TaskListItemComponent implements OnInit, OnChanges{
     if (complete)
       this.text_style_['text-decoration'] = "line-through";
     
-    if (attributes.assigned_active_lhs && !dormant)
+    if (this.attributes_.assigned_active_lhs && !dormant)
       this.text_style_['font-weight'] = "bold";
 
     if (overdue)

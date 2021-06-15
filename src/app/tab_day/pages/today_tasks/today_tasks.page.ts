@@ -4,9 +4,9 @@ import * as InflatedRecord from 'src/app/providers/inflated_record';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ConfigureTgvPageSettings } from '../configure_tgv/configure_tgv.page';
-import { get_today, DiscreteDateLevel, prior_to } from 'src/app/providers/discrete_date';
+import { get_today, DiscreteDateLevel } from 'src/app/providers/discrete_date';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
-import { ContextDependentTaskAttributes } from '../../components/task-list-item/task-list-item.component';
+import { ContextDependentTaskAttributes, ContextDependentTaskAttributesLhs } from '../../components/task-list-item/task-list-item.component';
 
 @Component({
   selector: 'app-tab1',
@@ -74,7 +74,8 @@ export class TaskListPage implements OnDestroy {
   {
     return {
       assigned_lhs : false,
-      assigned_active_lhs: false
+      assigned_active_lhs: false,
+      type_lhs: ContextDependentTaskAttributesLhs.NONE
     };
   }
 
