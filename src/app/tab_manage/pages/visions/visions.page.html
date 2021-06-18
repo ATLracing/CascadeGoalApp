@@ -9,7 +9,9 @@
             Goals
           </ion-label>
           <ion-buttons slot="end">
-            <ion-button (click)="add_goal_to_vision(vision_index)">New Goal</ion-button>
+            <ion-button (click)="add_goal_to_vision(vision_index)">
+              <ion-icon name="add-circle" slot="start"></ion-icon>
+            </ion-button>
           </ion-buttons>
         </ion-item-divider>
 
@@ -22,7 +24,9 @@
             Tasks (directly-associated)
           </ion-label>
           <ion-buttons slot="end">
-            <ion-button (click)="add_task_to_vision(vision_index)">New Task</ion-button>
+            <ion-button (click)="add_task_to_vision(vision_index)">
+              <ion-icon name="add-circle" slot="start"></ion-icon>
+            </ion-button>
           </ion-buttons>
         </ion-item-divider>
         <task-list-item *ngFor="let free_task of expanded_vision.extra.freestanding_tasks" 
