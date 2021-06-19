@@ -58,6 +58,11 @@ export class ChangeWeekComponent implements OnInit {
     this.modal_controller_.dismiss(week);
   }
 
+  back()
+  {
+    this.modal_controller_.dismiss(null);
+  }
+
   ngOnInit() {}
 
 }
