@@ -116,7 +116,7 @@ export class ManagePage implements OnInit {
   
     modal.onDidDismiss().then(async selected_week => {
       if (selected_week.data)
-        this.calendar_manager_.set_active_week(selected_week.data);
+        this.calendar_manager_.set_active_week(selected_week.data.iso_week);
     });
 
     return await modal.present();

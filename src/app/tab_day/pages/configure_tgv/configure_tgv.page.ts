@@ -5,7 +5,7 @@ import { AddressedTransfer } from 'src/app/providers/addressed_transfer';
 import { ModalController, AlertController } from '@ionic/angular';
 import { ComponentAssociate } from '../../components/associate/associate';
 import { DatabaseManager } from 'src/app/providers/database_manager';
-import { get_dual_week_str, DiscreteDate, equals, contains } from 'src/app/providers/discrete_date';
+import { get_dual_week_str, contains } from 'src/app/providers/discrete_date';
 import { ChangeWeekComponent } from '../../components/change-week/change-week.component';
 
 // TODO(ABurroughs): Prevent editing conflicts (extremely unlikely in practice, but potentially 
@@ -117,12 +117,19 @@ export class ConfigureTgvPage {
     modal.onDidDismiss().then(async selected_week => {
       if (selected_week.data)
       {
-        // Avoid clearing day information if a change has not actually been made
-        if (!contains(this.tgv_node_.discrete_date, selected_week.data))
+        let iso_week = selected_week.data.iso_week;
+
+        if (iso_week == null)
         {
-          InflatedRecord.set_date(selected_week.data, this.tgv_node_);
-          this.week_str_ = get_dual_week_str(this.tgv_node_.discrete_date);
+          InflatedRecord.clear_week(this.tgv_node_);
         }
+        // Avoid clearing day information if a change has not actually been made
+        else if (!contains(this.tgv_node_.discrete_date, iso_week))
+        {
+          InflatedRecord.set_date(iso_week, this.tgv_node_);
+        }
+        
+        this.week_str_ = get_dual_week_str(this.tgv_node_.discrete_date);
       }
     });
 

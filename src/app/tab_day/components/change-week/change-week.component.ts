@@ -12,6 +12,11 @@ class SelectableWeek
   iso_week: DiscreteDate;
 };
 
+export class ChangeWeekReturnVal
+{
+  iso_week: DiscreteDate;
+};
+
 @Component({
   selector: 'app-change-week',
   templateUrl: './change-week.component.html',
@@ -54,8 +59,14 @@ export class ChangeWeekComponent implements OnInit {
 
   select_week(week_index)
   {
-    let week = this.weeks_[week_index].iso_week;
-    this.modal_controller_.dismiss(week);
+    let retval : ChangeWeekReturnVal = { iso_week: this.weeks_[week_index].iso_week};
+    this.modal_controller_.dismiss(retval);
+  }
+
+  clear_week()
+  {
+    let retval : ChangeWeekReturnVal = { iso_week : null};
+    this.modal_controller_.dismiss(retval);
   }
 
   back()
