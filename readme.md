@@ -6,8 +6,6 @@
 3) Within this directory, install deps: `npm i`
 4) Verify installation: `ionic build`
 
-`ionic cordova plugin add uk.co.workingedge.cordova.plugin.sqliteporter`
-
 ## Android
 1) Install Cordova CLI: `npm i -g cordova`
 2) Install Android Studio and JDK 8+ (https://ionicframework.com/docs/v3/intro/deploying/)
@@ -18,4 +16,5 @@
 
 ## Debug:
 `ionic cordova run android --debug -l`
+
 chrome://inspect/#devices
