@@ -34,21 +34,15 @@ export class ComponentAssociate implements OnInit {
 
   select(i)
   {
-    let id : InflatedRecord.ID = null;
-
-    if (i != -1)
-    {    
-      if (this.tab_ === "goals")
-      {
-        id = this.goals_[i].id;
-      }
-      else
-      {
-        id = this.visions_[i].id;
-      }
-    }
+    let id : InflatedRecord.ID = this.tab_ === "goals" ? this.goals_[i].id : this.visions_[i].id;
 
     let retval : AssociateReturnValue = { parent_id: id };
+    this.modal_controller_.dismiss(retval);
+  }
+
+  clear()
+  {
+    let retval : AssociateReturnValue = { parent_id: null };
     this.modal_controller_.dismiss(retval);
   }
 

@@ -8,6 +8,12 @@
     <ion-title>
       Associate
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="outline" color="medium" (click)="clear()">
+        <ion-icon slot="start" name="close"></ion-icon>
+        None
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -38,6 +44,4 @@
       </ion-label>
     </ion-item>
   </ion-list>
-
-  <ion-button color="medium" size="full" (click)="select(-1)">None</ion-button>
 </ion-content>
