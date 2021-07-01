@@ -16,7 +16,7 @@ import {
   // ...
 } from '@angular/animations';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
-import { ContextDependentTaskAttributes, ContextDependentTaskAttributesLhs } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
+import { ContextDependentTaskAttributes, ContextDependentTaskAttributesTab } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
 
 @Component({
   selector: 'app-week-tasks',
@@ -154,7 +154,7 @@ export class WeekTasksPage implements OnDestroy {
     return {
       assigned_lhs : assigned_lhs,
       assigned_active_lhs: assigned_lhs,
-      type_lhs: ContextDependentTaskAttributesLhs.DAY
+      tab: ContextDependentTaskAttributesTab.WEEK
     };
   }
 

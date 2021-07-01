@@ -1,6 +1,6 @@
 import { get_level, DiscreteDateLevel, contains } from "src/app/providers/discrete_date";
 import * as InflatedRecord from "src/app/providers/inflated_record" 
-import { ContextDependentTaskAttributes, ContextDependentTaskAttributesLhs } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
+import { ContextDependentTaskAttributes, ContextDependentTaskAttributesTab } from 'src/app/tab_day/components/task-list-item/task-list-item.component';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
 import { DatabaseManager } from 'src/app/providers/database_manager';
 
@@ -19,7 +19,7 @@ export function get_manage_attributes(node: InflatedRecord.TgvNode, calendar_man
 
   return { assigned_lhs: assigned_to_week,
            assigned_active_lhs: assigned_to_active_week,
-           type_lhs: ContextDependentTaskAttributesLhs.WEEK
+           tab: ContextDependentTaskAttributesTab.MANAGE
           };
 }
 

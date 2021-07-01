@@ -8,18 +8,18 @@ import { PopoverController } from '@ionic/angular';
 import { CalendarManager } from 'src/app/providers/calendar_manager';
 import { TaskListDropdownArguments, TaskListItemPopoverComponent } from '../task-list-item-popover/task-list-item-popover.component';
 
-export enum ContextDependentTaskAttributesLhs
+export enum ContextDependentTaskAttributesTab
 {
-  NONE,
-  DAY,  
-  WEEK
+  MANAGE,
+  WEEK,
+  DAY
 }
 
 export class ContextDependentTaskAttributes
 {
   assigned_lhs : boolean;
   assigned_active_lhs : boolean;
-  type_lhs : ContextDependentTaskAttributesLhs;
+  tab : ContextDependentTaskAttributesTab;
 };
 
 @Component({
@@ -91,7 +91,8 @@ export class TaskListItemComponent implements OnInit, OnChanges{
 
   async open_dropdown(ev: any) {
     let dropdown_args : TaskListDropdownArguments = { task_attributes : this.attributes_,
-                                                      add_remove_disabled : this.add_remove_disabled_ };
+                                                      add_remove_disabled : this.add_remove_disabled_,
+                                                      task: this.task };
     this.addressed_transfer_.put("task-list-item-dropdown-assigned", dropdown_args);
     
     const popover = await this.popover_controller_.create({
@@ -110,6 +111,10 @@ export class TaskListItemComponent implements OnInit, OnChanges{
     else if (role == "add_remove_lhs")
     {
       this.sched_add_remove_lhs(this.task);
+    }
+    else if (role == "remove")
+    {
+      this.sched_remove_current(this.task);
     }
 
     console.log('onDidDismiss resolved with role', role);
