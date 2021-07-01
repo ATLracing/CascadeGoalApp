@@ -112,7 +112,11 @@ export class ConfigureTgvPage {
 
   async set_week()
   {
-    const modal = await this.modal_controller_.create({component: ChangeWeekComponent, componentProps: { active_discrete_date: this.tgv_node_.discrete_date } });
+    const modal = await this.modal_controller_.create(
+      { component: ChangeWeekComponent, 
+        componentProps: { active_discrete_date: this.tgv_node_.discrete_date, 
+                          enable_none_button: true } 
+      });
   
     modal.onDidDismiss().then(async selected_week => {
       if (selected_week.data)

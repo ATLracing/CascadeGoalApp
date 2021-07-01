@@ -24,6 +24,7 @@ export class ChangeWeekReturnVal
 })
 export class ChangeWeekComponent implements OnInit {
   private weeks_: SelectableWeek[];
+  private enable_none_button_: boolean;
   
   constructor(private modal_controller_: ModalController, 
               nav_params_: NavParams) { 
@@ -55,6 +56,8 @@ export class ChangeWeekComponent implements OnInit {
 
       this.weeks_.push({monday_date_str: monday_date_str, iso_week_str: iso_week_str, current: i == 0, active: contains(active_week, iso_week), iso_week: iso_week});
     }
+
+    this.enable_none_button_ = nav_params_.get('enable_none_button');
   }
 
   select_week(week_index)

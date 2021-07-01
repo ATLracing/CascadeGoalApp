@@ -7,7 +7,7 @@
       </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
-      <ion-button fill="outline" color="medium" (click)="clear_week()">
+      <ion-button *ngIf="enable_none_button_" fill="outline" color="medium" (click)="clear_week()">
         <ion-icon slot="start" name="close"></ion-icon>
         None
       </ion-button>

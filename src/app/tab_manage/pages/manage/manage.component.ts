@@ -112,7 +112,11 @@ export class ManagePage implements OnInit {
 
   async open_change_week()
   {
-    const modal = await this.modal_controller_.create({component: ChangeWeekComponent, componentProps: {active_discrete_date: this.calendar_manager_.get_active_week() } });
+    const modal = await this.modal_controller_.create(
+      { component: ChangeWeekComponent, 
+        componentProps: { active_discrete_date: this.calendar_manager_.get_active_week(), 
+                          enable_none_button: false } 
+      });
   
     modal.onDidDismiss().then(async selected_week => {
       if (selected_week.data)
