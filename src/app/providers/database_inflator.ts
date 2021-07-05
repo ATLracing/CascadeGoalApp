@@ -175,7 +175,7 @@ export class DatabaseInflator
         if (query_ids.length > 0)
         {
             let parent_nodes = await database_manager.query_nodes(new IdSetFilter(query_ids, true));
-            this.upward_inflate(parent_nodes, database_manager);
+            await this.upward_inflate(parent_nodes, database_manager);
 
             for (let parent of parent_nodes)
             {

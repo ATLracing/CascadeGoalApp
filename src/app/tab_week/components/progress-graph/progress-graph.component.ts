@@ -89,7 +89,7 @@ export class ProgressGraphComponent implements AfterViewInit, OnChanges {
         events: [],
         title: {
           display: true,
-          text: "Progress"
+          text: "Burndown"
         }
       }
     };
