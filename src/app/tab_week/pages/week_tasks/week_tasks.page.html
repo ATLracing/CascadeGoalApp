@@ -23,7 +23,9 @@
 <ion-content>
   <div [@openClose]="display_analytics_ ? 'open' : 'closed'">
     <!--TODO: Doesn't animate out with ngIf, but I want these scrubbed from the DOM..-->
-    <week-bar-chart *ngIf="display_analytics_" [tasks]="all_tasks_"></week-bar-chart>
+    <!--TODO: Update or remove week-bar-chart-->
+    <week-bar-chart *ngIf="false" [tasks]="all_tasks_"></week-bar-chart>
+    <progress-graph *ngIf="display_analytics_" [tasks]="all_tasks_"></progress-graph>
     <week-donut-chart *ngIf="display_analytics_" [tasks]="all_tasks_"></week-donut-chart>
   </div>
   <ion-list>
