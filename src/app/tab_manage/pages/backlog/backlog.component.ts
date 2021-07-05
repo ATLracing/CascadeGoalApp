@@ -32,6 +32,8 @@ export class BacklogPage implements OnInit, OnDestroy {
     this.complete_tasks_ = [];
     this.dormant_tasks_ = [];
     
+    this.settings_ = new ManageSettings();
+    
     database_manager_.register_data_updated_callback("backlog_page", async () => {
       this.get_expanded_tasks(this.settings_, database_manager_);
     });
@@ -58,7 +60,7 @@ export class BacklogPage implements OnInit, OnDestroy {
     let active_unscheduled_tasks = await this.database_manager_.query_tasks(join_and(new ActiveFilter(), new NotFilter(new ScheduledFilter())));
     let active_scheduled_tasks = await this.database_manager_.query_tasks(join_and(new ActiveFilter(), new ScheduledFilter()));      
     let complete_tasks = await this.database_manager_.query_tasks(new CompleteFilter(this.settings_.show_completed ? undefined : this.calendar_manager_.get_active_week()));
-    let dormant_tasks = await this.database_manager_.query_tasks(new DormantFilter());
+    let dormant_tasks = this.settings_.show_dormant ? await this.database_manager_.query_tasks(new DormantFilter()) : [];
     
     let all_tasks = active_unscheduled_tasks.concat(active_scheduled_tasks.concat(complete_tasks.concat(dormant_tasks)));
 

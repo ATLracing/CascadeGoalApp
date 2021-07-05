@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import * as InflatedRecord from 'src/app/providers/inflated_record'
-import { DatabaseManager, ActiveFilter, QueryFilter, join_and, DormantFilter, CompleteGoalFilter } from 'src/app/providers/database_manager';
+import { DatabaseManager, ActiveFilter, QueryFilter, join_and, DormantFilter, CompleteGoalFilter, NotFilter } from 'src/app/providers/database_manager';
 import { ManageSettings } from '../../components/settings/settings';
 import { DatabaseInflator } from 'src/app/providers/database_inflator';
 import { LoadingController } from '@ionic/angular';
@@ -33,6 +33,8 @@ export class GoalBacklogPage implements OnInit, OnDestroy {
     this.active_goals_ = [];
     this.completed_goals_ = [];
     this.dormant_goals_ = [];
+
+    this.settings_ = new ManageSettings();
   }
 
   async get_expanded_goals()
@@ -48,13 +50,13 @@ export class GoalBacklogPage implements OnInit, OnDestroy {
 
     let active_goals = await this.database_manager_.query_goals(new ActiveFilter());
     let completed_goals = await this.database_manager_.query_goals(new CompleteGoalFilter(this.settings_.show_completed ? undefined : this.calendar_manager_.get_active_week()));
-    let dormant_goals = await this.database_manager_.query_goals(new DormantFilter());
+    let dormant_goals = this.settings_.show_dormant ? await this.database_manager_.query_goals(new DormantFilter()) : [];
 
     let all_goals = active_goals.concat(completed_goals.concat(dormant_goals));
     // Inflate the active goals
     for (let goal of all_goals)
     {
-      await DatabaseInflator.inflate_goal(goal, this.database_manager_, false);
+      await DatabaseInflator.inflate_goal(goal, this.database_manager_, false, this.settings_.show_dormant ? null : new NotFilter(new DormantFilter()));
     }
 
     this.active_goals_ = active_goals;

@@ -3,7 +3,14 @@ import { ModalController } from '@ionic/angular';
 
 export class ManageSettings
 {
+  constructor()
+  {
+    this.show_completed = false;
+    this.show_dormant = false;
+  }
+
   show_completed: boolean;
+  show_dormant: boolean;
 };
 
 @Component({

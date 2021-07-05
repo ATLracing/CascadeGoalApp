@@ -24,6 +24,7 @@ export class MenuEventHandlers
 export class AppComponent implements OnDestroy{
   page_number_;
   current_week_str_: string;
+  manage_settings_: ManageSettings;
 
   constructor(
     private platform: Platform,
@@ -38,6 +39,7 @@ export class AppComponent implements OnDestroy{
     this.page_number_ = 0;
 
     this.current_week_str_ = "";
+    this.manage_settings_ = new ManageSettings();
 
     this.database_manager_.register_data_updated_callback("app_component", () => {
       // TODO(ABurroughs): Use pipe
@@ -65,13 +67,23 @@ export class AppComponent implements OnDestroy{
 
   show_completed_change(event)
   {
-    let show_completed = event.detail.checked;
-    let event_handlers = this.addressed_transfer_.get("menu_handlers");
+    this.manage_settings_.show_completed = event.detail.checked;
     
+    let event_handlers = this.addressed_transfer_.get("menu_handlers");
     if (event_handlers)
     {
-      let settings : ManageSettings = { show_completed: show_completed };
-      event_handlers.on_settings_change(settings);
+      event_handlers.on_settings_change(this.manage_settings_);
+    }
+  }
+
+  show_dormant_change(event)
+  {
+    this.manage_settings_.show_dormant = event.detail.checked;
+    
+    let event_handlers = this.addressed_transfer_.get("menu_handlers");
+    if (event_handlers)
+    {
+      event_handlers.on_settings_change(this.manage_settings_);
     }
   }
 

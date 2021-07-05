@@ -48,7 +48,7 @@ export class ManagePage implements OnInit {
         this.current_page_ = page_number;
       },
       on_settings_change : (settings) => {
-        this.settings_ = settings;
+        this.settings_ = JSON.parse(JSON.stringify(settings)); 
       },
       on_change_week : () => {
         this.open_change_week();
@@ -65,7 +65,7 @@ export class ManagePage implements OnInit {
     this.toolbar_display_buttons_ = false;
     this.send_to_week_mode_ = false;
     this.send_to_week_color_string_ = "black";
-    this.settings_ = { show_completed: false };
+    this.settings_ = new ManageSettings();
     this.current_vision_ = undefined;
 
     // Backlog

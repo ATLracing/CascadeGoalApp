@@ -45,7 +45,7 @@ export class VisionsPage implements OnDestroy {
       this.send_to_week_mode_ = false;
       
       // Default settings 
-      this.settings_ = { show_completed: false };
+      this.settings_ = new ManageSettings();
 
       database_manager_.register_data_updated_callback("visions_page", async () => {
         await this.get_expanded_visions(this.settings_, this.database_manager_)
