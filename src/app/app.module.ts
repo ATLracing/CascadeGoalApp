@@ -23,7 +23,7 @@ import { CoreModule } from './core/core.module';
     HttpClientModule,
     IonicModule.forRoot(), 
     AppRoutingModule,
-    CoreModule // TODO(ABurroughs, WARN)
+    CoreModule
   ],
   providers: [
     StatusBar,

@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { PopoverController } from '@ionic/angular';
-import { AddressedTransfer } from 'src/app/core/providers/addressed_transfer';
-import { CalendarManager } from 'src/app/core/providers/calendar_manager';
-import { contains, DiscreteDate, DiscreteDateLevel, equals, get_level, get_this_week } from 'src/app/core/providers/discrete_date';
+import { AddressedTransfer } from 'src/app/core/providers/addressed-transfer';
+import { CalendarManager } from 'src/app/core/providers/calendar-manager';
+import { contains, DiscreteDate, DiscreteDateLevel, equals, get_level, get_this_week } from 'src/app/core/providers/discrete-date';
 import { ContextDependentTaskAttributes, ContextDependentTaskAttributesTab } from '../task-list-item/task-list-item.component';
-import { Task } from 'src/app/core/providers/inflated_record'
+import { Task } from 'src/app/core/providers/inflated-record'
 
 export class TaskListDropdownArguments
 {

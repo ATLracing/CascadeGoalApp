@@ -1,11 +1,11 @@
 import { Component, OnInit, Input } from '@angular/core';
-import * as InflatedRecord from 'src/app/core/providers/inflated_record'
-import { ConfigureTgvPageSettings } from 'src/app/core/components/configure_tgv/configure_tgv.page';
-import { AddressedTransfer } from 'src/app/core/providers/addressed_transfer';
+import * as InflatedRecord from 'src/app/core/providers/inflated-record'
+import { ConfigureTgvPageSettings } from 'src/app/core/components/configure-tgv-page/configure-tgv.page';
+import { AddressedTransfer } from 'src/app/core/providers/addressed-transfer';
 import { Router, ActivatedRoute } from '@angular/router';
-import { DatabaseManager, ParentFilter, ActiveFilter, join_and } from 'src/app/core/providers/database_manager';
-import { CalendarManager } from 'src/app/core/providers/calendar_manager';
-import { get_manage_attributes, manage_add_remove_week } from 'src/app/tab_manage/common/context_dependent_attributes';
+import { DatabaseManager, ParentFilter, ActiveFilter, join_and } from 'src/app/core/providers/database-manager';
+import { CalendarManager } from 'src/app/core/providers/calendar-manager';
+import { get_manage_attributes, manage_add_remove_week } from 'src/app/tab-manage/common/context_dependent_attributes';
 import { ContextDependentTaskAttributes } from 'src/app/core/components/task-list-item/task-list-item.component';
 
 @Component({

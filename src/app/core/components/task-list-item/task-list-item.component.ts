@@ -1,11 +1,11 @@
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
-import * as InflatedRecord from 'src/app/core/providers/inflated_record'
-import { DatabaseManager } from 'src/app/core/providers/database_manager';
-import { ConfigureTgvPageSettings } from 'src/app/core/components/configure_tgv/configure_tgv.page';
-import { AddressedTransfer } from 'src/app/core/providers/addressed_transfer';
+import * as InflatedRecord from 'src/app/core/providers/inflated-record'
+import { DatabaseManager } from 'src/app/core/providers/database-manager';
+import { ConfigureTgvPageSettings } from 'src/app/core/components/configure-tgv-page/configure-tgv.page';
+import { AddressedTransfer } from 'src/app/core/providers/addressed-transfer';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PopoverController } from '@ionic/angular';
-import { CalendarManager } from 'src/app/core/providers/calendar_manager';
+import { CalendarManager } from 'src/app/core/providers/calendar-manager';
 import { TaskListDropdownArguments, TaskListItemPopoverComponent } from '../task-list-item-popover/task-list-item-popover.component';
 
 export enum ContextDependentTaskAttributesTab

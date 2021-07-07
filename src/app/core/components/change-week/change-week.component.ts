@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { get_this_week, get_gregorian, get_week, DiscreteDate, contains, week_offset_to_str } from 'src/app/core/providers/discrete_date';
+import { get_this_week, get_gregorian, get_week, DiscreteDate, contains, week_offset_to_str } from 'src/app/core/providers/discrete-date';
 import { ModalController, NavParams } from '@ionic/angular';
 
 class SelectableWeek

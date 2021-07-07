@@ -3,11 +3,11 @@ import { Component, OnDestroy } from '@angular/core';
 import { Platform, MenuController } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
-import { AddressedTransfer } from './core/providers/addressed_transfer';
-import { ManageSettings } from './tab_manage/settings/settings';
-import { CalendarManager } from './core/providers/calendar_manager';
-import { DatabaseManager } from './core/providers/database_manager';
-import { get_gregorian } from './core/providers/discrete_date';
+import { AddressedTransfer } from './core/providers/addressed-transfer';
+import { ManageSettings } from './tab-manage/settings/settings';
+import { CalendarManager } from './core/providers/calendar-manager';
+import { DatabaseManager } from './core/providers/database-manager';
+import { get_gregorian } from './core/providers/discrete-date';
 
 export class MenuEventHandlers
 {

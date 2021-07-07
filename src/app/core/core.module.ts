@@ -7,21 +7,21 @@ import { IonicStorageModule } from '@ionic/storage';
 import { SQLite } from '@ionic-native/sqlite/ngx';
 import { SQLitePorter } from '@ionic-native/sqlite-porter/ngx';
 
-import { AddressedTransfer } from './providers/addressed_transfer';
-import { CalendarManager } from './providers/calendar_manager';
-import { DatabaseManager } from './providers/database_manager';
+import { AddressedTransfer } from './providers/addressed-transfer';
+import { CalendarManager } from './providers/calendar-manager';
+import { DatabaseManager } from './providers/database-manager';
 
-import { ComponentAssociate } from './components/associate/associate';
+import { AssociateComponent } from './components/associate/associate.component';
 import { ChangeWeekComponent } from './components/change-week/change-week.component';
+import { ConfigureTgvPage } from './components/configure-tgv-page/configure-tgv.page';
+import { GoalListItemComponent } from './components/goal-list-item/goal-list-item.component';
 import { TaskListItemComponent } from './components/task-list-item/task-list-item.component';
 import { TaskListItemPopoverComponent } from './components/task-list-item-popover/task-list-item-popover.component';
-import { ConfigureTgvPage } from './components/configure_tgv/configure_tgv.page';
-import { GoalListItemComponent } from './components/goal-list-item/goal-list-item.component';
 
 @NgModule({
   declarations: [
+    AssociateComponent,
     ChangeWeekComponent,
-    ComponentAssociate,
     ConfigureTgvPage,
     GoalListItemComponent,
     TaskListItemComponent,
@@ -34,11 +34,16 @@ import { GoalListItemComponent } from './components/goal-list-item/goal-list-ite
     IonicStorageModule,
   ],
   exports: [
+    AssociateComponent,
     ChangeWeekComponent,
-    ComponentAssociate,
     ConfigureTgvPage,
     GoalListItemComponent,
     TaskListItemComponent,
+    TaskListItemPopoverComponent
+  ],
+  entryComponents: [
+    AssociateComponent,
+    ChangeWeekComponent,
     TaskListItemPopoverComponent
   ],
   providers: [
