@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
-import { CalendarManager } from '../providers/calendar_manager';
-import { DatabaseManager, ParentFilter } from '../providers/database_manager';
-import { get_this_week, equals } from '../providers/discrete_date';
+import { CalendarManager } from '../core/providers/calendar_manager';
+import { DatabaseManager, ParentFilter } from '../core/providers/database_manager';
+import { get_this_week, equals } from '../core/providers/discrete_date';
 
 @Component({
   selector: 'app-tabs',

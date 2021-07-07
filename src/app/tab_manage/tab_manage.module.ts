@@ -2,15 +2,14 @@ import { IonicModule } from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { VisionsPage } from './pages/visions/visions.page';
+import { VisionsPage } from './visions/visions.page';
 import { TabManageRoutingModule } from './tab_manage-router.module';
-import { TabTasksModule } from '../tab_day/tab_day.module';
-import { GoalListItemComponent } from './components/goal-list-item/goal-list-item.component';
-import { SettingsComponent } from './components/settings/settings';
-import { ManagePage } from './pages/manage/manage.component';
-import { BacklogPage } from './pages/backlog/backlog.component';
-import { GoalBacklogPage } from './pages/goal-backlog/goal-backlog.component';
-import { CalendarPage } from './pages/calendar/calendar.component';
+import { SettingsComponent } from './settings/settings';
+import { ManagePage } from './manage/manage.component';
+import { BacklogPage } from './backlog/backlog.component';
+import { GoalBacklogPage } from './goal-backlog/goal-backlog.component';
+import { CalendarPage } from './calendar/calendar.component';
+import { CoreModule } from '../core/core.module';
 
 @NgModule({
   imports: [
@@ -18,9 +17,9 @@ import { CalendarPage } from './pages/calendar/calendar.component';
     CommonModule,
     FormsModule,
     TabManageRoutingModule,
-    TabTasksModule,
+    CoreModule
   ],
   entryComponents: [SettingsComponent],
-  declarations: [ManagePage, VisionsPage, BacklogPage, GoalBacklogPage, CalendarPage, GoalListItemComponent, SettingsComponent ]
+  declarations: [ManagePage, VisionsPage, BacklogPage, GoalBacklogPage, CalendarPage, SettingsComponent ]
 })
 export class Tab3PageModule {}

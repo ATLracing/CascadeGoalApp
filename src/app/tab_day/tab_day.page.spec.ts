@@ -1,7 +1,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { TaskListPage } from './pages/today_tasks/today_tasks.page';
+import { TaskListPage } from './today_tasks/today_tasks.page';
 
 describe('TaskListPage', () => {
   let component: TaskListPage;

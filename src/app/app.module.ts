@@ -1,42 +1,33 @@
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
 import { RouteReuseStrategy } from '@angular/router';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
 
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
-import { DatabaseManager } from './providers/database_manager';
-import { IonicStorageModule } from '@ionic/storage';
-import { AddressedTransfer } from './providers/addressed_transfer';
-
-import { SQLitePorter } from '@ionic-native/sqlite-porter/ngx';
-import { SQLite } from '@ionic-native/sqlite/ngx';
- 
-import { HttpClientModule } from '@angular/common/http';
 import "hammerjs"
-import { CalendarManager } from './providers/calendar_manager';
 
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
+import { CoreModule } from './core/core.module';
+ 
 @NgModule({
   declarations: [AppComponent],
   entryComponents: [],
-  imports: [BrowserModule,
-            BrowserAnimationsModule,
-            HttpClientModule,
-            IonicModule.forRoot(), 
-            IonicStorageModule.forRoot(),
-            AppRoutingModule],
+  imports: [
+    BrowserAnimationsModule,
+    BrowserModule,
+    HttpClientModule,
+    IonicModule.forRoot(), 
+    AppRoutingModule,
+    CoreModule // TODO(ABurroughs, WARN)
+  ],
   providers: [
     StatusBar,
     SplashScreen,
-    SQLitePorter,
-    SQLite,
-    DatabaseManager,
-    CalendarManager,
-    AddressedTransfer,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent]
